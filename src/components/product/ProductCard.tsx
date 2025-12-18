@@ -80,7 +80,7 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
               style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.5s ease-in-out' }}
               // CRITICAL: First 6 images load eagerly for better LCP
               loading={isAboveFold ? "eager" : "lazy"}
-              fetchPriority={isAboveFold ? "high" : "auto"}
+              fetchpriority={isAboveFold ? "high" : "auto"}
               decoding="async"
               onLoad={() => setIsLoaded(true)}
               onError={handleImageError}
