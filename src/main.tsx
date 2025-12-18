@@ -29,13 +29,6 @@ if (!rootElement) {
   )
 }
 
-// Log environment for debugging (dev only)
-if (import.meta.env.DEV) {
-  console.log('🎨 Gallery Store starting in development mode')
-  console.log('📦 Cloudinary:', import.meta.env.VITE_CLOUDINARY_CLOUD ? 'configured' : 'NOT SET')
-  console.log('💳 Stripe:', import.meta.env.VITE_STRIPE_PUBLIC_KEY ? 'configured' : 'NOT SET')
-}
-
 // Warn about missing environment variables
 if (!import.meta.env.VITE_CLOUDINARY_CLOUD) {
   console.warn(
