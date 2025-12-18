@@ -3,11 +3,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import Cart from './Cart'
 import { CartProvider, useCartDispatch } from '../../context/CartContext'
-import type { ReactNode } from 'react'
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
 // Mock Cloudinary environment
 vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
+
 
 // Helper to add item (cart opens automatically via ADD_ITEM action)
 function CartWithItem({ children }: { children?: ReactNode }) {
