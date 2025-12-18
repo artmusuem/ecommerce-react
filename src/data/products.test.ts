@@ -187,7 +187,7 @@ describe('products.ts', () => {
     })
 
     it('should handle missing artist', () => {
-      const artwork = { ...mockArtwork, artist: undefined } as any
+      const artwork = { ...mockArtwork, artist: undefined } as unknown as RawArtwork
       const product = transformArtwork(artwork, 0)
       expect(product.artist).toBe('Unknown Artist')
     })
