@@ -54,40 +54,52 @@ function RootLayout() {
  * 
  * Each route has errorElement - if that route crashes,
  * only that part shows error, not the whole app.
+ * 
+ * Future flags added to prepare for React Router v7:
+ * - v7_startTransition: Uses React.startTransition for state updates
+ * - v7_relativeSplatPath: Changes relative path resolution in splat routes
  */
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: '/',
+      element: <RootLayout />,
+      errorElement: <ErrorPage />,
+      children: [
+        {
+          index: true,
+          element: <Home />,
+          errorElement: <ErrorPage />,
+        },
+        {
+          path: 'product/:id',
+          element: <Product />,
+          errorElement: <ErrorPage />,
+        },
+        {
+          path: 'checkout',
+          element: (
+            <Suspense fallback={<CheckoutLoading />}>
+              <Checkout />
+            </Suspense>
+          ),
+          errorElement: <ErrorPage />,
+        },
+      ],
+    },
+    {
+      // Catch-all for 404s
+      path: '*',
+      element: <ErrorPage />,
+    },
+  ],
   {
-    path: '/',
-    element: <RootLayout />,
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        index: true,
-        element: <Home />,
-        errorElement: <ErrorPage />,
-      },
-      {
-        path: 'product/:id',
-        element: <Product />,
-        errorElement: <ErrorPage />,
-      },
-      {
-        path: 'checkout',
-        element: (
-          <Suspense fallback={<CheckoutLoading />}>
-            <Checkout />
-          </Suspense>
-        ),
-        errorElement: <ErrorPage />,
-      },
-    ],
-  },
-  {
-    // Catch-all for 404s
-    path: '*',
-    element: <ErrorPage />,
-  },
-])
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    },
+  }
+)
 
 /**
  * App Component
