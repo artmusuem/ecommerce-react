@@ -15,8 +15,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "typecheck": "tsc --noEmit",
-    "validate": "npm run typecheck && npm run lint && npm run test:run && npm run build",
-    "prepare": "husky || exit 0"
+    "validate": "npm run typecheck && npm run lint && npm run test:run && npm run build"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.4.0",
