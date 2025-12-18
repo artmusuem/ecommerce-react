@@ -8,13 +8,14 @@ export default function ProductCard({ product, index, artistId }) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [useFallback, setUseFallback] = useState(false)
   const [imageError, setImageError] = useState(false)
+
   const lowestPrice = sizes[0].basePrice
 
   // Single consistent thumbnail URL - same URL used on Product page = cache hit
   const thumbnailSrc = getResizedImage(product.image, IMAGE_SIZES.thumbnail)
-  
+
   // Fallback directly to Smithsonian if Cloudinary fails
-  const fallbackSrc = product.image.includes('ids.si.edu') 
+  const fallbackSrc = product.image.includes('ids.si.edu')
     ? `${product.image}${product.image.includes('?') ? '&' : '?'}max=${IMAGE_SIZES.thumbnail}`
     : product.image
 
@@ -26,7 +27,7 @@ export default function ProductCard({ product, index, artistId }) {
     }
   }
 
-  // Check if already loaded (cached)
+  // Check if already loaded (cached) - set immediately without transition
   useEffect(() => {
     if (imgRef.current?.complete && imgRef.current?.naturalHeight > 0) {
       setIsLoaded(true)
@@ -50,9 +51,10 @@ export default function ProductCard({ product, index, artistId }) {
             ref={imgRef}
             src={useFallback ? fallbackSrc : thumbnailSrc}
             alt={product.title}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
-              isLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className="w-full h-full object-cover group-hover:scale-105 transition-all duration-200 ease-out"
+            style={{ 
+              opacity: isLoaded ? 1 : 0,
+            }}
             loading="lazy"
             decoding="async"
             onLoad={() => setIsLoaded(true)}
@@ -60,6 +62,7 @@ export default function ProductCard({ product, index, artistId }) {
           />
         )}
       </div>
+
       <div className="p-4">
         <h2 className="font-display font-medium text-lg text-stone-800 group-hover:text-stone-600 transition-colors line-clamp-2 leading-tight">
           {product.title}
