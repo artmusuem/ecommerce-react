@@ -24,6 +24,9 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
 
   const lowestPrice = sizes[0].basePrice
 
+  // First 6 images load eagerly for better LCP
+  const isAboveFold = index < 6
+
   const thumbnailSrc = getResizedImage(product.image, IMAGE_SIZES.thumbnail)
   const fallbackSrc = product.image.includes('ids.si.edu')
     ? `${product.image}${product.image.includes('?') ? '&' : '?'}max=${IMAGE_SIZES.thumbnail}`
@@ -42,9 +45,6 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
       setIsLoaded(true)
     }
   }, [useFallback])
-
-  // First 6 images load eagerly for better LCP, rest lazy load
-  const isAboveFold = index < 6
 
   return (
     <Link
@@ -78,6 +78,7 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
               alt={product.title}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.5s ease-in-out' }}
+              // CRITICAL: First 6 images load eagerly for better LCP
               loading={isAboveFold ? "eager" : "lazy"}
               fetchPriority={isAboveFold ? "high" : "auto"}
               decoding="async"
