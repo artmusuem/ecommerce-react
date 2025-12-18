@@ -19,7 +19,8 @@ const mockProduct = {
   museum: 'SAAM'
 }
 
-function renderProductCard(product = mockProduct, index = 0) {
+function renderProductCard(props: { product?: typeof mockProduct; index?: number } = {}) {
+  const { product = mockProduct, index = 0 } = props
   return render(
     <BrowserRouter>
       <ProductCard product={product} index={index} />
@@ -98,10 +99,18 @@ describe('ProductCard', () => {
   })
 
   describe('image loading states', () => {
-    it('should have lazy loading attribute', () => {
-      renderProductCard()
+    it('should have eager loading for above-fold images (index < 6)', () => {
+      renderProductCard({ index: 0 })
+      const img = screen.getByAltText('The Gulf Stream')
+      expect(img.getAttribute('loading')).toBe('eager')
+      expect(img.getAttribute('fetchpriority')).toBe('high')
+    })
+
+    it('should have lazy loading for below-fold images (index >= 6)', () => {
+      renderProductCard({ index: 10 })
       const img = screen.getByAltText('The Gulf Stream')
       expect(img.getAttribute('loading')).toBe('lazy')
+      expect(img.getAttribute('fetchpriority')).toBe('auto')
     })
 
     it('should have async decoding attribute', () => {
