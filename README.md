@@ -382,3 +382,5 @@ Built by [Nathan McMullen](https://github.com/artmusuem) as a demonstration of p
 - [Smithsonian Institution](https://www.si.edu/) for Open Access artwork
 - [Cloudinary](https://cloudinary.com/) for image CDN services
 - [Stripe](https://stripe.com/) for payment infrastructure
+
+<!-- Deploy trigger: 20251218212203 -->
