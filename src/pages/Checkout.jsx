@@ -48,7 +48,10 @@ function CheckoutForm({ total }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-stone-700 mb-2">
+        <label 
+          className="block text-sm font-medium mb-2"
+          style={{ color: 'var(--color-gray-700)' }}
+        >
           Email for receipt
         </label>
         <input
@@ -57,21 +60,43 @@ function CheckoutForm({ total }) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           required
-          className="w-full px-4 py-3 border border-stone-300 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-transparent outline-none transition-all"
+          className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all"
+          style={{ 
+            borderColor: 'var(--color-gray-200)',
+            backgroundColor: 'var(--color-white)'
+          }}
+          onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
+          onBlur={(e) => e.target.style.borderColor = 'var(--color-gray-200)'}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-stone-700 mb-2">
+        <label 
+          className="block text-sm font-medium mb-2"
+          style={{ color: 'var(--color-gray-700)' }}
+        >
           Payment details
         </label>
-        <div className="bg-white border border-stone-300 rounded-xl p-4">
+        <div 
+          className="border-2 rounded-xl p-4"
+          style={{ 
+            borderColor: 'var(--color-gray-200)',
+            backgroundColor: 'var(--color-white)'
+          }}
+        >
           <PaymentElement />
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div 
+          className="px-4 py-3 rounded-xl text-sm"
+          style={{ 
+            backgroundColor: '#FEF2F2',
+            border: '1px solid #FECACA',
+            color: '#DC2626'
+          }}
+        >
           {error}
         </div>
       )}
@@ -79,11 +104,13 @@ function CheckoutForm({ total }) {
       <button
         type="submit"
         disabled={!stripe || processing}
-        className={`w-full py-4 rounded-xl font-semibold text-lg transition-all ${
-          processing
-            ? 'bg-stone-400 cursor-not-allowed'
-            : 'bg-stone-800 hover:bg-stone-700'
-        } text-white`}
+        className="w-full py-4 rounded-xl font-semibold text-lg text-white transition-all"
+        style={{ 
+          backgroundColor: processing ? 'var(--color-gray-400)' : 'var(--color-primary)',
+          cursor: processing ? 'not-allowed' : 'pointer'
+        }}
+        onMouseEnter={(e) => !processing && (e.currentTarget.style.backgroundColor = 'var(--color-primary-dark)')}
+        onMouseLeave={(e) => !processing && (e.currentTarget.style.backgroundColor = 'var(--color-primary)')}
       >
         {processing ? (
           <span className="flex items-center justify-center gap-2">
@@ -98,7 +125,10 @@ function CheckoutForm({ total }) {
         )}
       </button>
 
-      <p className="text-xs text-center text-stone-400 flex items-center justify-center gap-1">
+      <p 
+        className="text-xs text-center flex items-center justify-center gap-1"
+        style={{ color: 'var(--color-gray-400)' }}
+      >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
@@ -118,27 +148,44 @@ function SuccessMessage() {
   }, [dispatch])
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-16 text-center">
-      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
+    <main 
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundColor: 'var(--color-gray-50)' }}
+    >
+      <div className="text-center">
+        <div 
+          className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+          style={{ backgroundColor: '#DCFCE7' }}
+        >
+          <svg className="w-10 h-10" fill="none" stroke="#16A34A" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h1 
+          className="text-3xl font-display font-semibold mb-4"
+          style={{ color: 'var(--color-gray-900)' }}
+        >
+          Thank you for your order!
+        </h1>
+        <p 
+          className="mb-2"
+          style={{ color: 'var(--color-gray-600)' }}
+        >
+          Your payment was successful and your prints are being prepared.
+        </p>
+        <p 
+          className="text-sm mb-8"
+          style={{ color: 'var(--color-gray-400)' }}
+        >
+          Order ID: {paymentIntent?.slice(-8).toUpperCase() || 'Processing...'}
+        </p>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl font-medium transition-all btn-primary"
+        >
+          Continue Shopping
+        </Link>
       </div>
-      <h1 className="text-3xl font-display font-semibold text-stone-800 mb-4">
-        Thank you for your order!
-      </h1>
-      <p className="text-stone-600 mb-2">
-        Your payment was successful and your prints are being prepared.
-      </p>
-      <p className="text-sm text-stone-400 mb-8">
-        Order ID: {paymentIntent?.slice(-8).toUpperCase() || 'Processing...'}
-      </p>
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 px-6 py-3 bg-stone-800 text-white rounded-xl font-medium hover:bg-stone-700 transition-colors"
-      >
-        Continue Shopping
-      </Link>
     </main>
   )
 }
@@ -188,16 +235,39 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <main className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
+      <main 
+        className="min-h-screen flex items-center justify-center px-4"
+        style={{ backgroundColor: 'var(--color-gray-50)' }}
+      >
+        <div className="text-center">
+          <div 
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ backgroundColor: 'var(--color-gray-100)' }}
+          >
+            <svg 
+              className="w-8 h-8" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+              style={{ color: 'var(--color-gray-400)' }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </div>
+          <h1 
+            className="text-2xl font-display mb-4"
+            style={{ color: 'var(--color-gray-800)' }}
+          >
+            Your cart is empty
+          </h1>
+          <Link 
+            to="/" 
+            className="underline transition-colors"
+            style={{ color: 'var(--color-primary)' }}
+          >
+            Continue shopping
+          </Link>
         </div>
-        <h1 className="text-2xl font-display text-stone-800 mb-4">Your cart is empty</h1>
-        <Link to="/" className="text-stone-600 underline hover:text-stone-800">
-          Continue shopping
-        </Link>
       </main>
     )
   }
@@ -205,9 +275,9 @@ export default function Checkout() {
   const appearance = {
     theme: 'stripe',
     variables: {
-      colorPrimary: '#292524',
+      colorPrimary: '#0A5EB8',
       colorBackground: '#ffffff',
-      colorText: '#1c1917',
+      colorText: '#1E293B',
       colorDanger: '#dc2626',
       fontFamily: 'Inter, system-ui, sans-serif',
       borderRadius: '12px',
@@ -215,83 +285,183 @@ export default function Checkout() {
   }
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-display font-semibold text-stone-800 mb-8">Checkout</h1>
-
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Order Summary - First on mobile, Left on desktop */}
-        <div>
-          <h2 className="text-lg font-semibold text-stone-800 mb-4">Order Summary</h2>
-          <div className="bg-stone-50 rounded-2xl p-5 space-y-4">
-            {items.map((item) => {
-              const size = sizes.find(s => s.id === item.sizeId)
-              const frame = frames.find(f => f.id === item.frameId)
-              
-              return (
-                <div key={item.key} className="flex gap-4">
-                  <img
-                    src={getResizedImage(item.image, 100)}
-                    alt={item.title}
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-stone-800 text-sm line-clamp-1">{item.title}</h3>
-                    <p className="text-xs text-stone-500 mt-0.5">
-                      {size?.name} • {frame?.name}
-                    </p>
-                    <p className="text-xs text-stone-400">
-                      Qty: {item.quantity}
-                    </p>
-                  </div>
-                  <span className="font-semibold text-stone-800">${item.price * item.quantity}</span>
-                </div>
-              )
-            })}
-            
-            <div className="border-t border-stone-200 pt-4 flex justify-between items-center">
-              <span className="text-stone-600">Total</span>
-              <span className="text-2xl font-display font-semibold text-stone-800">${total}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Payment Form - Second on mobile, Right on desktop */}
-        <div>
-          <h2 className="text-lg font-semibold text-stone-800 mb-4">Payment</h2>
-          <div className="bg-white border border-stone-200 rounded-2xl p-6">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <svg className="animate-spin h-8 w-8 text-stone-400" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              </div>
-            ) : error ? (
-              <div className="text-center py-8">
-                <p className="text-red-600 mb-4">{error}</p>
-                <button 
-                  onClick={() => window.location.reload()}
-                  className="px-6 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700"
-                >
-                  Try Again
-                </button>
-              </div>
-            ) : clientSecret ? (
-              <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
-                <CheckoutForm total={total} />
-              </Elements>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <Link to="/" className="text-stone-500 hover:text-stone-700 transition-colors inline-flex items-center gap-1">
+    <main 
+      className="min-h-screen py-8"
+      style={{ backgroundColor: 'var(--color-gray-50)' }}
+    >
+      <div className="max-w-5xl mx-auto px-4">
+        {/* Back link */}
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-1 text-sm mb-6 transition-colors"
+          style={{ color: 'var(--color-gray-500)' }}
+          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-gray-700)'}
+          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-gray-500)'}
+        >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Continue shopping
+          Back to shop
         </Link>
+
+        <h1 
+          className="text-3xl font-display font-semibold mb-8"
+          style={{ color: 'var(--color-gray-900)' }}
+        >
+          Checkout
+        </h1>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Order Summary */}
+          <div>
+            <h2 
+              className="text-lg font-semibold mb-4"
+              style={{ color: 'var(--color-gray-800)' }}
+            >
+              Order Summary
+            </h2>
+            <div 
+              className="rounded-2xl p-5 space-y-4"
+              style={{ backgroundColor: 'var(--color-white)' }}
+            >
+              {items.map((item) => {
+                const size = sizes.find(s => s.id === item.sizeId)
+                const frame = frames.find(f => f.id === item.frameId)
+                
+                // Build product state with selected options for the Product page
+                const productState = {
+                  product: {
+                    id: item.productId,
+                    title: item.title,
+                    artist: item.artist,
+                    image: item.image
+                  },
+                  selectedSizeId: item.sizeId,
+                  selectedFrameId: item.frameId
+                }
+
+                return (
+                  <div key={item.key} className="flex gap-4">
+                    {/* Clickable image with frame color border */}
+                    <Link
+                      to={`/product/${encodeURIComponent(item.productId)}`}
+                      state={productState}
+                      className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity"
+                      style={{ 
+                        backgroundColor: 'var(--color-gray-100)',
+                        border: `3px solid ${frame?.color || '#333'}`,
+                        boxShadow: 'inset 0 0 4px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      <img
+                        src={getResizedImage(item.image, 100)}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </Link>
+                    
+                    <div className="flex-1 min-w-0">
+                      {/* Clickable title */}
+                      <Link
+                        to={`/product/${encodeURIComponent(item.productId)}`}
+                        state={productState}
+                        className="block hover:underline"
+                      >
+                        <h3 
+                          className="font-medium text-sm line-clamp-1"
+                          style={{ color: 'var(--color-gray-800)' }}
+                        >
+                          {item.title}
+                        </h3>
+                      </Link>
+                      {/* Size and Frame with color indicator */}
+                      <p 
+                        className="text-xs mt-0.5 flex items-center gap-1"
+                        style={{ color: 'var(--color-gray-500)' }}
+                      >
+                        {size?.name} • {frame?.name}
+                        <span 
+                          className="inline-block w-3 h-3 rounded border"
+                          style={{ 
+                            backgroundColor: frame?.color,
+                            borderColor: 'var(--color-gray-300)'
+                          }}
+                        />
+                      </p>
+                      <p 
+                        className="text-xs"
+                        style={{ color: 'var(--color-gray-400)' }}
+                      >
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    
+                    <span 
+                      className="font-semibold"
+                      style={{ color: 'var(--color-gray-800)' }}
+                    >
+                      ${item.price * item.quantity}
+                    </span>
+                  </div>
+                )
+              })}
+
+              <div 
+                className="border-t pt-4 flex justify-between items-center"
+                style={{ borderColor: 'var(--color-gray-200)' }}
+              >
+                <span style={{ color: 'var(--color-gray-600)' }}>Total</span>
+                <span 
+                  className="text-2xl font-display font-semibold"
+                  style={{ color: 'var(--color-gray-900)' }}
+                >
+                  ${total}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Form */}
+          <div>
+            <h2 
+              className="text-lg font-semibold mb-4"
+              style={{ color: 'var(--color-gray-800)' }}
+            >
+              Payment
+            </h2>
+            <div 
+              className="rounded-2xl p-6"
+              style={{ backgroundColor: 'var(--color-white)' }}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <svg 
+                    className="animate-spin h-8 w-8" 
+                    viewBox="0 0 24 24"
+                    style={{ color: 'var(--color-gray-400)' }}
+                  >
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                </div>
+              ) : error ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 mb-4">{error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-2 text-white rounded-lg btn-primary"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : clientSecret ? (
+                <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
+                  <CheckoutForm total={total} />
+                </Elements>
+              ) : null}
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   )
