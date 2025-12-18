@@ -383,4 +383,4 @@ Built by [Nathan McMullen](https://github.com/artmusuem) as a demonstration of p
 - [Cloudinary](https://cloudinary.com/) for image CDN services
 - [Stripe](https://stripe.com/) for payment infrastructure
 
-<!-- Deploy trigger: 20251218212901 -->
+<!-- Deploy trigger: 20251218213619 -->
