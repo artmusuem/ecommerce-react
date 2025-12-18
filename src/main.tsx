@@ -1,16 +1,67 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { ErrorBoundary } from 'react-error-boundary'
 import App from './App'
 import { CartProvider } from './context/CartContext'
+import { GlobalErrorFallback } from './components/error/ErrorPage'
 import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <BrowserRouter>
+/**
+ * Application Entry Point
+ * 
+ * Wrapping order (outside to inside):
+ * 1. StrictMode - Development checks for bugs
+ * 2. ErrorBoundary - Catches errors in the entire app
+ * 3. CartProvider - Global cart state
+ * 4. App - Router and pages
+ * 
+ * WHY ERRORBOUNDARY AT TOP LEVEL?
+ * If CartProvider or App crashes during initialization,
+ * the error boundary catches it and shows a recovery UI
+ * instead of a white screen.
+ */
+
+const rootElement = document.getElementById('root')
+
+if (!rootElement) {
+  throw new Error(
+    'Root element not found. Make sure there is a <div id="root"></div> in your index.html'
+  )
+}
+
+// Log environment for debugging (dev only)
+if (import.meta.env.DEV) {
+  console.log('🎨 Gallery Store starting in development mode')
+  console.log('📦 Cloudinary:', import.meta.env.VITE_CLOUDINARY_CLOUD ? 'configured' : 'NOT SET')
+  console.log('💳 Stripe:', import.meta.env.VITE_STRIPE_PUBLIC_KEY ? 'configured' : 'NOT SET')
+}
+
+// Warn about missing environment variables
+if (!import.meta.env.VITE_CLOUDINARY_CLOUD) {
+  console.warn(
+    '⚠️ VITE_CLOUDINARY_CLOUD is not set. Images will load from Smithsonian directly (slower).'
+  )
+}
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <ErrorBoundary
+      FallbackComponent={GlobalErrorFallback}
+      onError={(error, info) => {
+        // Log errors to console in development
+        // In production, you'd send to an error tracking service like Sentry
+        console.error('Application error:', error)
+        console.error('Component stack:', info.componentStack)
+      }}
+      onReset={() => {
+        // Reset application state on recovery
+        // This clears any corrupted state that might have caused the crash
+        window.location.href = '/'
+      }}
+    >
       <CartProvider>
         <App />
       </CartProvider>
-    </BrowserRouter>
-  </React.StrictMode>,
+    </ErrorBoundary>
+  </StrictMode>
 )
