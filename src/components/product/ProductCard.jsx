@@ -32,6 +32,11 @@ export default function ProductCard({ product, index, artistId }) {
 
   // First 6 images load eagerly for better LCP, rest lazy load
   const isAboveFold = index < 6
+  
+  // LCP images: show instantly when loaded (no transition delay)
+  // Below-fold images: nice 300ms fade-in effect
+  const imageOpacity = isLoaded ? 1 : 0
+  const imageTransition = isAboveFold ? 'none' : 'opacity 0.3s ease-in-out'
 
   return (
     <Link
@@ -64,7 +69,7 @@ export default function ProductCard({ product, index, artistId }) {
               src={useFallback ? fallbackSrc : thumbnailSrc}
               alt={product.title}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.5s ease-in-out' }}
+              style={{ opacity: imageOpacity, transition: imageTransition }}
               loading={isAboveFold ? "eager" : "lazy"}
               fetchpriority={isAboveFold ? "high" : "auto"}
               decoding="async"
