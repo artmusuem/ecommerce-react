@@ -4,10 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Gallery Store - Museum-quality art prints from the Smithsonian American Art Museum. Browse masterpieces by Winslow Homer, Mary Cassatt, and more." />
+    
+    <!-- Preconnect to critical origins for faster resource loading -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+    <link rel="preconnect" href="https://m.stripe.network" crossorigin />
+    
+    <!-- DNS prefetch as fallback -->
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+    <link rel="dns-prefetch" href="https://js.stripe.com" />
+    <link rel="dns-prefetch" href="https://ids.si.edu" />
+    
     <title>Gallery Store - Smithsonian Art Prints</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
