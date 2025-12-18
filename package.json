@@ -16,7 +16,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "typecheck": "tsc --noEmit",
     "validate": "npm run typecheck && npm run lint && npm run test:run && npm run build",
-    "prepare": "husky || true"
+    "prepare": "node -e \"if(process.env.CI!=='true'){require('child_process').execSync('npx husky',{stdio:'inherit'})}\""
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.4.0",
