@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
 import { sizes, frames, calculatePrice, artists, transformArtwork } from '../data/products'
 import { useCartDispatch } from '../context/CartContext'
@@ -100,10 +100,10 @@ export default function Product() {
   }, [useFallback, product?.image])
 
   // Fallback directly to Smithsonian if Cloudinary fails
-  const getFallbackUrl = (size: number): string => {
+  const getFallbackUrl = useCallback((size: number): string => {
     if (!product?.image?.includes('ids.si.edu')) return product?.image || ''
     return `${product.image}${product.image.includes('?') ? '&' : '?'}max=${size}`
-  }
+  }, [product?.image])
 
   // Scroll to top on page load
   useEffect(() => {
@@ -125,7 +125,7 @@ export default function Product() {
             .catch(() => {})
         })
     }
-  }, [product?.image])
+  }, [product?.image, getFallbackUrl])
 
   // Loading state
   if (loading) {
