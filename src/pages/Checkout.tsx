@@ -204,17 +204,17 @@ export default function Checkout() {
   const [error, setError] = useState<string | null>(null)
   const [searchParams] = useSearchParams()
 
-  // Check for success redirect
-  if (searchParams.get('success') || searchParams.get('redirect_status') === 'succeeded') {
-    return <SuccessMessage />
-  }
+  // Check for success (computed before hooks, returned after hooks)
+  const isSuccess = searchParams.get('success') || searchParams.get('redirect_status') === 'succeeded'
 
   // Lazy load Stripe only when this component mounts
   useEffect(() => {
+    if (isSuccess) return // Skip if showing success page
     getStripe().then(() => setStripeReady(true))
-  }, [])
+  }, [isSuccess])
 
   useEffect(() => {
+    if (isSuccess) return // Skip if showing success page
     if (items.length === 0) {
       setLoading(false)
       return
@@ -243,7 +243,12 @@ export default function Checkout() {
     }
 
     createPaymentIntent()
-  }, [items, total])
+  }, [items, total, isSuccess])
+
+  // Return success page (after all hooks)
+  if (isSuccess) {
+    return <SuccessMessage />
+  }
 
   if (items.length === 0) {
     return (
