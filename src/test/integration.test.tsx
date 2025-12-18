@@ -4,7 +4,6 @@ import { MemoryRouter } from 'react-router-dom'
 import { CartProvider, useCart, useCartDispatch } from '../context/CartContext'
 import Cart from '../components/cart/Cart'
 import type { ReactNode } from 'react'
-import React, { useEffect } from 'react'
 
 // Mock Cloudinary environment
 vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
