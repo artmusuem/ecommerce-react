@@ -7,15 +7,13 @@
     <meta name="description" content="Gallery Store - Museum-quality art prints from the Smithsonian American Art Museum. Shop framed prints by Winslow Homer, Mary Cassatt, Georgia O'Keeffe, and more." />
     <title>Gallery Store - Smithsonian Art Prints</title>
     
-    <!-- Preconnect to critical origins (saves ~300ms each) -->
-    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
-    <link rel="preconnect" href="https://ids.si.edu" crossorigin />
+    <!-- Preconnect to image CDNs (no crossorigin for regular img fetches) -->
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://ids.si.edu" />
     
     <!-- DNS prefetch as fallback for older browsers -->
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <link rel="dns-prefetch" href="https://ids.si.edu" />
-    
-    <!-- Note: Stripe preconnect removed - only loads on /checkout now -->
   </head>
   <body>
     <div id="root"></div>
