@@ -1,0 +1,17 @@
+#!/bin/sh
+
+echo "🔍 Running pre-commit checks..."
+
+echo "📝 Type checking..."
+npm run typecheck || {
+  echo "❌ Type check failed. Fix errors before committing."
+  exit 1
+}
+
+echo "✨ Linting staged files..."
+npx lint-staged || {
+  echo "❌ Lint failed. Fix errors before committing."
+  exit 1
+}
+
+echo "✅ Pre-commit checks passed!"
