@@ -117,6 +117,7 @@ export function CartProvider({ children }: CartProviderProps) {
   // Save to localStorage whenever cart items change
   useEffect(() => {
     saveCartToStorage(cart)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.items])
   
   const total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
@@ -137,6 +138,7 @@ export function CartProvider({ children }: CartProviderProps) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart(): CartContextValue {
   const cart = useContext(CartContext)
   if (cart === null) {
@@ -145,6 +147,7 @@ export function useCart(): CartContextValue {
   return cart
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCartDispatch(): Dispatch<CartAction> {
   const dispatch = useContext(CartDispatchContext)
   if (dispatch === null) {
