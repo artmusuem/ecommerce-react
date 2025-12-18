@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { CartProvider } from './context/CartContext'
+import { Routes, Route } from 'react-router-dom'
 import Header from './components/layout/Header'
 import Cart from './components/cart/Cart'
 import Home from './pages/Home'
@@ -31,25 +30,24 @@ function CheckoutLoading() {
   )
 }
 
+// NOTE: BrowserRouter and CartProvider are in main.tsx - don't duplicate here!
 export default function App() {
   return (
-    <BrowserRouter>
-      <CartProvider>
-        <Header />
-        <Cart />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/product/:id" element={<Product />} />
-          <Route 
-            path="/checkout" 
-            element={
-              <Suspense fallback={<CheckoutLoading />}>
-                <Checkout />
-              </Suspense>
-            } 
-          />
-        </Routes>
-      </CartProvider>
-    </BrowserRouter>
+    <>
+      <Header />
+      <Cart />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/product/:id" element={<Product />} />
+        <Route 
+          path="/checkout" 
+          element={
+            <Suspense fallback={<CheckoutLoading />}>
+              <Checkout />
+            </Suspense>
+          } 
+        />
+      </Routes>
+    </>
   )
 }
