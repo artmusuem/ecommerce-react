@@ -1,7 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, ImgHTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
 import { sizes } from '../../data/products'
 import { getResizedImage, IMAGE_SIZES } from '../../utils/images'
+
+// Extend img attributes to include fetchpriority (valid HTML, React types lag behind)
+interface ExtendedImgProps extends ImgHTMLAttributes<HTMLImageElement> {
+  fetchpriority?: 'high' | 'low' | 'auto'
+}
 
 interface Product {
   id: string
@@ -46,6 +51,18 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
     }
   }, [useFallback])
 
+  const imgProps: ExtendedImgProps = {
+    src: useFallback ? fallbackSrc : thumbnailSrc,
+    alt: product.title,
+    className: "w-full h-full object-cover transition-transform duration-300 group-hover:scale-105",
+    style: { opacity: isLoaded ? 1 : 0, transition: 'opacity 0.5s ease-in-out' },
+    loading: isAboveFold ? "eager" : "lazy",
+    fetchpriority: isAboveFold ? "high" : "auto",
+    decoding: "async",
+    onLoad: () => setIsLoaded(true),
+    onError: handleImageError,
+  }
+
   return (
     <Link
       to={`/product/${encodeURIComponent(product.id)}`}
@@ -72,17 +89,7 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
           </div>
         ) : (
           <>
-            <img
-              ref={imgRef}
-              src={useFallback ? fallbackSrc : thumbnailSrc}
-              alt={product.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.5s ease-in-out' }}
-              loading={isAboveFold ? "eager" : "lazy"}
-              decoding="async"
-              onLoad={() => setIsLoaded(true)}
-              onError={handleImageError}
-            />
+            <img ref={imgRef} {...imgProps} />
             
             {/* Quick view overlay */}
             <div 
