@@ -8,8 +8,6 @@ export default function Cart() {
   const { items, isOpen, total } = useCart()
   const dispatch = useCartDispatch()
 
-  if (!isOpen) return null
-
   // Handle option change - remove old item, add new one with same quantity
   const handleOptionChange = (item: CartItem, newSizeId: string, newFrameId: string) => {
     const oldQuantity = item.quantity
@@ -35,14 +33,20 @@ export default function Cart() {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - fades in/out */}
       <div 
-        className="fixed inset-0 z-40 bg-black/50"
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
         onClick={() => dispatch({ type: 'TOGGLE_CART' })}
       />
       
-      {/* Cart Panel */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md z-50 shadow-2xl flex flex-col bg-white">
+      {/* Cart Panel - slides in/out from right */}
+      <div 
+        className={`fixed right-0 top-0 h-full w-full max-w-md z-50 shadow-2xl flex flex-col bg-white transform transition-transform duration-300 ease-out ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
