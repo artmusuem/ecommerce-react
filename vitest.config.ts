@@ -9,9 +9,11 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    // Ensure deps are processed before tests
-    deps: {
-      inline: [/src\/utils\/images/]
+    // Updated: Use server.deps.inline instead of deprecated deps.inline
+    server: {
+      deps: {
+        inline: [/src\/utils\/images/]
+      }
     },
     coverage: {
       provider: 'v8',
