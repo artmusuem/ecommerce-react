@@ -78,9 +78,7 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
               alt={product.title}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.5s ease-in-out' }}
-              // CRITICAL: First 6 images load eagerly for better LCP
               loading={isAboveFold ? "eager" : "lazy"}
-              fetchpriority={isAboveFold ? "high" : "auto"}
               decoding="async"
               onLoad={() => setIsLoaded(true)}
               onError={handleImageError}
