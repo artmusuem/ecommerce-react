@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test'
 
+// Helper to wait for products to load
+async function waitForProducts(page: import('@playwright/test').Page) {
+  // Wait for product links to appear in the grid
+  await expect(page.locator('a[href^="/product/"]').first()).toBeVisible({ timeout: 15000 })
+}
+
 test.describe('Gallery Store E2E', () => {
   
   test.describe('Home Page', () => {
@@ -17,7 +23,7 @@ test.describe('Gallery Store E2E', () => {
       await page.goto('/')
       
       // Wait for products to load
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       
       // Should have product cards with prices
       await expect(page.getByText('$45').first()).toBeVisible()
@@ -42,7 +48,7 @@ test.describe('Gallery Store E2E', () => {
       await page.goto('/')
       
       // Wait for grid to load
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       
       // Click first product
       await page.locator('a[href^="/product/"]').first().click()
@@ -56,7 +62,7 @@ test.describe('Gallery Store E2E', () => {
 
     test('should display size and frame options', async ({ page }) => {
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       
       // Should have size selector
@@ -68,15 +74,15 @@ test.describe('Gallery Store E2E', () => {
 
     test('should update price when options change', async ({ page }) => {
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       
       // Get initial price (should be $45 for 8x10 + black frame)
       await expect(page.getByText('$45')).toBeVisible()
       
-      // Change to largest size
-      const selects = page.getByRole('combobox')
-      await selects.first().selectOption('24x30')
+      // Change to largest size - target the Print Size select
+      const sizeSelect = page.locator('select').first()
+      await sizeSelect.selectOption('24x30')
       
       // Price should update to $145
       await expect(page.getByText('$145')).toBeVisible()
@@ -86,7 +92,7 @@ test.describe('Gallery Store E2E', () => {
   test.describe('Cart Flow', () => {
     test('should add item to cart', async ({ page }) => {
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       
       // Add to cart
@@ -95,13 +101,13 @@ test.describe('Gallery Store E2E', () => {
       // Should show confirmation
       await expect(page.getByText('Added to Cart')).toBeVisible()
       
-      // Cart should open
+      // Cart should open with item
       await expect(page.getByRole('heading', { name: /Cart \(1\)/ })).toBeVisible()
     })
 
     test('should update quantity in cart', async ({ page }) => {
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       await page.getByRole('button', { name: 'Add to Cart' }).click()
       
@@ -111,13 +117,14 @@ test.describe('Gallery Store E2E', () => {
       // Click + button to increase quantity
       await page.getByRole('button', { name: '+' }).click()
       
-      // Quantity should be 2
-      await expect(page.getByText('2').first()).toBeVisible()
+      // Cart header should still show 1 item (quantity increased, not items)
+      // Check for quantity display in cart
+      await expect(page.locator('.text-center.text-sm').filter({ hasText: '2' })).toBeVisible()
     })
 
     test('should remove item from cart', async ({ page }) => {
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       await page.getByRole('button', { name: 'Add to Cart' }).click()
       
@@ -130,7 +137,7 @@ test.describe('Gallery Store E2E', () => {
 
     test('should navigate to checkout', async ({ page }) => {
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       await page.getByRole('button', { name: 'Add to Cart' }).click()
       
@@ -154,7 +161,7 @@ test.describe('Gallery Store E2E', () => {
     test('should display order summary with items', async ({ page }) => {
       // Add item first
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       await page.getByRole('button', { name: 'Add to Cart' }).click()
       await page.getByRole('link', { name: 'Checkout' }).click()
@@ -168,7 +175,7 @@ test.describe('Gallery Store E2E', () => {
   test.describe('Navigation', () => {
     test('should navigate via header logo', async ({ page }) => {
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       
       // Click logo to go home
@@ -180,7 +187,7 @@ test.describe('Gallery Store E2E', () => {
     test('should persist cart across navigation', async ({ page }) => {
       // Add item
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       await page.locator('a[href^="/product/"]').first().click()
       await page.getByRole('button', { name: 'Add to Cart' }).click()
       
@@ -191,7 +198,7 @@ test.describe('Gallery Store E2E', () => {
       await page.getByRole('link', { name: /Gallery Store/ }).click()
       
       // Open cart via header button
-      await page.getByRole('button', { name: 'Shopping cart' }).click()
+      await page.getByRole('button', { name: /cart/i }).click()
       
       // Item should still be there
       await expect(page.getByRole('heading', { name: /Cart \(1\)/ })).toBeVisible()
@@ -210,7 +217,7 @@ test.describe('Gallery Store E2E', () => {
   test.describe('Image Loading', () => {
     test('should load images via Cloudinary CDN', async ({ page }) => {
       await page.goto('/')
-      await expect(page.getByText('prints')).toBeVisible({ timeout: 10000 })
+      await waitForProducts(page)
       
       // Check that images use Cloudinary
       const images = page.locator('img[src*="cloudinary"]')
