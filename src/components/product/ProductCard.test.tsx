@@ -19,11 +19,11 @@ const mockProduct = {
   museum: 'SAAM'
 }
 
-function renderProductCard(props: { product?: typeof mockProduct; preloaded?: boolean } = {}) {
-  const { product = mockProduct, preloaded = false } = props
+function renderProductCard(props: { product?: typeof mockProduct; priority?: boolean } = {}) {
+  const { product = mockProduct, priority = false } = props
   return render(
     <BrowserRouter>
-      <ProductCard product={product} preloaded={preloaded} />
+      <ProductCard product={product} priority={priority} />
     </BrowserRouter>
   )
 }
@@ -46,7 +46,6 @@ describe('ProductCard', () => {
 
     it('should render starting price', () => {
       const { container } = renderProductCard()
-      // Price shows as "$ 45" split by whitespace
       const priceSpan = container.querySelector('.font-semibold')
       expect(priceSpan?.textContent).toContain('45')
     })
@@ -99,15 +98,15 @@ describe('ProductCard', () => {
   })
 
   describe('image loading states', () => {
-    it('should have eager loading for preloaded images', () => {
-      renderProductCard({ preloaded: true })
+    it('should have eager loading for priority images', () => {
+      renderProductCard({ priority: true })
       const img = screen.getByAltText('The Gulf Stream')
       expect(img.getAttribute('loading')).toBe('eager')
       expect(img.getAttribute('fetchpriority')).toBe('high')
     })
 
-    it('should have lazy loading for non-preloaded images', () => {
-      renderProductCard({ preloaded: false })
+    it('should have lazy loading for non-priority images', () => {
+      renderProductCard({ priority: false })
       const img = screen.getByAltText('The Gulf Stream')
       expect(img.getAttribute('loading')).toBe('lazy')
       expect(img.getAttribute('fetchpriority')).toBe('auto')
@@ -143,7 +142,6 @@ describe('ProductCard', () => {
       
       await waitFor(() => {
         const newSrc = img.getAttribute('src')
-        // Should switch to Smithsonian direct URL
         expect(newSrc).not.toBe(originalSrc)
         expect(newSrc).toContain('ids.si.edu')
       })
@@ -152,12 +150,12 @@ describe('ProductCard', () => {
 
   describe('skeleton loading', () => {
     it('should show skeleton when not loaded', () => {
-      const { container } = renderProductCard({ preloaded: false })
+      const { container } = renderProductCard({ priority: false })
       expect(container.querySelector('.skeleton-pulse')).toBeInTheDocument()
     })
 
     it('should hide image until loaded', () => {
-      renderProductCard({ preloaded: false })
+      renderProductCard({ priority: false })
       const img = screen.getByAltText('The Gulf Stream')
       expect(img).toHaveStyle({ opacity: '0' })
     })
