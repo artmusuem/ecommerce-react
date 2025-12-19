@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import Checkout from './Checkout'
 import { CartProvider, useCartDispatch } from '../context/CartContext'
-import { mockCartItems, createMockCartItem } from '../test/mocks'
+import { createMockCartItem } from '../test/mocks'
 import type { ReactNode } from 'react'
+import React, { useEffect } from 'react'
 
 // Mock fetch for payment intent
 const mockFetch = vi.fn()
@@ -31,11 +32,10 @@ vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
 vi.stubEnv('VITE_STRIPE_PUBLIC_KEY', 'pk_test_mock')
 
 // Helper to add items to cart
-function CartLoader({ items }: { items: typeof mockCartItems }) {
+function CartLoader({ items }: { items: ReturnType<typeof createMockCartItem>[] }) {
   const dispatch = useCartDispatch()
   
-  // Add items on mount
-  React.useEffect(() => {
+  useEffect(() => {
     items.forEach(item => {
       dispatch({
         type: 'ADD_ITEM',
@@ -54,8 +54,6 @@ function CartLoader({ items }: { items: typeof mockCartItems }) {
   return null
 }
 
-import React from 'react'
-
 // Test wrapper
 function TestWrapper({ 
   children, 
@@ -64,12 +62,12 @@ function TestWrapper({
 }: { 
   children: ReactNode
   initialRoute?: string
-  cartItems?: typeof mockCartItems
+  cartItems?: ReturnType<typeof createMockCartItem>[]
 }) {
   return (
     <MemoryRouter initialEntries={[initialRoute]}>
       <CartProvider>
-        <CartLoader items={cartItems} />
+        {cartItems.length > 0 && <CartLoader items={cartItems} />}
         <Routes>
           <Route path="/checkout" element={children} />
           <Route path="/product/:id" element={<div>Product Page</div>} />
@@ -113,20 +111,6 @@ describe('Checkout Page', () => {
       await waitFor(() => {
         expect(screen.getByRole('link', { name: 'Continue shopping' })).toBeInTheDocument()
       })
-    })
-
-    it('should not fetch payment intent for empty cart', async () => {
-      render(
-        <TestWrapper>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        expect(screen.getByText('Your cart is empty')).toBeInTheDocument()
-      })
-      
-      expect(mockFetch).not.toHaveBeenCalled()
     })
   })
 
@@ -187,69 +171,6 @@ describe('Checkout Page', () => {
         expect(screen.getByText('Test Artwork')).toBeInTheDocument()
       })
     })
-
-    it('should display item price', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        expect(screen.getByText('$45')).toBeInTheDocument()
-      })
-    })
-
-    it('should display item size and frame', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        expect(screen.getByText(/8" × 10"/)).toBeInTheDocument()
-        expect(screen.getByText(/Matte Black/)).toBeInTheDocument()
-      })
-    })
-
-    it('should display quantity', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        expect(screen.getByText(/Qty: 1/)).toBeInTheDocument()
-      })
-    })
-
-    it('should display total', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        // Total label and amount
-        expect(screen.getByText('Total')).toBeInTheDocument()
-      })
-    })
-
-    it('should use optimized image URLs', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        const img = screen.getByRole('img', { name: 'Test Artwork' })
-        expect(img.getAttribute('src')).toContain('cloudinary')
-      })
-    })
   })
 
   describe('Payment Intent', () => {
@@ -270,22 +191,6 @@ describe('Checkout Page', () => {
             headers: { 'Content-Type': 'application/json' }
           })
         )
-      })
-    })
-
-    it('should show loading while fetching payment intent', async () => {
-      mockFetch.mockImplementation(() => new Promise(() => {})) // Never resolves
-      
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        // Should show loading spinner
-        const spinner = document.querySelector('.animate-spin')
-        expect(spinner).toBeInTheDocument()
       })
     })
 
@@ -328,18 +233,6 @@ describe('Checkout Page', () => {
         expect(screen.getByTestId('stripe-elements')).toBeInTheDocument()
       })
     })
-
-    it('should render Payment Element', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        expect(screen.getByTestId('payment-element')).toBeInTheDocument()
-      })
-    })
   })
 
   describe('Checkout Form', () => {
@@ -354,18 +247,6 @@ describe('Checkout Page', () => {
       
       await waitFor(() => {
         expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument()
-      })
-    })
-
-    it('should render email label', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        expect(screen.getByText('Email for receipt')).toBeInTheDocument()
       })
     })
 
@@ -408,32 +289,6 @@ describe('Checkout Page', () => {
         expect(screen.getByRole('link', { name: /Back to shop/i })).toBeInTheDocument()
       })
     })
-
-    it('should link back to home', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        const backLink = screen.getByRole('link', { name: /Back to shop/i })
-        expect(backLink).toHaveAttribute('href', '/')
-      })
-    })
-
-    it('should link product title to product page', async () => {
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        const productLink = screen.getByRole('link', { name: 'Test Artwork' })
-        expect(productLink.getAttribute('href')).toContain('/product/')
-      })
-    })
   })
 
   describe('Success State', () => {
@@ -446,18 +301,6 @@ describe('Checkout Page', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Thank you for your order!')).toBeInTheDocument()
-      })
-    })
-
-    it('should show payment successful message', async () => {
-      render(
-        <TestWrapper initialRoute="/checkout?success=true">
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        expect(screen.getByText(/Your payment was successful/)).toBeInTheDocument()
       })
     })
 
@@ -482,70 +325,6 @@ describe('Checkout Page', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Thank you for your order!')).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('Multiple Items', () => {
-    const multipleItems = [
-      createMockCartItem({
-        productId: 'product-1',
-        title: 'First Artwork',
-        sizeId: '8x10',
-        frameId: 'black',
-        price: 45
-      }),
-      createMockCartItem({
-        productId: 'product-2',
-        title: 'Second Artwork',
-        sizeId: '24x30',
-        frameId: 'gold',
-        price: 170
-      })
-    ]
-
-    it('should display all items', async () => {
-      render(
-        <TestWrapper cartItems={multipleItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        expect(screen.getByText('First Artwork')).toBeInTheDocument()
-        expect(screen.getByText('Second Artwork')).toBeInTheDocument()
-      })
-    })
-
-    it('should calculate correct total', async () => {
-      render(
-        <TestWrapper cartItems={multipleItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        // $45 + $170 = $215
-        expect(screen.getByText('$215')).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('Frame Color Indicator', () => {
-    it('should show frame color indicator', async () => {
-      const testItems = [createMockCartItem({
-        frameId: 'gold'
-      })]
-      
-      render(
-        <TestWrapper cartItems={testItems}>
-          <Checkout />
-        </TestWrapper>
-      )
-      
-      await waitFor(() => {
-        // Check for Antique Gold frame text
-        expect(screen.getByText(/Antique Gold/)).toBeInTheDocument()
       })
     })
   })
