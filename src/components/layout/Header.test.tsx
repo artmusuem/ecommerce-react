@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import React from 'react'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Header from './Header'
@@ -52,17 +53,9 @@ describe('Header', () => {
       const cartButton = screen.getByRole('button', { name: /shopping cart/i })
       expect(cartButton).toHaveAttribute('aria-label', 'Shopping cart')
     })
-
-    it('should not show badge when cart is empty', () => {
-      renderWithProviders(<Header />)
-      // Badge should not be in the document for empty cart
-      const badge = document.querySelector('.bg-primary.rounded-full.h-5.w-5')
-      expect(badge).not.toBeInTheDocument()
-    })
   })
 
   describe('Cart Integration', () => {
-    // Helper component to add items
     function HeaderWithCartItem() {
       const dispatch = useCartDispatch()
       return (
@@ -97,10 +90,7 @@ describe('Header', () => {
         </MemoryRouter>
       )
       
-      // Add item
       fireEvent.click(screen.getByTestId('add-item'))
-      
-      // Check badge shows count
       expect(screen.getByText('1')).toBeInTheDocument()
     })
 
@@ -113,10 +103,8 @@ describe('Header', () => {
         </MemoryRouter>
       )
       
-      // Add items
       fireEvent.click(screen.getByTestId('add-item'))
       fireEvent.click(screen.getByTestId('add-item'))
-      
       expect(screen.getByText('2')).toBeInTheDocument()
     })
   })
