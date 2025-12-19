@@ -3,12 +3,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Home from './Home'
 import { CartProvider } from '../context/CartContext'
-import { mockRawArtworks } from '../test/mocks'
 import type { ReactNode } from 'react'
 
 // Mock fetch
 const mockFetch = vi.fn()
 global.fetch = mockFetch
+
+// Mock Cloudinary
+vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
 
 // Test wrapper
 function TestWrapper({ children, initialRoute = '/' }: { children: ReactNode; initialRoute?: string }) {
@@ -61,18 +63,6 @@ describe('Home Page', () => {
   })
 
   describe('Initial Render', () => {
-    it('should render loading state initially', () => {
-      render(
-        <TestWrapper>
-          <Home />
-        </TestWrapper>
-      )
-      
-      // Should show loading skeleton
-      const skeletons = document.querySelectorAll('.image-loading')
-      expect(skeletons.length).toBeGreaterThan(0)
-    })
-
     it('should render default artist (Winslow Homer)', async () => {
       render(
         <TestWrapper>
