@@ -52,12 +52,6 @@ export interface Size {
   }
 }
 
-export interface StoreConfig {
-  name: string
-  tagline: string
-  currency: string
-}
-
 // Cart Types
 export interface CartItem {
   key: string
@@ -76,6 +70,12 @@ export interface CartState {
   isOpen: boolean
 }
 
+export interface CartContextValue extends CartState {
+  total: number
+  itemCount: number
+}
+
+// Cart Actions
 export type CartAction =
   | { type: 'ADD_ITEM'; payload: AddItemPayload }
   | { type: 'REMOVE_ITEM'; payload: string }
@@ -93,7 +93,42 @@ export interface AddItemPayload {
   image: string
 }
 
-export interface CartContextValue extends CartState {
+// Component Props
+export interface ProductCardProps {
+  product: Product
+  index: number
+  artistId?: string
+}
+
+export interface CheckoutFormProps {
   total: number
-  itemCount: number
+}
+
+// Image utility types
+export interface ImageOptions {
+  quality?: string
+  format?: string
+  crop?: string
+}
+
+export interface ImageSizes {
+  blur: number
+  thumbnail: number
+  preview: number
+  full: number
+}
+
+// Router state types
+export interface ProductRouterState {
+  product?: Product
+  artistId?: string
+  selectedSizeId?: string
+  selectedFrameId?: string
+}
+
+// Store config
+export interface StoreConfig {
+  name: string
+  tagline: string
+  currency: string
 }
