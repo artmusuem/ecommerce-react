@@ -18,12 +18,12 @@ interface Product {
 interface ProductCardProps {
   product: Product
   artistId?: string
-  preloaded?: boolean // True if this image was preloaded by Home
+  priority?: boolean // High priority = eager load (above fold)
 }
 
-export default function ProductCard({ product, artistId, preloaded = false }: ProductCardProps) {
+export default function ProductCard({ product, artistId, priority = false }: ProductCardProps) {
   const imgRef = useRef<HTMLImageElement>(null)
-  const [isLoaded, setIsLoaded] = useState(preloaded) // Start loaded if preloaded
+  const [isLoaded, setIsLoaded] = useState(false)
   const [useFallback, setUseFallback] = useState(false)
   const [imageError, setImageError] = useState(false)
 
@@ -42,7 +42,7 @@ export default function ProductCard({ product, artistId, preloaded = false }: Pr
     }
   }
 
-  // Check if image is already cached (for preloaded images)
+  // Check if image is already cached
   useEffect(() => {
     if (imgRef.current?.complete && imgRef.current?.naturalHeight > 0) {
       setIsLoaded(true)
@@ -52,11 +52,9 @@ export default function ProductCard({ product, artistId, preloaded = false }: Pr
   const imgProps: ExtendedImgProps = {
     src: useFallback ? fallbackSrc : thumbnailSrc,
     alt: product.title,
-    // No opacity transition - instant reveal
     className: 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105',
-    // Preloaded images load eager, others lazy
-    loading: preloaded ? "eager" : "lazy",
-    fetchpriority: preloaded ? "high" : "auto",
+    loading: priority ? "eager" : "lazy",
+    fetchpriority: priority ? "high" : "auto",
     decoding: "async",
     onLoad: () => setIsLoaded(true),
     onError: handleImageError,
@@ -81,7 +79,7 @@ export default function ProductCard({ product, artistId, preloaded = false }: Pr
               <div className="absolute inset-0 skeleton-pulse" />
             )}
             
-            {/* Actual image - hidden until loaded, then shown instantly */}
+            {/* Image - hidden until loaded, then shown instantly */}
             <img 
               ref={imgRef} 
               {...imgProps}
