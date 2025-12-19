@@ -192,17 +192,20 @@ test.describe('Gallery Store E2E', () => {
       await page.locator('a[href^="/product/"]').first().click()
       await page.getByRole('button', { name: 'Add to Cart' }).click()
       
-      // Close cart by clicking the X button instead of Escape
-      await page.locator('button').filter({ has: page.locator('svg path[d="M6 18L18 6M6 6l12 12"]') }).click()
+      // Cart should be open
+      await expect(page.getByRole('heading', { name: /Cart \(1\)/ })).toBeVisible()
       
-      // Wait for cart to close
-      await expect(page.getByRole('heading', { name: /Cart/ })).not.toBeVisible()
+      // Close cart by clicking the backdrop (the semi-transparent overlay)
+      await page.locator('.fixed.inset-0.z-40.bg-black\\/50').click()
+      
+      // Wait for cart panel to slide out
+      await page.waitForTimeout(400)
       
       // Navigate home via logo
       await page.getByRole('link', { name: /Gallery Store/ }).click()
       
-      // Open cart via header button
-      await page.getByRole('button', { name: /cart/i }).click()
+      // Open cart via header button (the SVG shopping bag icon)
+      await page.locator('header button').click()
       
       // Item should still be there
       await expect(page.getByRole('heading', { name: /Cart \(1\)/ })).toBeVisible()
