@@ -9,12 +9,12 @@ export const storeConfig: StoreConfig = {
 
 // Available artists with their JSON file paths
 export const artists: Artist[] = [
-  { id: "winslow-homer", name: "Winslow Homer", file: "/data/winslow-homer.json" },
-  { id: "mary-cassatt", name: "Mary Cassatt", file: "/data/mary-cassatt.json" },
-  { id: "thomas-cole", name: "Thomas Cole", file: "/data/thomas-cole.json" },
-  { id: "frederic-remington", name: "Frederic Remington", file: "/data/frederic-remington.json" },
-  { id: "georgia-okeeffe", name: "Georgia O'Keeffe", file: "/data/georgia-okeeffe.json" },
-  { id: "edward-hopper", name: "Edward Hopper", file: "/data/edward-hopper.json" }
+  { id: "winslow-homer", name: "Winslow Homer", file: "/data/winslow-homer.json", dates: "1836–1910" },
+  { id: "mary-cassatt", name: "Mary Cassatt", file: "/data/mary-cassatt.json", dates: "1844–1926" },
+  { id: "thomas-cole", name: "Thomas Cole", file: "/data/thomas-cole.json", dates: "1801–1848" },
+  { id: "frederic-remington", name: "Frederic Remington", file: "/data/frederic-remington.json", dates: "1861–1909" },
+  { id: "georgia-okeeffe", name: "Georgia O'Keeffe", file: "/data/georgia-okeeffe.json", dates: "1887–1986" },
+  { id: "edward-hopper", name: "Edward Hopper", file: "/data/edward-hopper.json", dates: "1882–1967" }
 ]
 
 // Frame options
