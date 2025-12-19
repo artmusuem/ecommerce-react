@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { sizes } from '../../data/products'
 import { getResizedImage, IMAGE_SIZES } from '../../utils/images'
 
-// Extend img attributes to include fetchpriority (valid HTML, React types lag behind)
+// Extend img attributes to include fetchpriority
 interface ExtendedImgProps extends ImgHTMLAttributes<HTMLImageElement> {
   fetchpriority?: 'high' | 'low' | 'auto'
 }
@@ -17,20 +17,17 @@ interface Product {
 
 interface ProductCardProps {
   product: Product
-  index: number
   artistId?: string
+  preloaded?: boolean // True if this image was preloaded by Home
 }
 
-export default function ProductCard({ product, index, artistId }: ProductCardProps) {
+export default function ProductCard({ product, artistId, preloaded = false }: ProductCardProps) {
   const imgRef = useRef<HTMLImageElement>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(preloaded) // Start loaded if preloaded
   const [useFallback, setUseFallback] = useState(false)
   const [imageError, setImageError] = useState(false)
 
   const lowestPrice = sizes[0].basePrice
-
-  // First 6 images load eagerly for better LCP
-  const isAboveFold = index < 6
 
   const thumbnailSrc = getResizedImage(product.image, IMAGE_SIZES.thumbnail)
   const fallbackSrc = product.image.includes('ids.si.edu')
@@ -45,6 +42,7 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
     }
   }
 
+  // Check if image is already cached (for preloaded images)
   useEffect(() => {
     if (imgRef.current?.complete && imgRef.current?.naturalHeight > 0) {
       setIsLoaded(true)
@@ -54,11 +52,11 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
   const imgProps: ExtendedImgProps = {
     src: useFallback ? fallbackSrc : thumbnailSrc,
     alt: product.title,
-    className: `w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${
-      isLoaded ? 'opacity-100' : 'opacity-0'
-    } transition-opacity duration-500`,
-    loading: isAboveFold ? "eager" : "lazy",
-    fetchpriority: isAboveFold ? "high" : "auto",
+    // No opacity transition - instant reveal
+    className: 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105',
+    // Preloaded images load eager, others lazy
+    loading: preloaded ? "eager" : "lazy",
+    fetchpriority: preloaded ? "high" : "auto",
     decoding: "async",
     onLoad: () => setIsLoaded(true),
     onError: handleImageError,
@@ -68,10 +66,9 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
     <Link
       to={`/product/${encodeURIComponent(product.id)}`}
       state={{ product, artistId }}
-      className="group block rounded-xl overflow-hidden card-lift fade-in bg-white"
-      style={{ animationDelay: `${index * 30}ms` }}
+      className="group block rounded-xl overflow-hidden card-lift bg-white"
     >
-      {/* Image */}
+      {/* Image Container */}
       <div className="aspect-square overflow-hidden relative bg-gray-100">
         {imageError ? (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -79,7 +76,17 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
           </div>
         ) : (
           <>
-            <img ref={imgRef} {...imgProps} />
+            {/* Skeleton placeholder - shows until image loads */}
+            {!isLoaded && (
+              <div className="absolute inset-0 skeleton-pulse" />
+            )}
+            
+            {/* Actual image - hidden until loaded, then shown instantly */}
+            <img 
+              ref={imgRef} 
+              {...imgProps}
+              style={{ opacity: isLoaded ? 1 : 0 }}
+            />
             
             {/* Quick view overlay */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/40">
