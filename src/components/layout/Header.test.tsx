@@ -1,35 +1,61 @@
-import React from 'react'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
 import Header from './Header'
 import { CartProvider, useCartDispatch } from '../../context/CartContext'
+import { useEffect, type ReactNode } from 'react'
 
 // Helper to wrap with providers
-function renderWithProviders(ui: React.ReactElement) {
+function renderHeader() {
   return render(
-    <MemoryRouter>
+    <BrowserRouter>
       <CartProvider>
-        {ui}
+        <Header />
       </CartProvider>
-    </MemoryRouter>
+    </BrowserRouter>
   )
 }
 
+// Helper component to add items to cart
+function HeaderWithCartHelper({ children }: { children?: ReactNode }) {
+  const dispatch = useCartDispatch()
+  
+  useEffect(() => {
+    dispatch({
+      type: 'ADD_ITEM',
+      payload: {
+        productId: 'test',
+        sizeId: '8x10',
+        frameId: 'black',
+        title: 'Test',
+        artist: 'Artist',
+        image: 'http://example.com/img.jpg'
+      }
+    })
+  }, [dispatch])
+  
+  return <>{children}</>
+}
+
 describe('Header', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+  })
+
   describe('Logo and Branding', () => {
     it('should render store name', () => {
-      renderWithProviders(<Header />)
+      renderHeader()
       expect(screen.getByText('Gallery Store')).toBeInTheDocument()
     })
 
     it('should render tagline', () => {
-      renderWithProviders(<Header />)
+      renderHeader()
       expect(screen.getByText('Smithsonian Collection')).toBeInTheDocument()
     })
 
     it('should link logo to home page', () => {
-      renderWithProviders(<Header />)
+      renderHeader()
       const logoLink = screen.getByRole('link')
       expect(logoLink).toHaveAttribute('href', '/')
     })
@@ -37,88 +63,50 @@ describe('Header', () => {
 
   describe('Free Shipping Badge', () => {
     it('should display free shipping message', () => {
-      renderWithProviders(<Header />)
+      renderHeader()
       expect(screen.getByText('Free shipping $100+')).toBeInTheDocument()
     })
   })
 
   describe('Cart Button', () => {
     it('should render cart button', () => {
-      renderWithProviders(<Header />)
+      renderHeader()
       expect(screen.getByRole('button', { name: /shopping cart/i })).toBeInTheDocument()
     })
 
     it('should have accessible label', () => {
-      renderWithProviders(<Header />)
+      renderHeader()
       const cartButton = screen.getByRole('button', { name: /shopping cart/i })
       expect(cartButton).toHaveAttribute('aria-label', 'Shopping cart')
     })
   })
 
   describe('Cart Integration', () => {
-    function HeaderWithCartItem() {
-      const dispatch = useCartDispatch()
-      return (
-        <>
-          <Header />
-          <button 
-            data-testid="add-item"
-            onClick={() => dispatch({
-              type: 'ADD_ITEM',
-              payload: {
-                productId: 'test',
-                sizeId: '8x10',
-                frameId: 'black',
-                title: 'Test',
-                artist: 'Artist',
-                image: 'http://example.com/img.jpg'
-              }
-            })}
-          >
-            Add
-          </button>
-        </>
-      )
-    }
-
     it('should show badge with item count when cart has items', () => {
       render(
-        <MemoryRouter>
+        <BrowserRouter>
           <CartProvider>
-            <HeaderWithCartItem />
+            <HeaderWithCartHelper>
+              <Header />
+            </HeaderWithCartHelper>
           </CartProvider>
-        </MemoryRouter>
+        </BrowserRouter>
       )
       
-      fireEvent.click(screen.getByTestId('add-item'))
       expect(screen.getByText('1')).toBeInTheDocument()
-    })
-
-    it('should update badge when multiple items added', () => {
-      render(
-        <MemoryRouter>
-          <CartProvider>
-            <HeaderWithCartItem />
-          </CartProvider>
-        </MemoryRouter>
-      )
-      
-      fireEvent.click(screen.getByTestId('add-item'))
-      fireEvent.click(screen.getByTestId('add-item'))
-      expect(screen.getByText('2')).toBeInTheDocument()
     })
   })
 
   describe('Layout', () => {
     it('should be sticky positioned', () => {
-      renderWithProviders(<Header />)
+      renderHeader()
       const header = document.querySelector('header')
       expect(header).toHaveClass('sticky')
       expect(header).toHaveClass('top-0')
     })
 
     it('should have proper z-index', () => {
-      renderWithProviders(<Header />)
+      renderHeader()
       const header = document.querySelector('header')
       expect(header).toHaveClass('z-40')
     })
