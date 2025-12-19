@@ -578,3 +578,4 @@ Built by **Nathan McMullen** as a demonstration of production React architecture
 - [Cloudinary](https://cloudinary.com/) for image CDN services
 - [Stripe](https://stripe.com/) for payment infrastructure
 - [Vitest](https://vitest.dev/) for fast testing
+ 
