@@ -141,11 +141,13 @@ describe('Checkout', () => {
       })
     })
 
-    it('should display item price', async () => {
+    it('should display total amount', async () => {
       renderCheckout({ withItem: true })
       
       await waitFor(() => {
-        expect(screen.getByText('$45')).toBeInTheDocument()
+        // Total appears multiple times, just verify it exists
+        const prices = screen.getAllByText('$45')
+        expect(prices.length).toBeGreaterThan(0)
       })
     })
   })
