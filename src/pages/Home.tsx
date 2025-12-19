@@ -51,16 +51,6 @@ export default function Home() {
 
   const currentArtist = artists.find(a => a.id === selectedArtist)
 
-  // Artist life dates
-  const artistDates: Record<string, string> = {
-    'winslow-homer': '1836–1910',
-    'edward-hopper': '1882–1967',
-    'georgia-okeeffe': '1887–1986',
-    'mary-cassatt': '1844–1926',
-    'thomas-cole': '1801–1848',
-    'frederic-remington': '1861–1909'
-  }
-
   return (
     <main className="bg-gray-50 min-h-screen">
       {/* Compact Toolbar */}
@@ -74,7 +64,7 @@ export default function Home() {
                   {currentArtist?.name}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  American, {artistDates[selectedArtist]}
+                  American, {currentArtist?.dates}
                 </p>
               </div>
               <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-primary text-white">
