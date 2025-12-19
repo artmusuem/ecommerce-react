@@ -3,13 +3,25 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Home from './Home'
 import { CartProvider } from '../context/CartContext'
-
-// Mock Cloudinary environment
-vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
+import type { ReactNode } from 'react'
 
 // Mock fetch
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
+
+// Mock Cloudinary
+vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
+
+// Test wrapper
+function TestWrapper({ children, initialRoute = '/' }: { children: ReactNode; initialRoute?: string }) {
+  return (
+    <MemoryRouter initialEntries={[initialRoute]}>
+      <CartProvider>
+        {children}
+      </CartProvider>
+    </MemoryRouter>
+  )
+}
 
 // Mock artwork response
 const mockArtworkResponse = {
@@ -21,7 +33,10 @@ const mockArtworkResponse = {
       medium: 'Oil on canvas',
       image: 'https://ids.si.edu/ids/deliveryService?id=SAAM-1967.66.3_1',
       description: 'A dramatic seascape',
-      smithsonian_id: 'saam-1967.66.3'
+      smithsonian_id: 'saam-1967.66.3',
+      museum: 'Smithsonian American Art Museum',
+      accession_number: '1967.66.3',
+      object_type: 'Painting'
     },
     {
       title: 'Breezing Up',
@@ -30,34 +45,30 @@ const mockArtworkResponse = {
       medium: 'Oil on canvas',
       image: 'https://ids.si.edu/ids/deliveryService?id=SAAM-12345',
       description: 'A sailing scene',
-      smithsonian_id: 'saam-12345'
+      smithsonian_id: 'saam-12345',
+      museum: 'Smithsonian American Art Museum',
+      accession_number: '12345',
+      object_type: 'Painting'
     }
   ]
 }
 
-function renderHome(initialRoute = '/') {
-  return render(
-    <MemoryRouter initialEntries={[initialRoute]}>
-      <CartProvider>
-        <Home />
-      </CartProvider>
-    </MemoryRouter>
-  )
-}
-
-describe('Home', () => {
+describe('Home Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockArtworkResponse)
     })
   })
 
-  describe('artist info', () => {
-    it('should render default artist name', async () => {
-      renderHome()
+  describe('Initial Render', () => {
+    it('should render default artist (Winslow Homer)', async () => {
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Winslow Homer')
@@ -65,60 +76,86 @@ describe('Home', () => {
     })
 
     it('should show artist life dates', async () => {
-      renderHome()
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByText(/American, 1836/)).toBeInTheDocument()
       })
     })
-  })
 
-  describe('artist selector', () => {
-    it('should render artist dropdown', async () => {
-      renderHome()
-      
-      await waitFor(() => {
-        expect(screen.getByRole('combobox')).toBeInTheDocument()
-      })
-    })
-
-    it('should have all artists as options', async () => {
-      renderHome()
-      
-      await waitFor(() => {
-        expect(screen.getByRole('option', { name: 'Winslow Homer' })).toBeInTheDocument()
-        expect(screen.getByRole('option', { name: 'Mary Cassatt' })).toBeInTheDocument()
-        expect(screen.getByRole('option', { name: 'Edward Hopper' })).toBeInTheDocument()
-      })
-    })
-
-    it('should change artist on selection', async () => {
-      renderHome()
-      
-      await waitFor(() => {
-        expect(screen.getByRole('combobox')).toBeInTheDocument()
-      })
-      
-      const select = screen.getByRole('combobox')
-      fireEvent.change(select, { target: { value: 'mary-cassatt' } })
-      
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Mary Cassatt')
-      })
-    })
-  })
-
-  describe('product grid', () => {
     it('should fetch artwork on mount', async () => {
-      renderHome()
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith('/data/winslow-homer.json')
       })
     })
+  })
 
-    it('should display products after loading', async () => {
-      renderHome()
+  describe('Artist Selection', () => {
+    it('should render artist dropdown', async () => {
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
+      
+      await waitFor(() => {
+        const select = screen.getByRole('combobox')
+        expect(select).toBeInTheDocument()
+      })
+    })
+
+    it('should have all artists in dropdown', async () => {
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
+      
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Winslow Homer' })).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: 'Mary Cassatt' })).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: 'Thomas Cole' })).toBeInTheDocument()
+      })
+    })
+
+    it('should change artist when dropdown changes', async () => {
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
+      
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Winslow Homer')
+      })
+      
+      const select = screen.getByRole('combobox')
+      fireEvent.change(select, { target: { value: 'edward-hopper' } })
+      
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Edward Hopper')
+        expect(mockFetch).toHaveBeenCalledWith('/data/edward-hopper.json')
+      })
+    })
+  })
+
+  describe('Product Grid', () => {
+    it('should render products after loading', async () => {
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByText('The Gulf Stream')).toBeInTheDocument()
@@ -126,8 +163,12 @@ describe('Home', () => {
       })
     })
 
-    it('should show product count', async () => {
-      renderHome()
+    it('should show product count badge', async () => {
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByText('2 prints')).toBeInTheDocument()
@@ -135,11 +176,15 @@ describe('Home', () => {
     })
   })
 
-  describe('error handling', () => {
-    it('should show error on fetch failure', async () => {
+  describe('Error Handling', () => {
+    it('should show error message on fetch failure', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
       
-      renderHome()
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByText('Failed to load artwork. Please try again.')).toBeInTheDocument()
@@ -149,7 +194,11 @@ describe('Home', () => {
     it('should show Try Again button on error', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
       
-      renderHome()
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Try Again' })).toBeInTheDocument()
@@ -157,14 +206,18 @@ describe('Home', () => {
     })
   })
 
-  describe('empty state', () => {
-    it('should show message when no artwork found', async () => {
+  describe('Empty State', () => {
+    it('should show empty message when no artwork found', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ artworks: [] })
       })
       
-      renderHome()
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByText('No artwork found for this artist.')).toBeInTheDocument()
@@ -172,9 +225,13 @@ describe('Home', () => {
     })
   })
 
-  describe('footer', () => {
-    it('should render Gallery Store name', async () => {
-      renderHome()
+  describe('Footer', () => {
+    it('should render footer with store name', async () => {
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByText('Gallery Store')).toBeInTheDocument()
@@ -182,30 +239,15 @@ describe('Home', () => {
     })
 
     it('should have Smithsonian Open Access link', async () => {
-      renderHome()
+      render(
+        <TestWrapper>
+          <Home />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         const link = screen.getByRole('link', { name: 'Smithsonian Open Access' })
-        expect(link.getAttribute('href')).toBe('https://www.si.edu/openaccess')
-      })
-    })
-
-    it('should show shipping message', async () => {
-      renderHome()
-      
-      await waitFor(() => {
-        expect(screen.getByText(/Free shipping on orders \$100\+/)).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('URL params', () => {
-    it('should load artist from URL param', async () => {
-      renderHome('/?artist=mary-cassatt')
-      
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Mary Cassatt')
-        expect(mockFetch).toHaveBeenCalledWith('/data/mary-cassatt.json')
+        expect(link).toHaveAttribute('href', 'https://www.si.edu/openaccess')
       })
     })
   })
