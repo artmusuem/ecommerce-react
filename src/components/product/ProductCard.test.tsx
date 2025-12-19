@@ -19,11 +19,11 @@ const mockProduct = {
   museum: 'SAAM'
 }
 
-function renderProductCard(props: { product?: typeof mockProduct; index?: number } = {}) {
-  const { product = mockProduct, index = 0 } = props
+function renderProductCard(props: { product?: typeof mockProduct; preloaded?: boolean } = {}) {
+  const { product = mockProduct, preloaded = false } = props
   return render(
     <BrowserRouter>
-      <ProductCard product={product} index={index} />
+      <ProductCard product={product} preloaded={preloaded} />
     </BrowserRouter>
   )
 }
@@ -99,15 +99,15 @@ describe('ProductCard', () => {
   })
 
   describe('image loading states', () => {
-    it('should have eager loading for above-fold images (index < 6)', () => {
-      renderProductCard({ index: 0 })
+    it('should have eager loading for preloaded images', () => {
+      renderProductCard({ preloaded: true })
       const img = screen.getByAltText('The Gulf Stream')
       expect(img.getAttribute('loading')).toBe('eager')
       expect(img.getAttribute('fetchpriority')).toBe('high')
     })
 
-    it('should have lazy loading for below-fold images (index >= 6)', () => {
-      renderProductCard({ index: 10 })
+    it('should have lazy loading for non-preloaded images', () => {
+      renderProductCard({ preloaded: false })
       const img = screen.getByAltText('The Gulf Stream')
       expect(img.getAttribute('loading')).toBe('lazy')
       expect(img.getAttribute('fetchpriority')).toBe('auto')
@@ -150,11 +150,16 @@ describe('ProductCard', () => {
     })
   })
 
-  describe('animation', () => {
-    it('should have fade-in class', () => {
-      renderProductCard()
-      const link = screen.getByRole('link')
-      expect(link.classList.contains('fade-in')).toBe(true)
+  describe('skeleton loading', () => {
+    it('should show skeleton when not loaded', () => {
+      const { container } = renderProductCard({ preloaded: false })
+      expect(container.querySelector('.skeleton-pulse')).toBeInTheDocument()
+    })
+
+    it('should hide image until loaded', () => {
+      renderProductCard({ preloaded: false })
+      const img = screen.getByAltText('The Gulf Stream')
+      expect(img).toHaveStyle({ opacity: '0' })
     })
   })
 
