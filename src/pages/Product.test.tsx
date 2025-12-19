@@ -3,27 +3,36 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import Product from './Product'
 import { CartProvider } from '../context/CartContext'
-
-// Mock Cloudinary environment
-vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
+import { mockProducts, createMockProduct } from '../test/mocks'
+import type { ReactNode } from 'react'
 
 // Mock fetch
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
-// Mock product for router state
-const mockProduct = {
-  id: 'test-artwork-1',
-  title: 'The Gulf Stream',
-  artist: 'Winslow Homer',
-  year: '1899',
-  origin: 'United States',
-  medium: 'Oil on canvas',
-  image: 'https://ids.si.edu/ids/deliveryService?id=SAAM-1967.66.3_1',
-  description: 'A dramatic seascape painting',
-  tags: ['oil painting', 'seascape'],
-  museum: 'SAAM',
-  accession_number: '1967.66.3'
+// Mock Cloudinary
+vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
+
+// Test wrapper with route
+function TestWrapper({ 
+  children, 
+  initialRoute = '/product/test-artwork-1',
+  state = null
+}: { 
+  children: ReactNode
+  initialRoute?: string
+  state?: unknown
+}) {
+  return (
+    <MemoryRouter initialEntries={[{ pathname: initialRoute, state }]}>
+      <CartProvider>
+        <Routes>
+          <Route path="/product/:id" element={children} />
+          <Route path="/" element={<div>Home</div>} />
+        </Routes>
+      </CartProvider>
+    </MemoryRouter>
+  )
 }
 
 // Mock artwork response for fetch
@@ -37,108 +46,156 @@ const mockArtworkResponse = {
       image: 'https://ids.si.edu/ids/deliveryService?id=SAAM-1967.66.3_1',
       description: 'A dramatic seascape',
       smithsonian_id: 'saam-1967.66.3',
-      accession_number: '1967.66.3'
+      museum: 'Smithsonian American Art Museum',
+      accession_number: '1967.66.3',
+      object_type: 'Painting'
     }
   ]
 }
 
-interface RenderOptions {
-  state?: {
-    product?: typeof mockProduct
-    artistId?: string
-    selectedSizeId?: string
-    selectedFrameId?: string
-  } | null
-  route?: string
-}
-
-function renderProduct(options: RenderOptions = {}) {
-  const { state = { product: mockProduct, artistId: 'winslow-homer' }, route = '/product/test-artwork-1' } = options
-  
-  return render(
-    <MemoryRouter initialEntries={[{ pathname: route, state }]}>
-      <CartProvider>
-        <Routes>
-          <Route path="/product/:id" element={<Product />} />
-          <Route path="/" element={<div>Home</div>} />
-        </Routes>
-      </CartProvider>
-    </MemoryRouter>
-  )
-}
-
-describe('Product', () => {
+describe('Product Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockArtworkResponse)
     })
   })
 
-  describe('with router state', () => {
+  describe('With Router State (from navigation)', () => {
+    const mockProduct = mockProducts[0]
+    const routerState = {
+      product: mockProduct,
+      artistId: 'winslow-homer'
+    }
+
     it('should render product title', () => {
-      renderProduct()
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('The Gulf Stream')
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(mockProduct.title)
     })
 
     it('should render artist name', () => {
-      renderProduct()
-      expect(screen.getByText('Winslow Homer')).toBeInTheDocument()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
+      expect(screen.getByText(mockProduct.artist)).toBeInTheDocument()
     })
 
     it('should render product description', () => {
-      renderProduct()
-      expect(screen.getByText('A dramatic seascape painting')).toBeInTheDocument()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
+      expect(screen.getByText(mockProduct.description)).toBeInTheDocument()
     })
 
     it('should not fetch when router state provided', () => {
-      renderProduct()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(mockFetch).not.toHaveBeenCalled()
     })
   })
 
-  describe('direct URL access', () => {
-    it('should show loading initially', () => {
-      renderProduct({ state: null })
-      expect(screen.getByText('Loading artwork...')).toBeInTheDocument()
+  describe('Direct URL Access (no router state)', () => {
+    it('should fetch product by ID', async () => {
+      render(
+        <TestWrapper initialRoute="/product/art-0-the-gulf-stream">
+          <Product />
+        </TestWrapper>
+      )
+      
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalled()
+      })
     })
 
-    it('should show not found for invalid product', async () => {
+    it('should show not found for invalid ID', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ artworks: [] })
       })
       
-      renderProduct({ state: null, route: '/product/invalid-id' })
+      render(
+        <TestWrapper initialRoute="/product/invalid-id">
+          <Product />
+        </TestWrapper>
+      )
       
       await waitFor(() => {
         expect(screen.getByText('Product not found')).toBeInTheDocument()
       })
     })
+
+    it('should show return to gallery link on not found', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ artworks: [] })
+      })
+      
+      render(
+        <TestWrapper initialRoute="/product/invalid-id">
+          <Product />
+        </TestWrapper>
+      )
+      
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: /Return to gallery/i })).toBeInTheDocument()
+      })
+    })
   })
 
-  describe('size selection', () => {
-    it('should render size dropdown', () => {
-      renderProduct()
+  describe('Size Selection', () => {
+    const mockProduct = mockProducts[0]
+    const routerState = { product: mockProduct, artistId: 'winslow-homer' }
+
+    it('should render size dropdown label', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByText('Print Size')).toBeInTheDocument()
     })
 
     it('should have all size options', () => {
-      renderProduct()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByRole('option', { name: /8" × 10"/ })).toBeInTheDocument()
       expect(screen.getByRole('option', { name: /11" × 14"/ })).toBeInTheDocument()
       expect(screen.getByRole('option', { name: /16" × 20"/ })).toBeInTheDocument()
       expect(screen.getByRole('option', { name: /24" × 30"/ })).toBeInTheDocument()
     })
 
-    it('should update price on size change', () => {
-      renderProduct()
+    it('should update price when size changes', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
       
-      // Default 8x10 = $45
+      // Default is 8x10 = $45
       expect(screen.getByText('$45')).toBeInTheDocument()
       
+      // Find size select (first combobox)
       const selects = screen.getAllByRole('combobox')
       fireEvent.change(selects[0], { target: { value: '24x30' } })
       
@@ -146,14 +203,27 @@ describe('Product', () => {
     })
   })
 
-  describe('frame selection', () => {
-    it('should render frame dropdown', () => {
-      renderProduct()
+  describe('Frame Selection', () => {
+    const mockProduct = mockProducts[0]
+    const routerState = { product: mockProduct, artistId: 'winslow-homer' }
+
+    it('should render frame dropdown label', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByText('Frame Style')).toBeInTheDocument()
     })
 
     it('should have all frame options', () => {
-      renderProduct()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByRole('option', { name: /Matte Black/ })).toBeInTheDocument()
       expect(screen.getByRole('option', { name: /Natural Oak/ })).toBeInTheDocument()
       expect(screen.getByRole('option', { name: /Rich Walnut/ })).toBeInTheDocument()
@@ -161,132 +231,242 @@ describe('Product', () => {
       expect(screen.getByRole('option', { name: /Gallery White/ })).toBeInTheDocument()
     })
 
-    it('should update price on frame change', () => {
-      renderProduct()
+    it('should update price when frame changes', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
       
-      // Default 8x10 ($45) + black ($0) = $45
+      // Default is 8x10 ($45) + black ($0) = $45
       expect(screen.getByText('$45')).toBeInTheDocument()
       
+      // Find frame select (second combobox)
       const selects = screen.getAllByRole('combobox')
       fireEvent.change(selects[1], { target: { value: 'gold' } })
       
-      // 8x10 ($45) + gold ($25) = $70
       expect(screen.getByText('$70')).toBeInTheDocument()
+    })
+
+    it('should show frame color preview', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
+      expect(screen.getByText('Matte Black Frame')).toBeInTheDocument()
     })
   })
 
-  describe('add to cart', () => {
+  describe('Add to Cart', () => {
+    const mockProduct = mockProducts[0]
+    const routerState = { product: mockProduct, artistId: 'winslow-homer' }
+
     it('should render Add to Cart button', () => {
-      renderProduct()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByRole('button', { name: 'Add to Cart' })).toBeInTheDocument()
     })
 
     it('should show confirmation after adding', async () => {
-      renderProduct()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
       
-      fireEvent.click(screen.getByRole('button', { name: 'Add to Cart' }))
+      const addButton = screen.getByRole('button', { name: 'Add to Cart' })
+      fireEvent.click(addButton)
       
       await waitFor(() => {
-        expect(screen.getByText(/Added to Cart/)).toBeInTheDocument()
+        expect(screen.getByText(/Added to Cart/i)).toBeInTheDocument()
       })
     })
   })
 
-  describe('navigation', () => {
+  describe('Navigation', () => {
+    const mockProduct = mockProducts[0]
+    const routerState = { product: mockProduct, artistId: 'winslow-homer' }
+
     it('should render back to gallery link', () => {
-      renderProduct()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByRole('link', { name: /Back to gallery/i })).toBeInTheDocument()
     })
 
     it('should link to correct artist gallery', () => {
-      renderProduct()
-      const link = screen.getByRole('link', { name: /Back to gallery/i })
-      expect(link.getAttribute('href')).toBe('/?artist=winslow-homer')
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
+      const backLink = screen.getByRole('link', { name: /Back to gallery/i })
+      expect(backLink).toHaveAttribute('href', '/?artist=winslow-homer')
     })
   })
 
-  describe('image display', () => {
-    it('should render product images', () => {
-      renderProduct()
+  describe('Image Display', () => {
+    const mockProduct = mockProducts[0]
+    const routerState = { product: mockProduct, artistId: 'winslow-homer' }
+
+    it('should render product image', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       const images = screen.getAllByRole('img')
       expect(images.length).toBeGreaterThan(0)
     })
 
-    it('should use Cloudinary URLs', () => {
-      renderProduct()
+    it('should use Cloudinary URLs for images', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       const images = screen.getAllByRole('img')
       const cloudinaryImage = images.find(img => img.getAttribute('src')?.includes('cloudinary'))
       expect(cloudinaryImage).toBeTruthy()
     })
 
     it('should show click to enlarge hint', () => {
-      renderProduct()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByText('Click image to enlarge')).toBeInTheDocument()
     })
   })
 
-  describe('product details', () => {
-    it('should show artwork details section', () => {
-      renderProduct()
+  describe('Product Details Section', () => {
+    const mockProduct = mockProducts[0]
+    const routerState = { product: mockProduct, artistId: 'winslow-homer' }
+
+    it('should show artwork details heading', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByRole('heading', { name: 'Artwork Details' })).toBeInTheDocument()
     })
 
-    it('should show about this print section', () => {
-      renderProduct()
+    it('should show about this print heading', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByRole('heading', { name: 'About This Print' })).toBeInTheDocument()
     })
 
     it('should show year and medium', () => {
-      renderProduct()
-      expect(screen.getByText('1899')).toBeInTheDocument()
-      expect(screen.getByText('Oil on canvas')).toBeInTheDocument()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
+      expect(screen.getByText(mockProduct.year)).toBeInTheDocument()
+      expect(screen.getByText(mockProduct.medium)).toBeInTheDocument()
     })
 
-    it('should have Smithsonian link', () => {
-      renderProduct()
-      const link = screen.getByRole('link', { name: /View original on Smithsonian/i })
-      expect(link).toHaveAttribute('target', '_blank')
+    it('should have link to Smithsonian', () => {
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
+      const smithsonianLink = screen.getByRole('link', { name: /View original on Smithsonian/i })
+      expect(smithsonianLink).toHaveAttribute('target', '_blank')
     })
 
     it('should show shipping info', () => {
-      renderProduct()
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByText(/Free shipping on orders over \$100/i)).toBeInTheDocument()
     })
   })
 
-  describe('pre-selected options', () => {
+  describe('Pre-selected Options (from cart)', () => {
+    const mockProduct = mockProducts[0]
+
     it('should respect pre-selected size from cart', () => {
-      renderProduct({
-        state: {
-          product: mockProduct,
-          artistId: 'winslow-homer',
-          selectedSizeId: '24x30',
-          selectedFrameId: 'black'
-        }
-      })
+      const routerState = {
+        product: mockProduct,
+        artistId: 'winslow-homer',
+        selectedSizeId: '24x30',
+        selectedFrameId: 'black'
+      }
+      
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
       
       expect(screen.getByText('$145')).toBeInTheDocument()
     })
 
     it('should respect pre-selected frame from cart', () => {
-      renderProduct({
-        state: {
-          product: mockProduct,
-          artistId: 'winslow-homer',
-          selectedSizeId: '8x10',
-          selectedFrameId: 'gold'
-        }
-      })
+      const routerState = {
+        product: mockProduct,
+        artistId: 'winslow-homer',
+        selectedSizeId: '8x10',
+        selectedFrameId: 'gold'
+      }
+      
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
       
       expect(screen.getByText('$70')).toBeInTheDocument()
     })
   })
 
-  describe('tags', () => {
+  describe('Tags', () => {
     it('should render product tags', () => {
-      renderProduct()
+      const productWithTags = createMockProduct({
+        tags: ['oil painting', 'seascape', 'maritime']
+      })
+      const routerState = {
+        product: productWithTags,
+        artistId: 'winslow-homer'
+      }
+      
+      render(
+        <TestWrapper state={routerState}>
+          <Product />
+        </TestWrapper>
+      )
+      
       expect(screen.getByText('oil painting')).toBeInTheDocument()
       expect(screen.getByText('seascape')).toBeInTheDocument()
+      expect(screen.getByText('maritime')).toBeInTheDocument()
     })
   })
 })
