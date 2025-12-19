@@ -9,7 +9,7 @@ vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
 
 // Mock fetch
 const mockFetch = vi.fn()
-global.fetch = mockFetch
+vi.stubGlobal('fetch', mockFetch)
 
 // Mock artwork response
 const mockArtworkResponse = {
