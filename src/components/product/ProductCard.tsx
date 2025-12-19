@@ -54,8 +54,9 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
   const imgProps: ExtendedImgProps = {
     src: useFallback ? fallbackSrc : thumbnailSrc,
     alt: product.title,
-    className: "w-full h-full object-cover transition-transform duration-300 group-hover:scale-105",
-    style: { opacity: isLoaded ? 1 : 0, transition: 'opacity 0.5s ease-in-out' },
+    className: `w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${
+      isLoaded ? 'opacity-100' : 'opacity-0'
+    } transition-opacity duration-500`,
     loading: isAboveFold ? "eager" : "lazy",
     fetchpriority: isAboveFold ? "high" : "auto",
     decoding: "async",
@@ -67,42 +68,22 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
     <Link
       to={`/product/${encodeURIComponent(product.id)}`}
       state={{ product, artistId }}
-      className="group block rounded-xl overflow-hidden card-lift fade-in"
-      style={{ 
-        backgroundColor: 'var(--color-white)',
-        animationDelay: `${index * 30}ms` 
-      }}
+      className="group block rounded-xl overflow-hidden card-lift fade-in bg-white"
+      style={{ animationDelay: `${index * 30}ms` }}
     >
       {/* Image */}
-      <div 
-        className="aspect-square overflow-hidden relative"
-        style={{ backgroundColor: 'var(--color-gray-100)' }}
-      >
+      <div className="aspect-square overflow-hidden relative bg-gray-100">
         {imageError ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span 
-              className="text-sm"
-              style={{ color: 'var(--color-gray-400)' }}
-            >
-              Unavailable
-            </span>
+            <span className="text-sm text-gray-400">Unavailable</span>
           </div>
         ) : (
           <>
             <img ref={imgRef} {...imgProps} />
             
             {/* Quick view overlay */}
-            <div 
-              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-            >
-              <span 
-                className="px-4 py-2 text-sm font-medium rounded-lg"
-                style={{ 
-                  backgroundColor: 'var(--color-white)',
-                  color: 'var(--color-gray-800)'
-                }}
-              >
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/40">
+              <span className="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-800">
                 View Print
               </span>
             </div>
@@ -112,23 +93,14 @@ export default function ProductCard({ product, index, artistId }: ProductCardPro
 
       {/* Info */}
       <div className="p-3">
-        <h2 
-          className="font-medium text-sm leading-snug line-clamp-2 mb-1"
-          style={{ color: 'var(--color-gray-800)' }}
-        >
+        <h2 className="font-medium text-sm leading-snug line-clamp-2 mb-1 text-gray-800">
           {product.title}
         </h2>
         <div className="flex items-center justify-between">
-          <span 
-            className="font-semibold"
-            style={{ color: 'var(--color-primary)' }}
-          >
+          <span className="font-semibold text-primary">
             ${lowestPrice}
           </span>
-          <span 
-            className="text-xs"
-            style={{ color: 'var(--color-gray-400)' }}
-          >
+          <span className="text-xs text-gray-400">
             {product.year}
           </span>
         </div>
