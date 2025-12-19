@@ -1,12 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { artists, transformArtwork } from '../data/products'
 import ProductCard from '../components/product/ProductCard'
-import { getResizedImage, IMAGE_SIZES } from '../utils/images'
 import type { Product, RawArtwork } from '../types'
-
-// Number of images to preload before showing grid
-const PRELOAD_COUNT = 10
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -22,35 +18,11 @@ export default function Home() {
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const [imagesReady, setImagesReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Preload first batch of images
-  const preloadImages = useCallback(async (productList: Product[]) => {
-    const imagesToPreload = productList.slice(0, PRELOAD_COUNT)
-    
-    const promises = imagesToPreload.map(product => {
-      return new Promise<void>((resolve) => {
-        const img = new Image()
-        img.onload = () => resolve()
-        img.onerror = () => resolve() // Don't block on errors
-        img.src = getResizedImage(product.image, IMAGE_SIZES.thumbnail)
-      })
-    })
-
-    // Wait for all images or timeout after 3s
-    await Promise.race([
-      Promise.all(promises),
-      new Promise(resolve => setTimeout(resolve, 3000))
-    ])
-    
-    setImagesReady(true)
-  }, [])
 
   useEffect(() => {
     async function loadArtwork() {
       setLoading(true)
-      setImagesReady(false)
       setError(null)
       
       const artist = artists.find(a => a.id === selectedArtist)
@@ -66,24 +38,18 @@ export default function Home() {
           .map((art, i) => transformArtwork(art, i))
         
         setProducts(transformed)
-        setLoading(false)
-        
-        // Preload images after products are set
-        await preloadImages(transformed)
       } catch (err) {
         console.error('Error loading artwork:', err)
         setError('Failed to load artwork. Please try again.')
+      } finally {
         setLoading(false)
       }
     }
     
     loadArtwork()
-  }, [selectedArtist, preloadImages])
+  }, [selectedArtist])
 
   const currentArtist = artists.find(a => a.id === selectedArtist)
-
-  // Show skeleton if loading OR if products loaded but images not ready yet
-  const showSkeleton = loading || (!imagesReady && products.length > 0)
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -142,10 +108,10 @@ export default function Home() {
           </div>
         )}
 
-        {/* Skeleton Loading State */}
-        {showSkeleton && !error && (
+        {/* Loading State - only while fetching JSON */}
+        {loading && !error && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {[...Array(PRELOAD_COUNT)].map((_, i) => (
+            {[...Array(10)].map((_, i) => (
               <div 
                 key={i} 
                 className="rounded-xl overflow-hidden bg-white"
@@ -160,15 +126,15 @@ export default function Home() {
           </div>
         )}
 
-        {/* Product Grid - only show when images are ready */}
-        {!showSkeleton && !error && products.length > 0 && (
+        {/* Product Grid - show immediately after JSON loads */}
+        {!loading && !error && products.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {products.map((product, index) => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
                 artistId={selectedArtist}
-                preloaded={index < PRELOAD_COUNT}
+                priority={index < 6}
               />
             ))}
           </div>
