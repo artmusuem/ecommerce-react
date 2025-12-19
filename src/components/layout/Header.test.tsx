@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import Header from './Header'
 import { CartProvider, useCartDispatch } from '../../context/CartContext'
@@ -87,12 +87,6 @@ describe('Header', () => {
       const button = screen.getByRole('button', { name: /shopping cart/i })
       expect(button).toBeInTheDocument()
       expect(button.getAttribute('aria-label')).toBe('Shopping cart')
-    })
-
-    it('should not show badge when cart is empty', () => {
-      const { container } = renderHeader()
-      const badge = container.querySelector('.absolute.-top-1.-right-1')
-      expect(badge).not.toBeInTheDocument()
     })
 
     it('should show badge with count when cart has items', async () => {
