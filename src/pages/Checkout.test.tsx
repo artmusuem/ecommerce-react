@@ -1,11 +1,11 @@
+import React, { useEffect } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import Checkout from './Checkout'
 import { CartProvider, useCartDispatch } from '../context/CartContext'
 import { createMockCartItem } from '../test/mocks'
-import type { ReactNode } from 'react'
-import React, { useEffect } from 'react'
+import type { CartItem } from '../types'
 
 // Mock fetch for payment intent
 const mockFetch = vi.fn()
@@ -13,7 +13,7 @@ global.fetch = mockFetch
 
 // Mock Stripe
 vi.mock('@stripe/react-stripe-js', () => ({
-  Elements: ({ children }: { children: ReactNode }) => <div data-testid="stripe-elements">{children}</div>,
+  Elements: ({ children }: { children: React.ReactNode }) => <div data-testid="stripe-elements">{children}</div>,
   PaymentElement: () => <div data-testid="payment-element">Payment Element</div>,
   useStripe: () => ({
     confirmPayment: vi.fn().mockResolvedValue({ error: null })
@@ -32,7 +32,7 @@ vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
 vi.stubEnv('VITE_STRIPE_PUBLIC_KEY', 'pk_test_mock')
 
 // Helper to add items to cart
-function CartLoader({ items }: { items: ReturnType<typeof createMockCartItem>[] }) {
+function CartLoader({ items }: { items: CartItem[] }) {
   const dispatch = useCartDispatch()
   
   useEffect(() => {
@@ -60,9 +60,9 @@ function TestWrapper({
   initialRoute = '/checkout',
   cartItems = []
 }: { 
-  children: ReactNode
+  children: React.ReactNode
   initialRoute?: string
-  cartItems?: ReturnType<typeof createMockCartItem>[]
+  cartItems?: CartItem[]
 }) {
   return (
     <MemoryRouter initialEntries={[initialRoute]}>
