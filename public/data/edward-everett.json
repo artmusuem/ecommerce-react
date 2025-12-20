@@ -1,0 +1,32 @@
+{
+  "collection_info": {
+    "source": "Smithsonian American Art Museum",
+    "search_query": "Edward Everett",
+    "search_term": "Edward Everett",
+    "total_items": 1,
+    "generated_date": "2025-12-20T08:49:27.934Z",
+    "api_source": "https://api.si.edu/openaccess/api/v1.0/",
+    "museum": "Smithsonian American Art Museum",
+    "location": "Washington, DC",
+    "note": "Updated via Commerce Hub"
+  },
+  "artworks": [
+    {
+      "title": "Yabba Dabba Doo",
+      "artist": "Edward Everett",
+      "year_created": "Date unknown",
+      "medium": "Mixed media",
+      "image": "https://ids.si.edu/ids/deliveryService?id=SAAM-1968.155.122_1",
+      "museum": "Smithsonian American Art Museum",
+      "location": "Washington, DC",
+      "description": "American artwork by Everett, Edward",
+      "accession_number": "",
+      "api_url": "",
+      "smithsonian_id": "ld1-1643381040022-1643381053101-0",
+      "object_type": "Artwork",
+      "dimensions": "",
+      "credit_line": "",
+      "created_date": "2025-12-20T08:49:27.937Z"
+    }
+  ]
+}
