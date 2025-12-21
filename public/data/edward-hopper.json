@@ -1,16 +1,33 @@
 {
   "collection_info": {
     "source": "Smithsonian American Art Museum",
-    "search_query": "Charles Balthazar Julien Fevret de Saint-Memin",
-    "search_term": "Charles Balthazar Julien Fevret de Saint-Memin",
+    "search_query": "Augustus Saint-Gaudens",
+    "search_term": "Augustus Saint-Gaudens",
     "total_items": 20,
-    "generated_date": "2025-12-21T09:10:49.360Z",
+    "generated_date": "2025-12-21T09:14:08.690Z",
     "api_source": "https://api.si.edu/openaccess/api/v1.0/",
     "museum": "Smithsonian American Art Museum",
     "location": "Washington, DC",
     "note": "Updated via Commerce Hub"
   },
   "artworks": [
+    {
+      "title": "Judge yabba Edwards Pierrepont",
+      "artist": "Augustus Saint-Gaudens",
+      "year_created": "Date unknown",
+      "medium": "Mixed media",
+      "image": "https://ids.si.edu/ids/deliveryService?id=SAAM-1968.65.1_1",
+      "museum": "Smithsonian American Art Museum",
+      "location": "Washington, DC",
+      "description": "Augustus Saint-Gaudens grew annoyed with his demanding sitter Edwards Pierrepont, who was a prominent lawyer and jurist. The sculptor reluctantly obeyed repeated requests that his portrait be improved to look more like the busts of Socrates, Seneca, and Plato that Pierrepont admired. He told the young sculptor that these men had “very broad foreheads.” The artist complied, but Pierrepont demanded further adjustments until the head, in the sculptor’s words, “seemed to be affected with some dreadful swelling disease.” The contemporary obsession with phrenology---the “science” of reading character based on the shape of the skull---likely drove Pierrepont to make such demands.",
+      "accession_number": "",
+      "api_url": "",
+      "smithsonian_id": "ld1-1643381040022-1643381054110-0",
+      "object_type": "Artwork",
+      "dimensions": "",
+      "credit_line": "",
+      "created_date": "2025-12-21T09:14:08.690Z"
+    },
     {
       "title": "Judge Joseph Hopper Nicholson",
       "artist": "Charles Balthazar Julien Fevret de Saint-Memin",
@@ -26,7 +43,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "[Worker with Hopper Car]",
@@ -43,7 +60,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Edward N. Duryee",
@@ -60,7 +77,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Study for Statue of Edward Everett",
@@ -77,7 +94,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Robert Edwards Carter",
@@ -94,7 +111,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Edward Appleton",
@@ -111,7 +128,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Chief Justice Edward D. White",
@@ -128,7 +145,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Portrait of Edward Musser",
@@ -145,7 +162,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Edward Robinson Squibb",
@@ -162,7 +179,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.364Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Edward Laurence, Esq.",
@@ -179,7 +196,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "The Prince of Wales (Edward VIII)",
@@ -196,7 +213,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Edward Meyer Kern?",
@@ -213,7 +230,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "The Prince of Wales (King Edward VII)",
@@ -230,7 +247,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Edward Leiter",
@@ -247,7 +264,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Edward Hanry Harriman",
@@ -264,7 +281,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "James Edward Freeman",
@@ -281,7 +298,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Professor Edward Emerson",
@@ -298,7 +315,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "Portrait of Edward Shxxxxxxx",
@@ -315,7 +332,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     },
     {
       "title": "People Near Boat",
@@ -332,24 +349,7 @@
       "object_type": "Artwork",
       "dimensions": "",
       "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
-    },
-    {
-      "title": "Judge Edwards Pierrepont",
-      "artist": "Augustus Saint-Gaudens",
-      "year_created": "Date unknown",
-      "medium": "Mixed media",
-      "image": "https://ids.si.edu/ids/deliveryService?id=SAAM-1968.65.1_1",
-      "museum": "Smithsonian American Art Museum",
-      "location": "Washington, DC",
-      "description": "Augustus Saint-Gaudens grew annoyed with his demanding sitter Edwards Pierrepont, who was a prominent lawyer and jurist. The sculptor reluctantly obeyed repeated requests that his portrait be improved to look more like the busts of Socrates, Seneca, and Plato that Pierrepont admired. He told the young sculptor that these men had “very broad foreheads.” The artist complied, but Pierrepont demanded further adjustments until the head, in the sculptor’s words, “seemed to be affected with some dreadful swelling disease.” The contemporary obsession with phrenology---the “science” of reading character based on the shape of the skull---likely drove Pierrepont to make such demands.",
-      "accession_number": "",
-      "api_url": "",
-      "smithsonian_id": "ld1-1643381040022-1643381054110-0",
-      "object_type": "Artwork",
-      "dimensions": "",
-      "credit_line": "",
-      "created_date": "2025-12-21T09:10:49.365Z"
+      "created_date": "2025-12-21T09:14:08.690Z"
     }
   ]
 }
