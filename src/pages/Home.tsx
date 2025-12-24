@@ -84,7 +84,6 @@ export default function Home() {
   // Platform-specific labels
   const platformLabel = dataSource === 'shopify' ? 'Shopify' : 
                         dataSource === 'woocommerce' ? 'WooCommerce' : 'Smithsonian'
-  const platformBadge = dataSource === 'shopify' ? '⚡ Headless Shopify' :
                         dataSource === 'woocommerce' ? '🔌 Headless WooCommerce' : null
 
   // Helper to switch data source via URL
