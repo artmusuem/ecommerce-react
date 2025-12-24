@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { artists, transformArtwork } from '../data/products'
 import { fetchShopifyProducts } from '../data/shopify-api'
+import { fetchWooCommerceProducts } from '../data/woocommerce-api'
 import ProductCard from '../components/product/ProductCard'
 import type { Product, RawArtwork } from '../types'
 
-// Check data source from env
+// Check data source from env: 'json', 'shopify', or 'woocommerce'
 const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'json'
 
 export default function Home() {
@@ -23,7 +24,7 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dataSource, setDataSource] = useState<'json' | 'shopify'>('json')
+  const [dataSource, setDataSource] = useState<'json' | 'shopify' | 'woocommerce'>('json')
 
   useEffect(() => {
     async function loadProducts() {
@@ -36,6 +37,11 @@ export default function Home() {
           const shopifyProducts = await fetchShopifyProducts()
           setProducts(shopifyProducts)
           setDataSource('shopify')
+        } else if (DATA_SOURCE === 'woocommerce') {
+          // Fetch from WooCommerce REST API
+          const wooProducts = await fetchWooCommerceProducts()
+          setProducts(wooProducts)
+          setDataSource('woocommerce')
         } else {
           // Fetch from local JSON files
           const artist = artists.find(a => a.id === selectedArtist)
@@ -63,8 +69,14 @@ export default function Home() {
     loadProducts()
   }, [selectedArtist])
 
-  const isShopifyMode = dataSource === 'shopify'
+  const isHeadlessMode = dataSource === 'shopify' || dataSource === 'woocommerce'
   const currentArtist = artists.find(a => a.id === selectedArtist)
+  
+  // Platform-specific labels
+  const platformLabel = dataSource === 'shopify' ? 'Shopify' : 
+                        dataSource === 'woocommerce' ? 'WooCommerce' : 'Smithsonian'
+  const platformBadge = dataSource === 'shopify' ? '⚡ Headless Shopify' :
+                        dataSource === 'woocommerce' ? '🔌 Headless WooCommerce' : null
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -75,13 +87,13 @@ export default function Home() {
             {/* Left: Title/Artist info */}
             <div className="flex items-center gap-4">
               <div>
-                {isShopifyMode ? (
+                {isHeadlessMode ? (
                   <>
                     <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
                       All Products
                     </h1>
                     <p className="text-sm text-gray-500">
-                      Powered by Shopify
+                      Powered by {platformLabel}
                     </p>
                   </>
                 ) : (
@@ -96,12 +108,12 @@ export default function Home() {
                 )}
               </div>
               <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-primary text-white">
-                {products.length} {isShopifyMode ? 'products' : 'prints'}
+                {products.length} {isHeadlessMode ? 'products' : 'prints'}
               </span>
             </div>
 
             {/* Right: Artist selector (JSON mode only) */}
-            {!isShopifyMode && (
+            {!isHeadlessMode && (
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-500">
                   Artist:
@@ -120,11 +132,15 @@ export default function Home() {
               </div>
             )}
             
-            {/* Data source badge (Shopify mode) */}
-            {isShopifyMode && (
+            {/* Data source badge (Headless mode) */}
+            {platformBadge && (
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                  ⚡ Headless Shopify
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                  dataSource === 'shopify' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-purple-100 text-purple-800'
+                }`}>
+                  {platformBadge}
                 </span>
               </div>
             )}
@@ -172,7 +188,7 @@ export default function Home() {
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                artistId={isShopifyMode ? 'shopify' : selectedArtist}
+                artistId={isHeadlessMode ? dataSource : selectedArtist}
                 priority={index < 6}
               />
             ))}
@@ -183,8 +199,8 @@ export default function Home() {
         {!loading && !error && products.length === 0 && (
           <div className="text-center py-16">
             <p className="text-gray-500">
-              {isShopifyMode 
-                ? 'No products found in Shopify store.' 
+              {isHeadlessMode 
+                ? `No products found in ${platformLabel} store.` 
                 : 'No artwork found for this artist.'}
             </p>
           </div>
@@ -209,8 +225,8 @@ export default function Home() {
                   Gallery Store
                 </span>
                 <p className="text-xs text-gray-500">
-                  {isShopifyMode 
-                    ? 'Headless Shopify Storefront'
+                  {isHeadlessMode 
+                    ? `Headless ${platformLabel} Storefront`
                     : 'Museum-quality prints from the Smithsonian'}
                 </p>
               </div>
@@ -218,9 +234,11 @@ export default function Home() {
 
             {/* Right */}
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              {isShopifyMode ? (
-                <span className="text-green-600 font-medium">
-                  Connected to Shopify
+              {isHeadlessMode ? (
+                <span className={`font-medium ${
+                  dataSource === 'shopify' ? 'text-green-600' : 'text-purple-600'
+                }`}>
+                  Connected to {platformLabel}
                 </span>
               ) : (
                 <a 
