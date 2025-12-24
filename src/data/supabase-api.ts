@@ -39,7 +39,7 @@ export async function fetchSupabaseProducts(limit: number = 50): Promise<Product
   }
 
   try {
-    const url = `${SUPABASE_URL}/rest/v1/products?status=eq.active&select=*&limit=${limit}`
+    const url = `${SUPABASE_URL}/rest/v1/products?select=*&limit=${limit}`
     
     const response = await fetch(url, {
       headers: {
