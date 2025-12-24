@@ -6,11 +6,18 @@ import { fetchWooCommerceProducts } from '../data/woocommerce-api'
 import ProductCard from '../components/product/ProductCard'
 import type { Product, RawArtwork } from '../types'
 
-// Check data source from env: 'json', 'shopify', or 'woocommerce'
-const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'json'
+// Default data source from env
+const DEFAULT_DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'json'
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
+  
+  // URL param overrides env: ?source=shopify or ?source=woocommerce or ?source=json
+  const sourceParam = searchParams.get('source')
+  const activeSource = (sourceParam === 'shopify' || sourceParam === 'woocommerce' || sourceParam === 'json') 
+    ? sourceParam 
+    : DEFAULT_DATA_SOURCE
+  
   const artistParam = searchParams.get('artist')
   const [selectedArtist, setSelectedArtist] = useState(
     artists.find(a => a.id === artistParam)?.id || artists[0].id
@@ -18,7 +25,9 @@ export default function Home() {
 
   const handleArtistChange = (artistId: string) => {
     setSelectedArtist(artistId)
-    setSearchParams({ artist: artistId })
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('artist', artistId)
+    setSearchParams(newParams)
   }
 
   const [products, setProducts] = useState<Product[]>([])
@@ -32,12 +41,12 @@ export default function Home() {
       setError(null)
       
       try {
-        if (DATA_SOURCE === 'shopify') {
+        if (activeSource === 'shopify') {
           // Fetch from Shopify Storefront API
           const shopifyProducts = await fetchShopifyProducts()
           setProducts(shopifyProducts)
           setDataSource('shopify')
-        } else if (DATA_SOURCE === 'woocommerce') {
+        } else if (activeSource === 'woocommerce') {
           // Fetch from WooCommerce REST API
           const wooProducts = await fetchWooCommerceProducts()
           setProducts(wooProducts)
@@ -67,7 +76,7 @@ export default function Home() {
     }
     
     loadProducts()
-  }, [selectedArtist])
+  }, [selectedArtist, activeSource])
 
   const isHeadlessMode = dataSource === 'shopify' || dataSource === 'woocommerce'
   const currentArtist = artists.find(a => a.id === selectedArtist)
@@ -77,6 +86,17 @@ export default function Home() {
                         dataSource === 'woocommerce' ? 'WooCommerce' : 'Smithsonian'
   const platformBadge = dataSource === 'shopify' ? '⚡ Headless Shopify' :
                         dataSource === 'woocommerce' ? '🔌 Headless WooCommerce' : null
+
+  // Helper to switch data source via URL
+  const switchSource = (newSource: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    if (newSource === 'json') {
+      newParams.delete('source')
+    } else {
+      newParams.set('source', newSource)
+    }
+    setSearchParams(newParams)
+  }
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -112,38 +132,62 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Right: Artist selector (JSON mode only) */}
-            {!isHeadlessMode && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-500">
-                  Artist:
-                </span>
-                <select
-                  value={selectedArtist}
-                  onChange={(e) => handleArtistChange(e.target.value)}
-                  className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
+            {/* Right: Controls */}
+            <div className="flex items-center gap-3">
+              {/* Artist selector (JSON mode only) */}
+              {!isHeadlessMode && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-500">
+                    Artist:
+                  </span>
+                  <select
+                    value={selectedArtist}
+                    onChange={(e) => handleArtistChange(e.target.value)}
+                    className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
+                  >
+                    {artists.map(artist => (
+                      <option key={artist.id} value={artist.id}>
+                        {artist.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {/* Data source switcher */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => switchSource('json')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    dataSource === 'json' 
+                      ? 'bg-white text-gray-800 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
                 >
-                  {artists.map(artist => (
-                    <option key={artist.id} value={artist.id}>
-                      {artist.name}
-                    </option>
-                  ))}
-                </select>
+                  JSON
+                </button>
+                <button
+                  onClick={() => switchSource('shopify')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    dataSource === 'shopify' 
+                      ? 'bg-green-500 text-white shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Shopify
+                </button>
+                <button
+                  onClick={() => switchSource('woocommerce')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    dataSource === 'woocommerce' 
+                      ? 'bg-purple-500 text-white shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  WooCommerce
+                </button>
               </div>
-            )}
-            
-            {/* Data source badge (Headless mode) */}
-            {platformBadge && (
-              <div className="flex items-center gap-2">
-                <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                  dataSource === 'shopify' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-purple-100 text-purple-800'
-                }`}>
-                  {platformBadge}
-                </span>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
