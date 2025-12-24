@@ -58,55 +58,35 @@ function transformWooCommerceProduct(wooProduct: WooCommerceProduct): Product {
   }
 }
 
-export async function fetchWooCommerceProducts(): Promise<Product[]> {
+export async function fetchWooCommerceProducts(limit: number = 24): Promise<Product[]> {
   if (!WOOCOMMERCE_KEY || !WOOCOMMERCE_SECRET) {
     console.error('WooCommerce credentials not configured')
     return []
   }
 
-  const allProducts: Product[] = []
-  let page = 1
-  const perPage = 100
-  let hasMore = true
+  const url = new URL(`${WOOCOMMERCE_URL}/wp-json/wc/v3/products`)
+  url.searchParams.set('consumer_key', WOOCOMMERCE_KEY)
+  url.searchParams.set('consumer_secret', WOOCOMMERCE_SECRET)
+  url.searchParams.set('per_page', String(limit))
+  url.searchParams.set('page', '1')
+  url.searchParams.set('status', 'publish')
 
-  while (hasMore) {
-    const url = new URL(`${WOOCOMMERCE_URL}/wp-json/wc/v3/products`)
-    url.searchParams.set('consumer_key', WOOCOMMERCE_KEY)
-    url.searchParams.set('consumer_secret', WOOCOMMERCE_SECRET)
-    url.searchParams.set('per_page', String(perPage))
-    url.searchParams.set('page', String(page))
-    url.searchParams.set('status', 'publish')
-
-    try {
-      const response = await fetch(url.toString())
-      
-      if (!response.ok) {
-        throw new Error(`WooCommerce API error: ${response.status}`)
-      }
-
-      const products: WooCommerceProduct[] = await response.json()
-      
-      if (products.length === 0) {
-        hasMore = false
-      } else {
-        const transformed = products
-          .filter(p => p.status === 'publish')
-          .map(p => transformWooCommerceProduct(p))
-        allProducts.push(...transformed)
-        page++
-        
-        // Stop if we got less than requested (last page)
-        if (products.length < perPage) {
-          hasMore = false
-        }
-      }
-    } catch (error) {
-      console.error('WooCommerce fetch error:', error)
-      hasMore = false
+  try {
+    const response = await fetch(url.toString())
+    
+    if (!response.ok) {
+      throw new Error(`WooCommerce API error: ${response.status}`)
     }
-  }
 
-  return allProducts
+    const products: WooCommerceProduct[] = await response.json()
+    
+    return products
+      .filter(p => p.status === 'publish')
+      .map(p => transformWooCommerceProduct(p))
+  } catch (error) {
+    console.error('WooCommerce fetch error:', error)
+    return []
+  }
 }
 
 export async function fetchWooCommerceProduct(slugOrId: string): Promise<Product | null> {
