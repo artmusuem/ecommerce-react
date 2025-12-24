@@ -1,11 +1,17 @@
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  // Initialize Stripe inside handler to ensure env var is available
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('STRIPE_SECRET_KEY is not configured')
+    return res.status(500).json({ error: 'Payment service not configured' })
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
   try {
     const { items, total } = req.body
