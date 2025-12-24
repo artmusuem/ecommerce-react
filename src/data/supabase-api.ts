@@ -32,27 +32,39 @@ function transformSupabaseProduct(product: SupabaseProduct): Product {
   }
 }
 
-export async function fetchSupabaseProducts(limit: number = 50): Promise<Product[]> {
+export async function fetchSupabaseProducts(limit: number = 100): Promise<Product[]> {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     console.error('Supabase credentials not configured')
+    console.error('SUPABASE_URL:', SUPABASE_URL ? 'set' : 'missing')
+    console.error('SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'set' : 'missing')
     return []
   }
 
   try {
     const url = `${SUPABASE_URL}/rest/v1/products?select=*&limit=${limit}`
     
+    console.log('Fetching from Supabase:', url)
+    
     const response = await fetch(url, {
+      method: 'GET',
       headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       }
     })
 
+    console.log('Supabase response status:', response.status)
+
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Supabase error response:', errorText)
       throw new Error(`Supabase API error: ${response.status}`)
     }
 
     const products: SupabaseProduct[] = await response.json()
+    console.log('Supabase products fetched:', products.length)
     
     return products.map(p => transformSupabaseProduct(p))
   } catch (error) {
@@ -70,7 +82,10 @@ export async function fetchSupabaseProduct(id: string): Promise<Product | null> 
     const url = `${SUPABASE_URL}/rest/v1/products?id=eq.${id}&select=*`
     
     const response = await fetch(url, {
+      method: 'GET',
       headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       }
