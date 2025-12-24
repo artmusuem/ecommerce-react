@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { artists, transformArtwork } from '../data/products'
+import { fetchShopifyProducts } from '../data/shopify-api'
 import ProductCard from '../components/product/ProductCard'
 import type { Product, RawArtwork } from '../types'
+
+// Check data source from env
+const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'json'
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -19,36 +23,47 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [dataSource, setDataSource] = useState<'json' | 'shopify'>('json')
 
   useEffect(() => {
-    async function loadArtwork() {
+    async function loadProducts() {
       setLoading(true)
       setError(null)
       
-      const artist = artists.find(a => a.id === selectedArtist)
-      if (!artist) return
-      
       try {
-        const response = await fetch(artist.file)
-        if (!response.ok) throw new Error('Failed to load artwork')
-        
-        const data: { artworks: RawArtwork[] } = await response.json()
-        const transformed = data.artworks
-          .filter(art => art.image && art.title)
-          .map((art, i) => transformArtwork(art, i))
-        
-        setProducts(transformed)
+        if (DATA_SOURCE === 'shopify') {
+          // Fetch from Shopify Storefront API
+          const shopifyProducts = await fetchShopifyProducts()
+          setProducts(shopifyProducts)
+          setDataSource('shopify')
+        } else {
+          // Fetch from local JSON files
+          const artist = artists.find(a => a.id === selectedArtist)
+          if (!artist) return
+          
+          const response = await fetch(artist.file)
+          if (!response.ok) throw new Error('Failed to load artwork')
+          
+          const data: { artworks: RawArtwork[] } = await response.json()
+          const transformed = data.artworks
+            .filter(art => art.image && art.title)
+            .map((art, i) => transformArtwork(art, i))
+          
+          setProducts(transformed)
+          setDataSource('json')
+        }
       } catch (err) {
-        console.error('Error loading artwork:', err)
-        setError('Failed to load artwork. Please try again.')
+        console.error('Error loading products:', err)
+        setError('Failed to load products. Please try again.')
       } finally {
         setLoading(false)
       }
     }
     
-    loadArtwork()
+    loadProducts()
   }, [selectedArtist])
 
+  const isShopifyMode = dataSource === 'shopify'
   const currentArtist = artists.find(a => a.id === selectedArtist)
 
   return (
@@ -57,38 +72,62 @@ export default function Home() {
       <div className="border-b bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            {/* Left: Artist info */}
+            {/* Left: Title/Artist info */}
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
-                  {currentArtist?.name}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  American, {currentArtist?.dates}
-                </p>
+                {isShopifyMode ? (
+                  <>
+                    <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
+                      All Products
+                    </h1>
+                    <p className="text-sm text-gray-500">
+                      Powered by Shopify
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
+                      {currentArtist?.name}
+                    </h1>
+                    <p className="text-sm text-gray-500">
+                      American, {currentArtist?.dates}
+                    </p>
+                  </>
+                )}
               </div>
               <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-primary text-white">
-                {products.length} prints
+                {products.length} {isShopifyMode ? 'products' : 'prints'}
               </span>
             </div>
 
-            {/* Right: Artist selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-500">
-                Artist:
-              </span>
-              <select
-                value={selectedArtist}
-                onChange={(e) => handleArtistChange(e.target.value)}
-                className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
-              >
-                {artists.map(artist => (
-                  <option key={artist.id} value={artist.id}>
-                    {artist.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Right: Artist selector (JSON mode only) */}
+            {!isShopifyMode && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-500">
+                  Artist:
+                </span>
+                <select
+                  value={selectedArtist}
+                  onChange={(e) => handleArtistChange(e.target.value)}
+                  className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
+                >
+                  {artists.map(artist => (
+                    <option key={artist.id} value={artist.id}>
+                      {artist.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
+            {/* Data source badge (Shopify mode) */}
+            {isShopifyMode && (
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                  ⚡ Headless Shopify
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -100,7 +139,7 @@ export default function Home() {
           <div className="text-center py-16">
             <p className="text-red-600 mb-4">{error}</p>
             <button 
-              onClick={() => setSelectedArtist(selectedArtist)}
+              onClick={() => window.location.reload()}
               className="btn-primary"
             >
               Try Again
@@ -108,7 +147,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Loading State - only while fetching JSON */}
+        {/* Loading State */}
         {loading && !error && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {[...Array(10)].map((_, i) => (
@@ -126,14 +165,14 @@ export default function Home() {
           </div>
         )}
 
-        {/* Product Grid - show immediately after JSON loads */}
+        {/* Product Grid */}
         {!loading && !error && products.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {products.map((product, index) => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                artistId={selectedArtist}
+                artistId={isShopifyMode ? 'shopify' : selectedArtist}
                 priority={index < 6}
               />
             ))}
@@ -144,7 +183,9 @@ export default function Home() {
         {!loading && !error && products.length === 0 && (
           <div className="text-center py-16">
             <p className="text-gray-500">
-              No artwork found for this artist.
+              {isShopifyMode 
+                ? 'No products found in Shopify store.' 
+                : 'No artwork found for this artist.'}
             </p>
           </div>
         )}
@@ -168,21 +209,29 @@ export default function Home() {
                   Gallery Store
                 </span>
                 <p className="text-xs text-gray-500">
-                  Museum-quality prints from the Smithsonian
+                  {isShopifyMode 
+                    ? 'Headless Shopify Storefront'
+                    : 'Museum-quality prints from the Smithsonian'}
                 </p>
               </div>
             </div>
 
             {/* Right */}
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              <a 
-                href="https://www.si.edu/openaccess" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:underline text-gray-600"
-              >
-                Smithsonian Open Access
-              </a>
+              {isShopifyMode ? (
+                <span className="text-green-600 font-medium">
+                  Connected to Shopify
+                </span>
+              ) : (
+                <a 
+                  href="https://www.si.edu/openaccess" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:underline text-gray-600"
+                >
+                  Smithsonian Open Access
+                </a>
+              )}
               <span>•</span>
               <span>Free shipping on orders $100+</span>
             </div>
