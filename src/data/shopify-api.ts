@@ -47,6 +47,12 @@ interface ShopifyResponse {
   }
 }
 
+interface SingleProductResponse {
+  data: {
+    product: ShopifyProduct | null
+  }
+}
+
 const PRODUCTS_QUERY = `
   query getProducts($first: Int!, $after: String) {
     products(first: $first, after: $after) {
@@ -88,7 +94,7 @@ const PRODUCTS_QUERY = `
 `
 
 async function shopifyFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const response = await fetch(
+  const res = await fetch(
     `https://${SHOPIFY_STORE}/api/${API_VERSION}/graphql.json`,
     {
       method: 'POST',
@@ -100,16 +106,14 @@ async function shopifyFetch<T>(query: string, variables?: Record<string, unknown
     }
   )
 
-  if (!response.ok) {
-    throw new Error(`Shopify API error: ${response.status}`)
+  if (!res.ok) {
+    throw new Error(`Shopify API error: ${res.status}`)
   }
 
-  return response.json()
+  return res.json()
 }
 
 function transformShopifyProduct(shopifyProduct: ShopifyProduct): Product {
-  const price = parseFloat(shopifyProduct.priceRange.minVariantPrice.amount)
-  
   return {
     id: shopifyProduct.handle,
     title: shopifyProduct.title,
@@ -120,7 +124,6 @@ function transformShopifyProduct(shopifyProduct: ShopifyProduct): Product {
     image: shopifyProduct.featuredImage?.url || '/placeholder.jpg',
     description: shopifyProduct.description || `${shopifyProduct.title} by ${shopifyProduct.vendor}`,
     tags: shopifyProduct.tags,
-    basePrice: price,
   }
 }
 
@@ -130,19 +133,19 @@ export async function fetchShopifyProducts(): Promise<Product[]> {
   let cursor: string | null = null
 
   while (hasNextPage) {
-    const response = await shopifyFetch<ShopifyResponse>(PRODUCTS_QUERY, {
+    const res: ShopifyResponse = await shopifyFetch<ShopifyResponse>(PRODUCTS_QUERY, {
       first: 50,
       after: cursor,
     })
 
-    const products = response.data.products.edges.map(edge => 
+    const products = res.data.products.edges.map((edge: { node: ShopifyProduct }) => 
       transformShopifyProduct(edge.node)
     )
     
     allProducts.push(...products)
     
-    hasNextPage = response.data.products.pageInfo.hasNextPage
-    cursor = response.data.products.pageInfo.endCursor
+    hasNextPage = res.data.products.pageInfo.hasNextPage
+    cursor = res.data.products.pageInfo.endCursor
   }
 
   return allProducts
@@ -181,13 +184,13 @@ export async function fetchShopifyProduct(handle: string): Promise<Product | nul
     }
   `
 
-  const response = await shopifyFetch<{ data: { product: ShopifyProduct | null } }>(query, { handle })
+  const res: SingleProductResponse = await shopifyFetch<SingleProductResponse>(query, { handle })
   
-  if (!response.data.product) {
+  if (!res.data.product) {
     return null
   }
 
-  return transformShopifyProduct(response.data.product)
+  return transformShopifyProduct(res.data.product)
 }
 
 // Export config for checking data source
