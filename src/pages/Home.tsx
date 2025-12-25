@@ -1,43 +1,24 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { artists, transformArtwork } from '../data/products'
-import { fetchShopifyProducts } from '../data/shopify-api'
-import { fetchWooCommerceProducts } from '../data/woocommerce-api'
-import { fetchSupabaseProducts } from '../data/supabase-api'
+import { fetchSupabaseProducts, StoreFilter } from '../data/supabase-api'
 import ProductCard from '../components/product/ProductCard'
-import type { Product, RawArtwork } from '../types'
+import type { Product } from '../types'
 
-// Default data source from env
-const DEFAULT_DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'json'
-
-type DataSource = 'json' | 'shopify' | 'woocommerce' | 'supabase'
+type DataSource = 'all' | 'shopify' | 'woocommerce'
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
   
-  // URL param overrides env: ?source=shopify or ?source=woocommerce or ?source=json or ?source=supabase
-  const sourceParam = searchParams.get('source') as DataSource | null
-  const validSources: DataSource[] = ['json', 'shopify', 'woocommerce', 'supabase']
-  const activeSource: DataSource = (sourceParam && validSources.includes(sourceParam))
-    ? sourceParam 
-    : DEFAULT_DATA_SOURCE as DataSource
-  
-  const artistParam = searchParams.get('artist')
-  const [selectedArtist, setSelectedArtist] = useState(
-    artists.find(a => a.id === artistParam)?.id || artists[0].id
-  )
-
-  const handleArtistChange = (artistId: string) => {
-    setSelectedArtist(artistId)
-    const newParams = new URLSearchParams(searchParams)
-    newParams.set('artist', artistId)
-    setSearchParams(newParams)
-  }
+  // URL param: ?store=shopify or ?store=woocommerce or ?store=all
+  const storeParam = searchParams.get('store') as DataSource | null
+  const validStores: DataSource[] = ['all', 'shopify', 'woocommerce']
+  const activeStore: DataSource = (storeParam && validStores.includes(storeParam))
+    ? storeParam 
+    : 'all'
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dataSource, setDataSource] = useState<DataSource>('json')
 
   useEffect(() => {
     async function loadProducts() {
@@ -45,37 +26,9 @@ export default function Home() {
       setError(null)
       
       try {
-        if (activeSource === 'shopify') {
-          // Fetch from Shopify Storefront API
-          const shopifyProducts = await fetchShopifyProducts()
-          setProducts(shopifyProducts)
-          setDataSource('shopify')
-        } else if (activeSource === 'woocommerce') {
-          // Fetch from WooCommerce REST API
-          const wooProducts = await fetchWooCommerceProducts()
-          setProducts(wooProducts)
-          setDataSource('woocommerce')
-        } else if (activeSource === 'supabase') {
-          // Fetch from Supabase (Commerce Hub database)
-          const supabaseProducts = await fetchSupabaseProducts()
-          setProducts(supabaseProducts)
-          setDataSource('supabase')
-        } else {
-          // Fetch from local JSON files
-          const artist = artists.find(a => a.id === selectedArtist)
-          if (!artist) return
-          
-          const response = await fetch(artist.file)
-          if (!response.ok) throw new Error('Failed to load artwork')
-          
-          const data: { artworks: RawArtwork[] } = await response.json()
-          const transformed = data.artworks
-            .filter(art => art.image && art.title)
-            .map((art, i) => transformArtwork(art, i))
-          
-          setProducts(transformed)
-          setDataSource('json')
-        }
+        // All reads from Supabase - just filter by store
+        const supabaseProducts = await fetchSupabaseProducts(activeStore as StoreFilter)
+        setProducts(supabaseProducts)
       } catch (err) {
         console.error('Error loading products:', err)
         setError('Failed to load products. Please try again.')
@@ -85,126 +38,78 @@ export default function Home() {
     }
     
     loadProducts()
-  }, [selectedArtist, activeSource])
+  }, [activeStore])
 
-  const isHeadlessMode = dataSource !== 'json'
-  const currentArtist = artists.find(a => a.id === selectedArtist)
-  
-  // Platform-specific labels
-  const platformLabels: Record<DataSource, string> = {
-    json: 'Smithsonian',
+  // Labels
+  const storeLabels: Record<DataSource, string> = {
+    all: 'All Stores',
     shopify: 'Shopify',
-    woocommerce: 'WooCommerce',
-    supabase: 'Supabase'
+    woocommerce: 'WooCommerce'
   }
-  const platformLabel = platformLabels[dataSource]
 
-  // Helper to switch data source via URL
-  const switchSource = (newSource: string) => {
+  // Switch store via URL
+  const switchStore = (newStore: DataSource) => {
     const newParams = new URLSearchParams(searchParams)
-    if (newSource === 'json') {
-      newParams.delete('source')
+    if (newStore === 'all') {
+      newParams.delete('store')
     } else {
-      newParams.set('source', newSource)
+      newParams.set('store', newStore)
     }
     setSearchParams(newParams)
   }
 
-  // Button styles for switcher
-  const getButtonStyle = (source: DataSource) => {
-    const isActive = dataSource === source
+  // Button styles
+  const getButtonStyle = (store: DataSource) => {
+    const isActive = activeStore === store
     const colors: Record<DataSource, string> = {
-      json: isActive ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700',
+      all: isActive ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700',
       shopify: isActive ? 'bg-green-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700',
       woocommerce: isActive ? 'bg-purple-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700',
-      supabase: isActive ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700',
     }
-    return `px-3 py-1.5 text-xs font-medium rounded-md transition-all ${colors[source]}`
+    return `px-3 py-1.5 text-xs font-medium rounded-md transition-all ${colors[store]}`
   }
 
   return (
     <main className="bg-gray-50 min-h-screen">
-      {/* Compact Toolbar */}
+      {/* Toolbar */}
       <div className="border-b bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            {/* Left: Title/Artist info */}
+            {/* Left: Title */}
             <div className="flex items-center gap-4">
               <div>
-                {isHeadlessMode ? (
-                  <>
-                    <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
-                      All Products
-                    </h1>
-                    <p className="text-sm text-gray-500">
-                      Powered by {platformLabel}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
-                      {currentArtist?.name}
-                    </h1>
-                    <p className="text-sm text-gray-500">
-                      American, {currentArtist?.dates}
-                    </p>
-                  </>
-                )}
+                <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
+                  {storeLabels[activeStore]}
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Powered by Supabase • Instant load
+                </p>
               </div>
               <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-primary text-white">
-                {products.length} {isHeadlessMode ? 'products' : 'prints'}
+                {products.length} products
               </span>
             </div>
 
-            {/* Right: Controls */}
-            <div className="flex items-center gap-3">
-              {/* Artist selector (JSON mode only) */}
-              {!isHeadlessMode && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-500">
-                    Artist:
-                  </span>
-                  <select
-                    value={selectedArtist}
-                    onChange={(e) => handleArtistChange(e.target.value)}
-                    className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
-                  >
-                    {artists.map(artist => (
-                      <option key={artist.id} value={artist.id}>
-                        {artist.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {/* Data source switcher */}
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => switchSource('json')}
-                  className={getButtonStyle('json')}
-                >
-                  JSON
-                </button>
-                <button
-                  onClick={() => switchSource('shopify')}
-                  className={getButtonStyle('shopify')}
-                >
-                  Shopify
-                </button>
-                <button
-                  onClick={() => switchSource('woocommerce')}
-                  className={getButtonStyle('woocommerce')}
-                >
-                  WooCommerce
-                </button>
-                <button
-                  onClick={() => switchSource('supabase')}
-                  className={getButtonStyle('supabase')}
-                >
-                  Supabase
-                </button>
-              </div>
+            {/* Right: Store switcher */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => switchStore('all')}
+                className={getButtonStyle('all')}
+              >
+                All
+              </button>
+              <button
+                onClick={() => switchStore('shopify')}
+                className={getButtonStyle('shopify')}
+              >
+                Shopify
+              </button>
+              <button
+                onClick={() => switchStore('woocommerce')}
+                className={getButtonStyle('woocommerce')}
+              >
+                WooCommerce
+              </button>
             </div>
           </div>
         </div>
@@ -250,7 +155,7 @@ export default function Home() {
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                artistId={isHeadlessMode ? dataSource : selectedArtist}
+                artistId={activeStore}
                 priority={index < 6}
               />
             ))}
@@ -261,9 +166,7 @@ export default function Home() {
         {!loading && !error && products.length === 0 && (
           <div className="text-center py-16">
             <p className="text-gray-500">
-              {isHeadlessMode 
-                ? `No products found in ${platformLabel}.` 
-                : 'No artwork found for this artist.'}
+              No products found.
             </p>
           </div>
         )}
@@ -273,7 +176,6 @@ export default function Home() {
       <footer className="border-t mt-8 bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* Left */}
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -283,37 +185,17 @@ export default function Home() {
                 </svg>
               </div>
               <div>
-                <span className="font-semibold text-gray-800">
-                  Gallery Store
-                </span>
+                <span className="font-semibold text-gray-800">Gallery Store</span>
                 <p className="text-xs text-gray-500">
-                  {isHeadlessMode 
-                    ? `Headless ${platformLabel} Storefront`
-                    : 'Museum-quality prints from the Smithsonian'}
+                  Headless Multi-Channel Storefront
                 </p>
               </div>
             </div>
 
-            {/* Right */}
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              {isHeadlessMode ? (
-                <span className={`font-medium ${
-                  dataSource === 'shopify' ? 'text-green-600' : 
-                  dataSource === 'woocommerce' ? 'text-purple-600' :
-                  dataSource === 'supabase' ? 'text-emerald-600' : 'text-gray-600'
-                }`}>
-                  Connected to {platformLabel}
-                </span>
-              ) : (
-                <a 
-                  href="https://www.si.edu/openaccess" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:underline text-gray-600"
-                >
-                  Smithsonian Open Access
-                </a>
-              )}
+              <span className="font-medium text-emerald-600">
+                ⚡ All data from Supabase
+              </span>
               <span>•</span>
               <span>Free shipping on orders $100+</span>
             </div>
