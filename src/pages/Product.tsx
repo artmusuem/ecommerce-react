@@ -5,9 +5,6 @@ import { useCartDispatch } from '../context/CartContext'
 import { getResizedImage, IMAGE_SIZES, preloadImage } from '../utils/images'
 import type { Product as ProductType, RawArtwork, ProductRouterState } from '../types'
 
-// View mode type
-type ViewMode = 'frame' | 'room'
-
 export default function Product() {
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
@@ -38,7 +35,6 @@ export default function Product() {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [fullImageReady, setFullImageReady] = useState(false)
   const [useFallback, setUseFallback] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('frame')
   const previewImgRef = useRef<HTMLImageElement>(null)
 
   // Fetch product by ID when no router state (direct URL access)
@@ -209,82 +205,6 @@ export default function Product() {
     ? `https://www.si.edu/object/${titleSlug}:${product.accession_number}`
     : `https://www.si.edu/search?edan_q=${encodeURIComponent(product.title)}&edan_fq=unit_code:SAAM`
 
-  // Get image URL
-  const imageUrl = useFallback 
-    ? getFallbackUrl(IMAGE_SIZES.preview) 
-    : getResizedImage(product.image, IMAGE_SIZES.preview)
-
-  // Render 3D CSS Frame
-  const renderFrame = () => (
-    <div className={`art-frame frame-${selectedFrame}`}>
-      {selectedFrame === 'unframed' ? (
-        <img
-          ref={previewImgRef}
-          src={imageUrl}
-          alt={product.title}
-          className="frame-artwork w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 object-cover"
-          onLoad={() => setImageLoaded(true)}
-          onError={() => { if (!useFallback) setUseFallback(true) }}
-        />
-      ) : (
-        <div className="frame-bevel-outer">
-          <div className="frame-body">
-            <div className="frame-bevel-inner">
-              <div className="frame-mat">
-                <img
-                  ref={previewImgRef}
-                  src={imageUrl}
-                  alt={product.title}
-                  className="frame-artwork w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 object-cover"
-                  onLoad={() => setImageLoaded(true)}
-                  onError={() => { if (!useFallback) setUseFallback(true) }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-
-  // Render Room Mockup
-  const renderRoomMockup = () => (
-    <div className="room-mockup">
-      {/* Wall art container */}
-      <div className="room-art-container">
-        <div className={`art-frame frame-${selectedFrame}`} style={{ transform: 'scale(0.6)' }}>
-          {selectedFrame === 'unframed' ? (
-            <img
-              src={imageUrl}
-              alt={product.title}
-              className="frame-artwork w-72 h-72 object-cover"
-            />
-          ) : (
-            <div className="frame-bevel-outer">
-              <div className="frame-body">
-                <div className="frame-bevel-inner">
-                  <div className="frame-mat">
-                    <img
-                      src={imageUrl}
-                      alt={product.title}
-                      className="frame-artwork w-64 h-64 object-cover"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Furniture */}
-      <div className="room-furniture" />
-      
-      {/* Plant accent */}
-      <div className="room-plant" />
-    </div>
-  )
-
   return (
     <main className="min-h-screen py-6 bg-gray-50">
       <div className="max-w-5xl mx-auto px-4">
@@ -302,40 +222,52 @@ export default function Product() {
         </nav>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Column: Image Preview */}
+          {/* Left Column: Image */}
           <div>
-            {/* View Toggle */}
-            <div className="flex justify-center mb-4 gap-2">
-              <button
-                onClick={() => setViewMode('frame')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  viewMode === 'frame'
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                Frame Preview
-              </button>
-              <button
-                onClick={() => setViewMode('room')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  viewMode === 'room'
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                Room View
-              </button>
-            </div>
-
-            {/* Frame or Room Preview */}
+            {/* Framed Image Preview */}
             <div 
-              className="flex justify-center cursor-zoom-in group"
+              className="relative transition-all duration-300 cursor-zoom-in group mx-auto w-fit rounded-lg overflow-hidden p-5"
+              style={{ 
+                backgroundColor: frame?.color,
+                boxShadow: 'inset 0 0 20px rgba(0,0,0,0.15), 0 10px 40px rgba(0,0,0,0.2)'
+              }}
               onClick={() => setLightboxOpen(true)}
             >
-              {viewMode === 'frame' ? renderFrame() : renderRoomMockup()}
+              <div className="bg-white p-1 shadow-inner relative">
+                <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 overflow-hidden bg-gray-100">
+                  {/* Fast thumbnail (400px) - shows immediately */}
+                  <img
+                    src={useFallback ? getFallbackUrl(IMAGE_SIZES.thumbnail) : getResizedImage(product.image, IMAGE_SIZES.thumbnail)}
+                    alt=""
+                    aria-hidden="true"
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                      imageLoaded ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  />
+                  
+                  {/* Preview image (800px) - loads on top */}
+                  <img
+                    ref={previewImgRef}
+                    src={useFallback ? getFallbackUrl(IMAGE_SIZES.preview) : getResizedImage(product.image, IMAGE_SIZES.preview)}
+                    alt={product.title}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                      imageLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    onLoad={() => setImageLoaded(true)}
+                    onError={() => {
+                      if (!useFallback) setUseFallback(true)
+                    }}
+                  />
+                  
+                  {/* Zoom hint */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                    <svg className="w-10 h-10 text-white opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
-            
             <p className="text-center text-xs mt-3 text-gray-400">
               Click image to enlarge
               {fullImageReady && (
@@ -361,75 +293,56 @@ export default function Product() {
 
             {/* Options Card */}
             <div className="rounded-xl p-5 mb-6 bg-white border border-gray-200">
-              {/* Size Selection - Button Group */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium mb-3 text-gray-700">
+              {/* Size Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-gray-700">
                   Print Size
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <select
+                  value={selectedSize}
+                  onChange={(e) => setSelectedSize(e.target.value)}
+                  className="w-full px-4 py-3 border-2 rounded-lg cursor-pointer text-base font-medium transition-colors border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
+                >
                   {sizes.map(size => (
-                    <button
-                      key={size.id}
-                      onClick={() => setSelectedSize(size.id)}
-                      className={`py-3 px-3 rounded-lg text-sm font-medium transition-all border-2 ${
-                        selectedSize === size.id
-                          ? 'border-gray-900 bg-gray-900 text-white'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {size.name.replace('" × "', '×').replace(/"/g, '')}
-                    </button>
+                    <option key={size.id} value={size.id}>
+                      {size.name} — ${size.basePrice}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
-              {/* Frame Selection - Button Group */}
+              {/* Frame Dropdown */}
               <div>
-                <label className="block text-sm font-medium mb-3 text-gray-700">
+                <label className="block text-sm font-medium mb-2 text-gray-700">
                   Frame Style
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <select
+                  value={selectedFrame}
+                  onChange={(e) => setSelectedFrame(e.target.value)}
+                  className="w-full px-4 py-3 border-2 rounded-lg cursor-pointer text-base font-medium transition-colors border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
+                >
                   {frames.map(frameOption => (
-                    <button
-                      key={frameOption.id}
-                      onClick={() => setSelectedFrame(frameOption.id)}
-                      className={`py-3 px-3 rounded-lg text-sm font-medium transition-all border-2 flex items-center gap-2 ${
-                        selectedFrame === frameOption.id
-                          ? 'border-gray-900 bg-gray-900 text-white'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <span 
-                        className="w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0"
-                        style={{ backgroundColor: frameOption.color }}
-                      />
-                      <span className="truncate">{frameOption.name.split(' ')[0]}</span>
-                    </button>
+                    <option key={frameOption.id} value={frameOption.id}>
+                      {frameOption.name}{frameOption.priceAdd > 0 ? ` — +$${frameOption.priceAdd}` : ' — Included'}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
-              {/* Selected Options Summary */}
-              <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span 
-                    className="w-8 h-8 rounded border border-gray-300 shadow-inner"
-                    style={{ backgroundColor: frame?.color }}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">
-                      {frame?.name}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {currentSize?.name} print
-                    </p>
-                  </div>
+              {/* Frame Color Preview */}
+              <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
+                <span 
+                  className="w-8 h-8 rounded border border-gray-300 shadow-inner"
+                  style={{ backgroundColor: frame?.color }}
+                />
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    {frame?.name} Frame
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {currentSize?.name} print
+                  </p>
                 </div>
-                {frame && frame.priceAdd > 0 && (
-                  <span className="text-sm text-gray-500">
-                    +${frame.priceAdd}
-                  </span>
-                )}
               </div>
             </div>
 
