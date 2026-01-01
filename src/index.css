@@ -207,9 +207,10 @@ h1, h2, h3, .font-display {
   border-color: #f0d875 #a08020 #a08020 #f0d875;
 }
 
+
 /* ============================================
    ROOM MOCKUP VIEW
-   Shows framed art on a wall for context
+   Shows framed art in a real room setting
    ============================================ */
 
 .room-mockup {
@@ -217,82 +218,51 @@ h1, h2, h3, .font-display {
   width: 100%;
   max-width: 500px;
   aspect-ratio: 4/3;
-  background: linear-gradient(180deg, #e8e4dc 0%, #d8d4cc 100%);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: inset 0 0 60px rgba(0,0,0,0.06);
   margin: 0 auto;
+  /* Real room photo from Unsplash (free for commercial use) */
+  background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80');
+  background-size: cover;
+  background-position: center;
 }
 
-/* Subtle wall texture */
+/* Subtle overlay to help art stand out */
 .room-mockup::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: 
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 50%);
+  background: rgba(0,0,0,0.02);
   pointer-events: none;
 }
 
-/* Floor shadow hint */
-.room-mockup::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 30%;
-  background: linear-gradient(180deg, transparent 0%, rgba(120,100,80,0.12) 100%);
-  pointer-events: none;
-}
-
-/* Art container on wall */
+/* Art container positioned on wall */
 .room-art-container {
   position: absolute;
-  top: 12%;
+  top: 8%;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 10;
 }
 
-/* Wall shadow behind frame */
+/* Realistic wall shadow behind frame */
 .room-art-container::after {
   content: '';
   position: absolute;
-  top: 6px;
-  left: 6px;
-  right: -6px;
-  bottom: -6px;
-  background: rgba(0,0,0,0.12);
-  filter: blur(8px);
+  top: 4px;
+  left: 4px;
+  right: -4px;
+  bottom: -4px;
+  background: rgba(0,0,0,0.2);
+  filter: blur(6px);
   z-index: -1;
   border-radius: 2px;
 }
 
-/* Console table furniture */
+/* Hide the placeholder furniture */
 .room-furniture {
-  position: absolute;
-  bottom: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 35%;
-  height: 8%;
-  background: linear-gradient(180deg, #a08060 0%, #7a6040 100%);
-  border-radius: 3px 3px 0 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: none;
 }
-
-/* Table top edge */
-.room-furniture::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #c4a574, #d4b896, #c4a574);
-  border-radius: 3px 3px 0 0;
-}
-
 /* View toggle buttons */
 .view-toggle {
   display: flex;
