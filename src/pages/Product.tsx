@@ -297,7 +297,7 @@ export default function Product() {
                     style={{ 
                       backgroundColor: frame?.color,
                       boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                      transform: 'scale(0.65)'
+                      transform: 'scale(0.55)'
                     }}
                   >
                     <div className="bg-white p-1 shadow-inner">
