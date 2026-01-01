@@ -166,3 +166,43 @@ h1, h2, h3, .font-display {
   background-color: var(--color-primary);
   color: white;
 }
+
+/* ============================================
+   3D FRAME ENHANCEMENT
+   Adds realistic depth to frame preview
+   ============================================ */
+
+/* Base frame container - adds 3D bevel effect */
+.frame-preview {
+  transition: all 0.3s ease;
+}
+
+/* Black frame - 3D bevel (light top-left, dark bottom-right) */
+.frame-preview.frame-black {
+  border: 4px solid;
+  border-color: #3a3a3a #0a0a0a #0a0a0a #3a3a3a;
+}
+
+/* White frame */
+.frame-preview.frame-white {
+  border: 4px solid;
+  border-color: #ffffff #d8d8d8 #d8d8d8 #ffffff;
+}
+
+/* Natural oak frame */
+.frame-preview.frame-natural {
+  border: 4px solid;
+  border-color: #d4b896 #9a7040 #9a7040 #d4b896;
+}
+
+/* Walnut frame */
+.frame-preview.frame-walnut {
+  border: 4px solid;
+  border-color: #7a5a40 #3a2010 #3a2010 #7a5a40;
+}
+
+/* Gold frame */
+.frame-preview.frame-gold {
+  border: 4px solid;
+  border-color: #f0d875 #a08020 #a08020 #f0d875;
+}
