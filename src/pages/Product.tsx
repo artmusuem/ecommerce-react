@@ -35,7 +35,7 @@ export default function Product() {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [fullImageReady, setFullImageReady] = useState(false)
   const [useFallback, setUseFallback] = useState(false)
-  const [viewMode, setViewMode] = useState<'frame' | 'room'>('frame')
+
   const previewImgRef = useRef<HTMLImageElement>(null)
 
   // Fetch product by ID when no router state (direct URL access)
@@ -225,93 +225,50 @@ export default function Product() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column: Image */}
           <div>
-            {/* View Toggle */}
-            <div className="view-toggle">
-              <button
-                onClick={() => setViewMode('frame')}
-                className={`view-toggle-btn ${viewMode === 'frame' ? 'active' : ''}`}
-              >
-                Frame Preview
-              </button>
-              <button
-                onClick={() => setViewMode('room')}
-                className={`view-toggle-btn ${viewMode === 'room' ? 'active' : ''}`}
-              >
-                Room View
-              </button>
-            </div>
-
-            {/* Frame Preview Mode */}
-            {viewMode === 'frame' && (
-              <div 
-                className={`frame-preview frame-${selectedFrame} relative transition-all duration-300 cursor-zoom-in group mx-auto w-fit rounded-lg overflow-hidden p-5`}
-                style={{ 
-                  backgroundColor: frame?.color,
-                  boxShadow: 'inset 0 0 20px rgba(0,0,0,0.15), 0 10px 40px rgba(0,0,0,0.2)'
-                }}
-                onClick={() => setLightboxOpen(true)}
-              >
-                <div className="bg-white p-1 shadow-inner relative">
-                  <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 overflow-hidden bg-gray-100">
-                    {/* Fast thumbnail (400px) - shows immediately */}
-                    <img
-                      src={useFallback ? getFallbackUrl(IMAGE_SIZES.thumbnail) : getResizedImage(product.image, IMAGE_SIZES.thumbnail)}
-                      alt=""
-                      aria-hidden="true"
-                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
-                        imageLoaded ? 'opacity-0' : 'opacity-100'
-                      }`}
-                    />
-                    
-                    {/* Preview image (800px) - loads on top */}
-                    <img
-                      ref={previewImgRef}
-                      src={useFallback ? getFallbackUrl(IMAGE_SIZES.preview) : getResizedImage(product.image, IMAGE_SIZES.preview)}
-                      alt={product.title}
-                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
-                        imageLoaded ? 'opacity-100' : 'opacity-0'
-                      }`}
-                      onLoad={() => setImageLoaded(true)}
-                      onError={() => {
-                        if (!useFallback) setUseFallback(true)
-                      }}
-                    />
-                    
-                    {/* Zoom hint */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                      <svg className="w-10 h-10 text-white opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Room View Mode */}
-            {viewMode === 'room' && (
-              <div className="room-mockup cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
-                <div className="room-art-container">
-                  <div 
-                    className={`frame-preview frame-${selectedFrame} rounded overflow-hidden p-3`}
-                    style={{ 
-                      backgroundColor: frame?.color,
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                      transform: 'scale(0.65)'
+            {/* Frame Preview */}
+            <div 
+              className={`frame-preview frame-${selectedFrame} relative transition-all duration-300 cursor-zoom-in group mx-auto w-fit rounded-lg overflow-hidden p-5`}
+              style={{ 
+                backgroundColor: frame?.color,
+                boxShadow: 'inset 0 0 20px rgba(0,0,0,0.15), 0 10px 40px rgba(0,0,0,0.2)'
+              }}
+              onClick={() => setLightboxOpen(true)}
+            >
+              <div className="bg-white p-1 shadow-inner relative">
+                <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 overflow-hidden bg-gray-100">
+                  {/* Fast thumbnail (400px) - shows immediately */}
+                  <img
+                    src={useFallback ? getFallbackUrl(IMAGE_SIZES.thumbnail) : getResizedImage(product.image, IMAGE_SIZES.thumbnail)}
+                    alt=""
+                    aria-hidden="true"
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                      imageLoaded ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  />
+                  
+                  {/* Preview image (800px) - loads on top */}
+                  <img
+                    ref={previewImgRef}
+                    src={useFallback ? getFallbackUrl(IMAGE_SIZES.preview) : getResizedImage(product.image, IMAGE_SIZES.preview)}
+                    alt={product.title}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                      imageLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    onLoad={() => setImageLoaded(true)}
+                    onError={() => {
+                      if (!useFallback) setUseFallback(true)
                     }}
-                  >
-                    <div className="bg-white p-1 shadow-inner">
-                      <img
-                        src={useFallback ? getFallbackUrl(IMAGE_SIZES.preview) : getResizedImage(product.image, IMAGE_SIZES.preview)}
-                        alt={product.title}
-                        className="w-64 h-64 object-cover"
-                      />
-                    </div>
+                  />
+                  
+                  {/* Zoom hint */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                    <svg className="w-10 h-10 text-white opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
                   </div>
                 </div>
-                <div className="room-furniture" />
               </div>
-            )}
+            </div>
 
             <p className="text-center text-xs mt-3 text-gray-400">
               Click image to enlarge
