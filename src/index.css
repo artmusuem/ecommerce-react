@@ -236,10 +236,10 @@ h1, h2, h3, .font-display {
   pointer-events: none;
 }
 
-/* Art container positioned on wall */
+/* Art container positioned on wall - above sofa eye level */
 .room-art-container {
   position: absolute;
-  top: 8%;
+  top: 16%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
