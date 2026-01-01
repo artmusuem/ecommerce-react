@@ -221,10 +221,10 @@ h1, h2, h3, .font-display {
   border-radius: 8px;
   overflow: hidden;
   margin: 0 auto;
-  /* Credenza/sideboard room - more wall space like Etsy */
-  background-image: url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80');
-  background-size: cover;
-  background-position: center;
+  /* Original room photo - cropped to show more wall space */
+  background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80');
+  background-size: 140%;
+  background-position: center 25%;
 }
 
 /* Subtle overlay to help art stand out */
@@ -239,7 +239,7 @@ h1, h2, h3, .font-display {
 /* Art container positioned on wall - centered above furniture */
 .room-art-container {
   position: absolute;
-  top: 12%;
+  top: 20%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
