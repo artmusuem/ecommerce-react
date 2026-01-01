@@ -226,7 +226,7 @@ export default function Product() {
           <div>
             {/* Framed Image Preview */}
             <div 
-              className="relative transition-all duration-300 cursor-zoom-in group mx-auto w-fit rounded-lg overflow-hidden p-5"
+              className={`frame-preview frame-${selectedFrame} relative transition-all duration-300 cursor-zoom-in group mx-auto w-fit rounded-lg overflow-hidden p-5`}
               style={{ 
                 backgroundColor: frame?.color,
                 boxShadow: 'inset 0 0 20px rgba(0,0,0,0.15), 0 10px 40px rgba(0,0,0,0.2)'
