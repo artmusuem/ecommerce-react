@@ -166,3 +166,238 @@ h1, h2, h3, .font-display {
   background-color: var(--color-primary);
   color: white;
 }
+
+/* ============================================
+   3D CSS PICTURE FRAMES
+   Gallery Store - Art Print Frame Styles
+   ============================================ */
+
+/* Base frame wrapper */
+.art-frame {
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+/* UNFRAMED - Just artwork with subtle shadow */
+.art-frame.frame-unframed {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* BLACK FRAME - Classic Museum */
+.art-frame.frame-black {
+  box-shadow: 4px 5px 15px rgba(0,0,0,0.4);
+}
+.art-frame.frame-black .frame-bevel-outer {
+  border: 3px solid;
+  border-color: #3a3a3a #151515 #151515 #3a3a3a;
+}
+.art-frame.frame-black .frame-body {
+  border: 10px solid #1a1a1a;
+}
+.art-frame.frame-black .frame-bevel-inner {
+  border: 3px solid;
+  border-color: #151515 #3a3a3a #3a3a3a #151515;
+}
+.art-frame.frame-black .frame-mat {
+  padding: 16px;
+  background: #f8f6f0;
+  border: 2px solid;
+  border-color: #e0d8c8 #c8c0b0 #c8c0b0 #e0d8c8;
+}
+
+/* WHITE FRAME - Gallery White */
+.art-frame.frame-white {
+  box-shadow: 3px 4px 12px rgba(0,0,0,0.12);
+}
+.art-frame.frame-white .frame-bevel-outer {
+  border: 2px solid;
+  border-color: #fff #e0e0e0 #e0e0e0 #fff;
+}
+.art-frame.frame-white .frame-body {
+  border: 10px solid #f5f5f5;
+}
+.art-frame.frame-white .frame-bevel-inner {
+  border: 2px solid;
+  border-color: #ddd #fff #fff #ddd;
+}
+.art-frame.frame-white .frame-mat {
+  padding: 14px;
+  background: #fefefe;
+}
+
+/* NATURAL OAK FRAME */
+.art-frame.frame-natural {
+  box-shadow: 4px 5px 14px rgba(0,0,0,0.3);
+}
+.art-frame.frame-natural .frame-bevel-outer {
+  border: 3px solid;
+  border-color: #d4b896 #8b6914 #8b6914 #d4b896;
+}
+.art-frame.frame-natural .frame-body {
+  border: 10px solid #c4a574;
+}
+.art-frame.frame-natural .frame-bevel-inner {
+  border: 3px solid;
+  border-color: #9a7b4a #dcc8a0 #dcc8a0 #9a7b4a;
+}
+.art-frame.frame-natural .frame-mat {
+  padding: 16px;
+  background: #faf8f3;
+  border: 2px solid;
+  border-color: #e8e0d0 #d0c8b8 #d0c8b8 #e8e0d0;
+}
+
+/* WALNUT FRAME - Rich Dark Wood */
+.art-frame.frame-walnut {
+  box-shadow: 4px 5px 15px rgba(0,0,0,0.4);
+}
+.art-frame.frame-walnut .frame-bevel-outer {
+  border: 3px solid;
+  border-color: #7a5a40 #3a2818 #3a2818 #7a5a40;
+}
+.art-frame.frame-walnut .frame-body {
+  border: 10px solid #5c4033;
+}
+.art-frame.frame-walnut .frame-bevel-inner {
+  border: 3px solid;
+  border-color: #2a1810 #6a4a38 #6a4a38 #2a1810;
+}
+.art-frame.frame-walnut .frame-mat {
+  padding: 16px;
+  background: #f8f5f0;
+  border: 2px solid;
+  border-color: #d8d0c0 #b8b0a0 #b8b0a0 #d8d0c0;
+}
+
+/* GOLD FRAME - Antique Gold */
+.art-frame.frame-gold {
+  box-shadow: 4px 5px 16px rgba(0,0,0,0.35);
+}
+.art-frame.frame-gold .frame-bevel-outer {
+  border: 4px solid;
+  border-color: #f0d875 #9a7a14 #9a7a14 #f0d875;
+}
+.art-frame.frame-gold .frame-body {
+  border: 12px solid #d4af37;
+  background: linear-gradient(135deg, #e8c84a 0%, #c9a227 50%, #e8c84a 100%);
+}
+.art-frame.frame-gold .frame-bevel-inner {
+  border: 3px solid;
+  border-color: #8b6914 #f0d875 #f0d875 #8b6914;
+}
+.art-frame.frame-gold .frame-mat {
+  padding: 18px;
+  background: #fffef8;
+  border: 2px solid;
+  border-color: #f0e8c8 #c8c090 #c8c090 #f0e8c8;
+}
+
+/* Frame artwork image */
+.art-frame .frame-artwork {
+  display: block;
+}
+
+/* ============================================
+   ROOM MOCKUP STYLES
+   ============================================ */
+.room-mockup {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 4/3;
+  background: linear-gradient(180deg, #e8e4dc 0%, #d8d4cc 100%);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.08);
+}
+
+/* Wall texture */
+.room-mockup::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(0,0,0,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Floor/surface hint */
+.room-mockup::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 25%;
+  background: linear-gradient(180deg, transparent 0%, rgba(139,119,101,0.15) 100%);
+  pointer-events: none;
+}
+
+/* Framed art container in room */
+.room-mockup .room-art-container {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Shadow on wall behind frame */
+.room-mockup .room-art-container::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: -8px;
+  bottom: -8px;
+  background: rgba(0,0,0,0.15);
+  filter: blur(12px);
+  z-index: -1;
+}
+
+/* Furniture hint (console table) */
+.room-furniture {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 12%;
+  background: linear-gradient(180deg, #8b7355 0%, #6b5335 100%);
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.room-furniture::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #a08060, #c4a574, #a08060);
+}
+
+/* Plant accent */
+.room-plant {
+  position: absolute;
+  bottom: 18%;
+  right: 15%;
+  width: 30px;
+  height: 50px;
+  background: linear-gradient(180deg, #4a7c59 0%, #3d6b4a 100%);
+  border-radius: 50% 50% 0 0;
+  opacity: 0.7;
+}
+
+.room-plant::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 12px;
+  background: #8b7355;
+  border-radius: 2px;
+}
