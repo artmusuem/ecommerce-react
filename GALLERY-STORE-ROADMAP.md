@@ -2,9 +2,9 @@
 
 ## Last Successful Deployment
 - **Date:** January 1, 2026
-- **Commit:** `e5a8230` (feat: Add 3D bevel CSS class to frame preview)
+- **Commit:** `28323c1` (feat: Add Room View toggle with wall mockup display)
 - **Live URL:** https://ecommerce-react-beta-woad.vercel.app
-- **Status:** ✅ Working - 3D frame bevels active
+- **Status:** ✅ Working - 3D frames + Room View
 
 ---
 
@@ -17,16 +17,14 @@
 - ✅ Dynamic pricing based on selections
 - ✅ Add to cart functionality
 - ✅ Lightbox zoom on image click
-- ✅ **3D frame bevel effect** (NEW - commit e5a8230)
+- ✅ **3D frame bevel effect** (commit e5a8230)
+- ✅ **Room View toggle** (commit 28323c1) - NEW!
 
-### 3D Frame CSS Classes (index.css)
-```css
-.frame-preview.frame-black {
-  border: 4px solid;
-  border-color: #3a3a3a #0a0a0a #0a0a0a #3a3a3a;
-}
-/* Similar for: frame-white, frame-natural, frame-walnut, frame-gold */
-```
+### View Modes
+| Mode | Description |
+|------|-------------|
+| Frame Preview | Close-up of framed art with 3D bevels |
+| Room View | Art displayed on wall with furniture context |
 
 ---
 
@@ -42,22 +40,26 @@
 - [x] Add 3D bevel CSS classes (commit d3a1d83)
 - [x] Apply classes to Product.tsx (commit e5a8230)
 
-### Phase 2: Room Mockup View (NEXT)
-- [ ] Add "Room View" toggle button
-- [ ] CSS room background (wall gradient, furniture)
-- [ ] Position framed art on wall
+### Phase 2: Room Mockup View ✅ COMPLETE
+- [x] Add room mockup CSS (commit 5a86fdd)
+- [x] Add view toggle buttons (commit 28323c1)
+- [x] Room background with furniture
 
-### Phase 3: Button Selectors
+### Phase 3: Button Selectors (NEXT)
 - [ ] Replace size dropdown with button group
 - [ ] Replace frame dropdown with visual swatches
+
+### Phase 4: Commerce Hub Integration
+- [ ] Sync products from Supabase
+- [ ] Push frame/size variants to Shopify
 
 ---
 
 ## Development Rules
 
 1. **ONE file at a time** - Don't batch changes
-2. **Test before push** - Verify syntax
-3. **Verify deployment** - Wait for Vercel, check site works
+2. **CSS first** - Add classes without using them, verify deploy
+3. **Then TSX** - Apply classes, verify deploy
 4. **Meaningful commits** - Describe what changed
 5. **Update this doc** - After each successful deployment
 
@@ -65,11 +67,10 @@
 
 ## Quick Recovery
 
-If deployment fails, revert to last working commit:
-```bash
-# Last known good: e5a8230
-git revert HEAD
-```
+Last known good commits:
+- `28323c1` - Room View (current)
+- `e5a8230` - 3D frames only
+- `0519fc6` - Pre-3D frames (stable baseline)
 
 ---
 
@@ -79,26 +80,10 @@ git revert HEAD
 |------|-----------|--------|
 | Dec 2024 | Basic Gallery Store with cart | various |
 | Dec 26 | Reverted to JSON-only (stable) | `4fdde28` |
-| Dec 31 | Fixed corrupted artist JSON | `3a17bb0` |
-| Jan 1 | Failed 3D frame attempt | `470a950` |
-| Jan 1 | Reverted to stable | `0519fc6` |
-| Jan 1 | Added roadmap doc | `d4c90f5` |
 | Jan 1 | Added 3D frame CSS | `d3a1d83` |
-| Jan 1 | **Applied 3D frames** | `e5a8230` ✅ |
-
----
-
-## Frame Options (from products.ts)
-
-```typescript
-export const frames: Frame[] = [
-  { id: "black", name: "Matte Black", priceAdd: 0, color: "#1a1a1a" },
-  { id: "natural", name: "Natural Oak", priceAdd: 15, color: "#c4a574" },
-  { id: "walnut", name: "Rich Walnut", priceAdd: 20, color: "#5c4033" },
-  { id: "gold", name: "Antique Gold", priceAdd: 25, color: "#d4af37" },
-  { id: "white", name: "Gallery White", priceAdd: 10, color: "#f5f5f5" }
-]
-```
+| Jan 1 | Applied 3D frames | `e5a8230` |
+| Jan 1 | Added room mockup CSS | `5a86fdd` |
+| Jan 1 | **Room View toggle** | `28323c1` ✅ |
 
 ---
 
@@ -106,10 +91,9 @@ export const frames: Frame[] = [
 
 | File | Purpose | Last Good Commit |
 |------|---------|------------------|
-| `src/pages/Product.tsx` | Product detail page | `e5a8230` |
-| `src/index.css` | Global styles + 3D frames | `d3a1d83` |
+| `src/pages/Product.tsx` | Product detail + view toggle | `28323c1` |
+| `src/index.css` | 3D frames + room mockup CSS | `5a86fdd` |
 | `src/data/products.ts` | Frame/size definitions | unchanged |
-| `GALLERY-STORE-ROADMAP.md` | This document | current |
 
 ---
 
