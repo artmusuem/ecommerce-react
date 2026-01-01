@@ -221,10 +221,10 @@ h1, h2, h3, .font-display {
   border-radius: 8px;
   overflow: hidden;
   margin: 0 auto;
-  /* Original room photo - cropped to show more wall space */
+  /* Real room photo from Unsplash (free for commercial use) */
   background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80');
-  background-size: 140%;
-  background-position: center 25%;
+  background-size: cover;
+  background-position: center;
 }
 
 /* Subtle overlay to help art stand out */
@@ -236,10 +236,10 @@ h1, h2, h3, .font-display {
   pointer-events: none;
 }
 
-/* Art container positioned on wall - centered above furniture */
+/* Art container positioned on wall */
 .room-art-container {
   position: absolute;
-  top: 20%;
+  top: 8%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
