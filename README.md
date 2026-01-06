@@ -1,7 +1,7 @@
 # Gallery Store
 
-[![Tests](https://img.shields.io/badge/tests-114%20passed-brightgreen)](https://github.com/artmusuem/ecommerce-react)
-[![Coverage](https://img.shields.io/badge/coverage-51%25-yellow)](https://github.com/artmusuem/ecommerce-react)
+[![Tests](https://img.shields.io/badge/tests-114%20passed-brightgreen)](https://github.com/nathanmcmullendev/ecommerce-react)
+[![Coverage](https://img.shields.io/badge/coverage-51%25-yellow)](https://github.com/nathanmcmullendev/ecommerce-react)
 [![PageSpeed](https://img.shields.io/badge/PageSpeed-95%2F100-brightgreen)](https://pagespeed.web.dev/analysis/https-ecommerce-react-beta-woad-vercel-app/your-report-id)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.2-61dafb)](https://react.dev/)
@@ -9,7 +9,7 @@
 A production-grade React e-commerce application for museum-quality art prints, featuring advanced image optimization, type-safe architecture, and real payment processing.
 
 **Live Demo:** [ecommerce-react-beta-woad.vercel.app](https://ecommerce-react-beta-woad.vercel.app)  
-**Repository:** [github.com/artmusuem/ecommerce-react](https://github.com/artmusuem/ecommerce-react)
+**Repository:** [github.com/nathanmcmullendev/ecommerce-react](https://github.com/nathanmcmullendev/ecommerce-react)
 
 ---
 
@@ -223,7 +223,7 @@ src/
 
 ```bash
 # Clone repository
-git clone https://github.com/artmusuem/ecommerce-react.git
+git clone https://github.com/nathanmcmullendev/ecommerce-react.git
 cd ecommerce-react
 
 # Install dependencies
@@ -568,7 +568,7 @@ MIT — Use freely for portfolios, learning, or production applications.
 
 Built by **Nathan McMullen** as a demonstration of production React architecture and e-commerce patterns.
 
-- GitHub: [@artmusuem](https://github.com/artmusuem)
+- GitHub: [@nathanmcmullendev](https://github.com/nathanmcmullendev)
 
 ---
 
