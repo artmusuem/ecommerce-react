@@ -29,7 +29,7 @@
 ---
 
 ## Repository
-- **GitHub:** https://github.com/artmusuem/ecommerce-react
+- **GitHub:** https://github.com/nathanmcmullendev/ecommerce-react
 - **Auto-deploy:** Vercel (triggers on push to main)
 
 ---
