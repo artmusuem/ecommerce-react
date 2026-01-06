@@ -11,8 +11,8 @@
 | Resource | URL |
 |----------|-----|
 | **Live Site** | https://ecommerce-react-beta-woad.vercel.app/ |
-| **GitHub Repo** | https://github.com/artmusuem/ecommerce-react |
-| **CI Dashboard** | https://github.com/artmusuem/ecommerce-react/actions |
+| **GitHub Repo** | https://github.com/nathanmcmullendev/ecommerce-react |
+| **CI Dashboard** | https://github.com/nathanmcmullendev/ecommerce-react/actions |
 | **Vercel Dashboard** | https://vercel.com/dashboard |
 | **PageSpeed** | https://pagespeed.web.dev/analysis?url=https://ecommerce-react-beta-woad.vercel.app/ |
 
@@ -302,7 +302,7 @@ git commit -m "type: description"
 git push origin main
 
 # CI runs automatically, check:
-# https://github.com/artmusuem/ecommerce-react/actions
+# https://github.com/nathanmcmullendev/ecommerce-react/actions
 ```
 
 **Commit Types:** `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`, `ci:`
@@ -356,7 +356,7 @@ Response: { clientSecret: string }
 
 ## Contact / Accounts
 
-- **GitHub:** artmusuem (backup account, primary `nathanmcmullendev` suspended)
+- **GitHub:** nathanmcmullendev 
 - **Cloudinary:** Free tier, cloud name `dh4qwuvuo`
 - **Stripe:** Test mode
 - **Vercel:** Connected to GitHub, auto-deploy enabled
