@@ -1,7 +1,7 @@
 # PROJECT HANDOFF: Gallery Store React
 
 **Date:** December 18, 2024  
-**Repository:** https://github.com/artmusuem/ecommerce-react  
+**Repository:** https://github.com/nathanmcmullendev/ecommerce-react  
 **Live Site:** https://ecommerce-react-beta-woad.vercel.app/  
 **Local Path:** `C:\xampp\htdocs\SMITHSONIAN-CLAUDE-AUTOMATED\smithsonian-art-store\gallery-store`
 
@@ -147,7 +147,7 @@ Copy this:
 ```
 Continue Gallery Store React project.
 
-**Repo:** https://github.com/artmusuem/ecommerce-react
+**Repo:** https://github.com/nathanmcmullendev/ecommerce-react
 **Live:** https://ecommerce-react-beta-woad.vercel.app/
 **Local:** C:\xampp\htdocs\SMITHSONIAN-CLAUDE-AUTOMATED\smithsonian-art-store\gallery-store
 
