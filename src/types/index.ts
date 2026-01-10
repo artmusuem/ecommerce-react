@@ -1,3 +1,13 @@
+// Shopify Collection Type
+export interface Collection {
+  id: string
+  handle: string
+  title: string
+  description: string
+  image?: string
+  productsCount: number
+}
+
 // Shopify Variant Types
 export interface ProductOption {
   name: string
@@ -125,8 +135,7 @@ export interface AddItemPayload {
 // Component Props
 export interface ProductCardProps {
   product: Product
-  index: number
-  artistId?: string
+  priority?: boolean
 }
 
 export interface CheckoutFormProps {
@@ -150,7 +159,6 @@ export interface ImageSizes {
 // Router state types
 export interface ProductRouterState {
   product?: Product
-  artistId?: string
   selectedSizeId?: string
   selectedFrameId?: string
 }

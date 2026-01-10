@@ -1,74 +1,90 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { artists, transformArtwork } from '../data/products'
-import { fetchShopifyProducts, shopifyConfig } from '../data/shopify-api'
+import {
+  fetchCollections,
+  fetchCollectionProducts,
+  fetchShopifyProducts,
+  shopifyConfig
+} from '../data/shopify-api'
 import ProductCard from '../components/product/ProductCard'
-import type { Product, RawArtwork } from '../types'
-
-// Data source configuration
-const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'json'
+import type { Product, Collection } from '../types'
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const artistParam = searchParams.get('artist')
-  const [selectedArtist, setSelectedArtist] = useState(
-    artists.find(a => a.id === artistParam)?.id || artists[0].id
-  )
+  const collectionParam = searchParams.get('collection')
 
-  const handleArtistChange = (artistId: string) => {
-    setSelectedArtist(artistId)
-    setSearchParams({ artist: artistId })
-  }
-
+  // State
+  const [collections, setCollections] = useState<Collection[]>([])
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(collectionParam)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // Initialize based on config so UI doesn't flash
-  const [dataSource, setDataSource] = useState<'json' | 'shopify'>(
-    DATA_SOURCE === 'shopify' && shopifyConfig.isConfigured ? 'shopify' : 'json'
-  )
 
+  // Load collections on mount
   useEffect(() => {
-    async function loadArtwork() {
+    async function loadCollections() {
+      if (!shopifyConfig.isConfigured) return
+
+      try {
+        const fetchedCollections = await fetchCollections()
+        setCollections(fetchedCollections)
+
+        // If no collection selected, default to first one or show all
+        if (!selectedCollection && fetchedCollections.length > 0) {
+          // Don't auto-select - show all products by default
+        }
+      } catch (err) {
+        console.error('Error loading collections:', err)
+      }
+    }
+
+    loadCollections()
+  }, [])
+
+  // Load products when collection changes
+  useEffect(() => {
+    async function loadProducts() {
+      if (!shopifyConfig.isConfigured) {
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
       setError(null)
 
       try {
-        // Use Shopify if configured
-        if (DATA_SOURCE === 'shopify' && shopifyConfig.isConfigured) {
-          const shopifyProducts = await fetchShopifyProducts()
-          setProducts(shopifyProducts)
-          setDataSource('shopify')
-          return
+        let fetchedProducts: Product[]
+
+        if (selectedCollection) {
+          // Fetch products from selected collection
+          fetchedProducts = await fetchCollectionProducts(selectedCollection)
+        } else {
+          // Fetch all products
+          fetchedProducts = await fetchShopifyProducts()
         }
 
-        // Fall back to JSON files
-        const artist = artists.find(a => a.id === selectedArtist)
-        if (!artist) return
-
-        const response = await fetch(artist.file)
-        if (!response.ok) throw new Error('Failed to load artwork')
-
-        const data: { artworks: RawArtwork[] } = await response.json()
-        const transformed = data.artworks
-          .filter(art => art.image && art.title)
-          .map((art, i) => transformArtwork(art, i))
-
-        setProducts(transformed)
-        setDataSource('json')
+        setProducts(fetchedProducts)
       } catch (err) {
-        console.error('Error loading artwork:', err)
+        console.error('Error loading products:', err)
         setError('Failed to load artwork. Please try again.')
       } finally {
         setLoading(false)
       }
     }
 
-    loadArtwork()
-  }, [selectedArtist])
+    loadProducts()
+  }, [selectedCollection])
 
-  const currentArtist = artists.find(a => a.id === selectedArtist)
-  const isShopifyMode = dataSource === 'shopify'
+  const handleCollectionChange = (handle: string | null) => {
+    setSelectedCollection(handle)
+    if (handle) {
+      setSearchParams({ collection: handle })
+    } else {
+      setSearchParams({})
+    }
+  }
+
+  const currentCollection = collections.find(c => c.handle === selectedCollection)
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -76,14 +92,14 @@ export default function Home() {
       <div className="border-b bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            {/* Left: Title/Artist info */}
+            {/* Left: Title/Collection info */}
             <div className="flex items-center gap-4">
               <div>
                 <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
-                  {isShopifyMode ? 'Art Prints' : currentArtist?.name}
+                  {currentCollection?.title || 'All Prints'}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  {isShopifyMode ? 'Museum-quality prints from the Smithsonian' : `American, ${currentArtist?.dates}`}
+                  {currentCollection?.description || 'Museum-quality prints from the Smithsonian'}
                 </p>
               </div>
               <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-primary text-white">
@@ -91,20 +107,21 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Right: Artist selector (only in JSON mode) */}
-            {!isShopifyMode && (
+            {/* Right: Collection selector */}
+            {collections.length > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-500">
                   Artist:
                 </span>
                 <select
-                  value={selectedArtist}
-                  onChange={(e) => handleArtistChange(e.target.value)}
+                  value={selectedCollection || ''}
+                  onChange={(e) => handleCollectionChange(e.target.value || null)}
                   className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
                 >
-                  {artists.map(artist => (
-                    <option key={artist.id} value={artist.id}>
-                      {artist.name}
+                  <option value="">All Artists</option>
+                  {collections.map(collection => (
+                    <option key={collection.id} value={collection.handle}>
+                      {collection.title} ({collection.productsCount})
                     </option>
                   ))}
                 </select>
@@ -120,8 +137,8 @@ export default function Home() {
         {error && (
           <div className="text-center py-16">
             <p className="text-red-600 mb-4">{error}</p>
-            <button 
-              onClick={() => setSelectedArtist(selectedArtist)}
+            <button
+              onClick={() => handleCollectionChange(selectedCollection)}
               className="btn-primary"
             >
               Try Again
@@ -129,12 +146,12 @@ export default function Home() {
           </div>
         )}
 
-        {/* Loading State - only while fetching JSON */}
+        {/* Loading State */}
         {loading && !error && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {[...Array(10)].map((_, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="rounded-xl overflow-hidden bg-white"
               >
                 <div className="aspect-square skeleton-pulse" />
@@ -147,14 +164,13 @@ export default function Home() {
           </div>
         )}
 
-        {/* Product Grid - show immediately after JSON loads */}
+        {/* Product Grid */}
         {!loading && !error && products.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {products.map((product, index) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                artistId={selectedArtist}
+              <ProductCard
+                key={product.id}
+                product={product}
                 priority={index < 6}
               />
             ))}
@@ -165,7 +181,7 @@ export default function Home() {
         {!loading && !error && products.length === 0 && (
           <div className="text-center py-16">
             <p className="text-gray-500">
-              No artwork found for this artist.
+              No artwork found{currentCollection ? ` for ${currentCollection.title}` : ''}.
             </p>
           </div>
         )}
@@ -196,9 +212,9 @@ export default function Home() {
 
             {/* Right */}
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              <a 
-                href="https://www.si.edu/openaccess" 
-                target="_blank" 
+              <a
+                href="https://www.si.edu/openaccess"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline text-gray-600"
               >

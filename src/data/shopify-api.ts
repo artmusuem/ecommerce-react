@@ -1,4 +1,4 @@
-import type { Product } from '../types'
+import type { Product, Collection } from '../types'
 
 // Shopify Storefront API configuration
 const SHOPIFY_STORE = import.meta.env.VITE_SHOPIFY_STORE || 'dev-store-749237498237498787.myshopify.com'
@@ -294,6 +294,146 @@ export async function fetchShopifyProduct(handle: string): Promise<Product | nul
   }
 
   return transformShopifyProduct(res.data.product)
+}
+
+// Fetch all collections
+export async function fetchCollections(): Promise<Collection[]> {
+  const query = `
+    query getCollections {
+      collections(first: 50) {
+        edges {
+          node {
+            id
+            handle
+            title
+            description
+            image {
+              url
+            }
+            productsCount {
+              count
+            }
+          }
+        }
+      }
+    }
+  `
+
+  interface CollectionsResponse {
+    data: {
+      collections: {
+        edges: Array<{
+          node: {
+            id: string
+            handle: string
+            title: string
+            description: string
+            image: { url: string } | null
+            productsCount: { count: number }
+          }
+        }>
+      }
+    }
+  }
+
+  const res = await shopifyFetch<CollectionsResponse>(query)
+
+  return res.data.collections.edges
+    .map(({ node }) => ({
+      id: node.id,
+      handle: node.handle,
+      title: node.title,
+      description: node.description || '',
+      image: node.image?.url,
+      productsCount: node.productsCount.count
+    }))
+    .filter(collection => collection.productsCount > 0) // Only collections with products
+}
+
+// Fetch products from a specific collection
+export async function fetchCollectionProducts(handle: string): Promise<Product[]> {
+  const query = `
+    query getCollectionProducts($handle: String!) {
+      collection(handle: $handle) {
+        products(first: 100) {
+          edges {
+            node {
+              id
+              title
+              handle
+              description
+              vendor
+              productType
+              tags
+              options {
+                name
+                values
+              }
+              priceRange {
+                minVariantPrice {
+                  amount
+                  currencyCode
+                }
+                maxVariantPrice {
+                  amount
+                  currencyCode
+                }
+              }
+              variants(first: 100) {
+                edges {
+                  node {
+                    id
+                    title
+                    price {
+                      amount
+                      currencyCode
+                    }
+                    availableForSale
+                    selectedOptions {
+                      name
+                      value
+                    }
+                  }
+                }
+              }
+              featuredImage {
+                url
+                altText
+              }
+              images(first: 5) {
+                edges {
+                  node {
+                    url
+                    altText
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+
+  interface CollectionProductsResponse {
+    data: {
+      collection: {
+        products: {
+          edges: Array<{ node: ShopifyProduct }>
+        }
+      } | null
+    }
+  }
+
+  const res = await shopifyFetch<CollectionProductsResponse>(query, { handle })
+
+  if (!res.data.collection) {
+    return []
+  }
+
+  return res.data.collection.products.edges.map(({ node }) =>
+    transformShopifyProduct(node)
+  )
 }
 
 // Export config for checking data source
