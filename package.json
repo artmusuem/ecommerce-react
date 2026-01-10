@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "node server/index.js",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest",
@@ -21,8 +22,12 @@
     "prepare": "husky || true"
   },
   "dependencies": {
+    "@shopify/hydrogen-react": "^2025.7.1",
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^4.0.0",

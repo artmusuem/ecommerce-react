@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { artists, transformArtwork } from '../data/products'
+import { fetchShopifyProducts, shopifyConfig } from '../data/shopify-api'
 import ProductCard from '../components/product/ProductCard'
 import type { Product, RawArtwork } from '../types'
+
+// Data source configuration
+const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'json'
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -19,25 +23,39 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Initialize based on config so UI doesn't flash
+  const [dataSource, setDataSource] = useState<'json' | 'shopify'>(
+    DATA_SOURCE === 'shopify' && shopifyConfig.isConfigured ? 'shopify' : 'json'
+  )
 
   useEffect(() => {
     async function loadArtwork() {
       setLoading(true)
       setError(null)
-      
-      const artist = artists.find(a => a.id === selectedArtist)
-      if (!artist) return
-      
+
       try {
+        // Use Shopify if configured
+        if (DATA_SOURCE === 'shopify' && shopifyConfig.isConfigured) {
+          const shopifyProducts = await fetchShopifyProducts()
+          setProducts(shopifyProducts)
+          setDataSource('shopify')
+          return
+        }
+
+        // Fall back to JSON files
+        const artist = artists.find(a => a.id === selectedArtist)
+        if (!artist) return
+
         const response = await fetch(artist.file)
         if (!response.ok) throw new Error('Failed to load artwork')
-        
+
         const data: { artworks: RawArtwork[] } = await response.json()
         const transformed = data.artworks
           .filter(art => art.image && art.title)
           .map((art, i) => transformArtwork(art, i))
-        
+
         setProducts(transformed)
+        setDataSource('json')
       } catch (err) {
         console.error('Error loading artwork:', err)
         setError('Failed to load artwork. Please try again.')
@@ -45,11 +63,12 @@ export default function Home() {
         setLoading(false)
       }
     }
-    
+
     loadArtwork()
   }, [selectedArtist])
 
   const currentArtist = artists.find(a => a.id === selectedArtist)
+  const isShopifyMode = dataSource === 'shopify'
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -57,14 +76,14 @@ export default function Home() {
       <div className="border-b bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            {/* Left: Artist info */}
+            {/* Left: Title/Artist info */}
             <div className="flex items-center gap-4">
               <div>
                 <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
-                  {currentArtist?.name}
+                  {isShopifyMode ? 'Art Prints' : currentArtist?.name}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  American, {currentArtist?.dates}
+                  {isShopifyMode ? 'Museum-quality prints from the Smithsonian' : `American, ${currentArtist?.dates}`}
                 </p>
               </div>
               <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-primary text-white">
@@ -72,23 +91,25 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Right: Artist selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-500">
-                Artist:
-              </span>
-              <select
-                value={selectedArtist}
-                onChange={(e) => handleArtistChange(e.target.value)}
-                className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
-              >
-                {artists.map(artist => (
-                  <option key={artist.id} value={artist.id}>
-                    {artist.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Right: Artist selector (only in JSON mode) */}
+            {!isShopifyMode && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-500">
+                  Artist:
+                </span>
+                <select
+                  value={selectedArtist}
+                  onChange={(e) => handleArtistChange(e.target.value)}
+                  className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
+                >
+                  {artists.map(artist => (
+                    <option key={artist.id} value={artist.id}>
+                      {artist.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
       </div>

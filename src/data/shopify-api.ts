@@ -5,6 +5,25 @@ const SHOPIFY_STORE = import.meta.env.VITE_SHOPIFY_STORE || 'dev-store-749237498
 const SHOPIFY_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN || '0280512affca137e1ea6ddd246cf1bc7'
 const API_VERSION = '2024-01'
 
+interface ShopifyVariant {
+  id: string
+  title: string
+  price: {
+    amount: string
+    currencyCode: string
+  }
+  availableForSale: boolean
+  selectedOptions: Array<{
+    name: string
+    value: string
+  }>
+}
+
+interface ShopifyOption {
+  name: string
+  values: string[]
+}
+
 interface ShopifyProduct {
   id: string
   title: string
@@ -13,11 +32,21 @@ interface ShopifyProduct {
   vendor: string
   productType: string
   tags: string[]
+  options: ShopifyOption[]
   priceRange: {
     minVariantPrice: {
       amount: string
       currencyCode: string
     }
+    maxVariantPrice: {
+      amount: string
+      currencyCode: string
+    }
+  }
+  variants: {
+    edges: Array<{
+      node: ShopifyVariant
+    }>
   }
   featuredImage: {
     url: string
@@ -65,10 +94,35 @@ const PRODUCTS_QUERY = `
           vendor
           productType
           tags
+          options {
+            name
+            values
+          }
           priceRange {
             minVariantPrice {
               amount
               currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          variants(first: 100) {
+            edges {
+              node {
+                id
+                title
+                price {
+                  amount
+                  currencyCode
+                }
+                availableForSale
+                selectedOptions {
+                  name
+                  value
+                }
+              }
             }
           }
           featuredImage {
@@ -114,6 +168,24 @@ async function shopifyFetch<T>(query: string, variables?: Record<string, unknown
 }
 
 function transformShopifyProduct(shopifyProduct: ShopifyProduct): Product {
+  // Transform variants
+  const variants = shopifyProduct.variants?.edges.map(({ node }) => ({
+    id: node.id,
+    title: node.title,
+    price: node.price.amount,
+    availableForSale: node.availableForSale,
+    selectedOptions: node.selectedOptions.map(opt => ({
+      name: opt.name,
+      value: opt.value
+    }))
+  })) || []
+
+  // Transform options
+  const options = shopifyProduct.options?.map(opt => ({
+    name: opt.name,
+    values: opt.values
+  })) || []
+
   return {
     id: shopifyProduct.handle,
     title: shopifyProduct.title,
@@ -124,6 +196,12 @@ function transformShopifyProduct(shopifyProduct: ShopifyProduct): Product {
     image: shopifyProduct.featuredImage?.url || '/placeholder.jpg',
     description: shopifyProduct.description || `${shopifyProduct.title} by ${shopifyProduct.vendor}`,
     tags: shopifyProduct.tags,
+    options,
+    variants,
+    priceRange: {
+      minPrice: shopifyProduct.priceRange?.minVariantPrice?.amount || '0',
+      maxPrice: shopifyProduct.priceRange?.maxVariantPrice?.amount || '0'
+    }
   }
 }
 
@@ -162,10 +240,35 @@ export async function fetchShopifyProduct(handle: string): Promise<Product | nul
         vendor
         productType
         tags
+        options {
+          name
+          values
+        }
         priceRange {
           minVariantPrice {
             amount
             currencyCode
+          }
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        variants(first: 100) {
+          edges {
+            node {
+              id
+              title
+              price {
+                amount
+                currencyCode
+              }
+              availableForSale
+              selectedOptions {
+                name
+                value
+              }
+            }
           }
         }
         featuredImage {
@@ -185,7 +288,7 @@ export async function fetchShopifyProduct(handle: string): Promise<Product | nul
   `
 
   const res: SingleProductResponse = await shopifyFetch<SingleProductResponse>(query, { handle })
-  
+
   if (!res.data.product) {
     return null
   }

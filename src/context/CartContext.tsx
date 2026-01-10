@@ -1,5 +1,4 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode, type Dispatch } from 'react'
-import { calculatePrice } from '../data/products'
 import type { CartState, CartAction, CartContextValue } from '../types'
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -36,10 +35,10 @@ function saveCartToStorage(cart: CartState): void {
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const { productId, sizeId, frameId, title, artist, image } = action.payload
-      const itemKey = `${productId}-${sizeId}-${frameId}`
+      const { productId, variantId, sizeId, frameId, title, artist, image, price } = action.payload
+      const itemKey = `${productId}-${variantId}`
       const existingIndex = state.items.findIndex(item => item.key === itemKey)
-      
+
       if (existingIndex >= 0) {
         const newItems = [...state.items]
         newItems[existingIndex] = {
@@ -48,13 +47,13 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         }
         return { ...state, items: newItems, isOpen: true }
       }
-      
-      const price = calculatePrice(sizeId, frameId)
+
       return {
         ...state,
         items: [...state.items, {
           key: itemKey,
           productId,
+          variantId,
           sizeId,
           frameId,
           title,

@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 import App from './App'
+import { ShopifyProvider } from './context/ShopifyProvider'
 import { CartProvider } from './context/CartContext'
 import { GlobalErrorFallback } from './components/error/ErrorPage'
 import './index.css'
@@ -52,9 +53,11 @@ createRoot(rootElement).render(
         window.location.href = '/'
       }}
     >
-      <CartProvider>
-        <App />
-      </CartProvider>
+      <ShopifyProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </ShopifyProvider>
     </ErrorBoundary>
   </StrictMode>
 )

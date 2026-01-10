@@ -1,3 +1,22 @@
+// Shopify Variant Types
+export interface ProductOption {
+  name: string
+  values: string[]
+}
+
+export interface SelectedOption {
+  name: string
+  value: string
+}
+
+export interface ProductVariant {
+  id: string
+  title: string
+  price: string
+  availableForSale: boolean
+  selectedOptions: SelectedOption[]
+}
+
 // Product Types
 export interface Product {
   id: string
@@ -12,6 +31,13 @@ export interface Product {
   museum?: string
   accession_number?: string
   api_url?: string
+  // Shopify-specific fields
+  options?: ProductOption[]
+  variants?: ProductVariant[]
+  priceRange?: {
+    minPrice: string
+    maxPrice: string
+  }
 }
 
 export interface RawArtwork {
@@ -56,6 +82,7 @@ export interface Size {
 export interface CartItem {
   key: string
   productId: string
+  variantId: string  // Shopify variant GID
   sizeId: string
   frameId: string
   title: string
@@ -86,11 +113,13 @@ export type CartAction =
 
 export interface AddItemPayload {
   productId: string
+  variantId: string
   sizeId: string
   frameId: string
   title: string
   artist: string
   image: string
+  price: number
 }
 
 // Component Props

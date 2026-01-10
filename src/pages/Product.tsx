@@ -1,9 +1,18 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
-import { sizes, frames, calculatePrice, artists, transformArtwork } from '../data/products'
+import { artists, transformArtwork } from '../data/products'
+import { fetchShopifyProduct, shopifyConfig } from '../data/shopify-api'
 import { useCartDispatch } from '../context/CartContext'
 import { getResizedImage, IMAGE_SIZES, preloadImage } from '../utils/images'
-import type { Product as ProductType, RawArtwork, ProductRouterState } from '../types'
+import type { Product as ProductType, RawArtwork, ProductRouterState, ProductVariant } from '../types'
+
+// Frame color mapping for preview
+const frameColors: Record<string, string> = {
+  'Unframed': '#f5f5f5',
+  'Black Frame': '#1a1a1a',
+  'White Frame': '#ffffff',
+  'Natural Wood': '#c4a574',
+}
 
 export default function Product() {
   const { id } = useParams<{ id: string }>()
@@ -11,25 +20,31 @@ export default function Product() {
   const state = location.state as ProductRouterState | null
   const routerProduct = state?.product
   const routerArtistId = state?.artistId
-  
+
   // State for fetched product (when no router state)
   const [fetchedProduct, setFetchedProduct] = useState<ProductType | null>(null)
   const [fetchedArtistId, setFetchedArtistId] = useState<string | null>(null)
   const [loading, setLoading] = useState(!routerProduct)
   const [notFound, setNotFound] = useState(false)
-  
+
   // Use router state if available, otherwise use fetched
   const product = routerProduct || fetchedProduct
   const artistId = routerArtistId || fetchedArtistId
-  
-  // Read selected options from state (passed from cart/checkout links)
-  const initialSizeId = state?.selectedSizeId || sizes[0].id
-  const initialFrameId = state?.selectedFrameId || frames[0].id
-  
+
   const dispatch = useCartDispatch()
-  
-  const [selectedSize, setSelectedSize] = useState(initialSizeId)
-  const [selectedFrame, setSelectedFrame] = useState(initialFrameId)
+
+  // Get options from Shopify product
+  const sizeOption = product?.options?.find(o => o.name === 'Size')
+  const frameOption = product?.options?.find(o => o.name === 'Frame')
+  const sizes = sizeOption?.values || ['8×10']
+  const frames = frameOption?.values || ['Unframed']
+
+  // Read selected options from state (passed from cart/checkout links)
+  const initialSize = state?.selectedSizeId || sizes[0]
+  const initialFrame = state?.selectedFrameId || frames[0]
+
+  const [selectedSize, setSelectedSize] = useState(initialSize)
+  const [selectedFrame, setSelectedFrame] = useState(initialFrame)
   const [added, setAdded] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -38,30 +53,57 @@ export default function Product() {
 
   const previewImgRef = useRef<HTMLImageElement>(null)
 
-  // Fetch product by ID when no router state (direct URL access)
+  // Find the selected variant based on size and frame
+  const selectedVariant = useMemo((): ProductVariant | undefined => {
+    if (!product?.variants) return undefined
+    return product.variants.find(v =>
+      v.selectedOptions.some(o => o.name === 'Size' && o.value === selectedSize) &&
+      v.selectedOptions.some(o => o.name === 'Frame' && o.value === selectedFrame)
+    )
+  }, [product?.variants, selectedSize, selectedFrame])
+
+  const price = selectedVariant ? parseFloat(selectedVariant.price) : 0
+
+  // Fetch product by ID (prefer Shopify, fallback to JSON)
   useEffect(() => {
-    if (routerProduct) {
+    if (routerProduct?.variants && routerProduct.variants.length > 0) {
+      // Router product has variants, use it
       setLoading(false)
       return
     }
-    
+
     async function fetchProductById() {
       setLoading(true)
       setNotFound(false)
-      
+
       const decodedId = decodeURIComponent(id || '')
-      
-      // Search through all artist JSON files
+
+      // Try Shopify first if configured
+      if (shopifyConfig.isConfigured) {
+        try {
+          const shopifyProduct = await fetchShopifyProduct(decodedId)
+          if (shopifyProduct) {
+            setFetchedProduct(shopifyProduct)
+            setFetchedArtistId(shopifyProduct.artist.toLowerCase().replace(/\s+/g, '-'))
+            setLoading(false)
+            return
+          }
+        } catch (err) {
+          console.error('Shopify fetch error:', err)
+        }
+      }
+
+      // Fallback to JSON files
       for (const artist of artists) {
         try {
           const response = await fetch(artist.file)
           if (!response.ok) continue
-          
+
           const data: { artworks: RawArtwork[] } = await response.json()
           const artworks = data.artworks
             .filter(art => art.image && art.title)
             .map((art, i) => transformArtwork(art, i))
-          
+
           // Find matching product
           const found = artworks.find(art => art.id === decodedId)
           if (found) {
@@ -74,12 +116,12 @@ export default function Product() {
           console.error(`Error loading ${artist.file}:`, err)
         }
       }
-      
-      // Not found in any artist file
+
+      // Not found
       setNotFound(true)
       setLoading(false)
     }
-    
+
     fetchProductById()
   }, [id, routerProduct])
 
@@ -181,24 +223,28 @@ export default function Product() {
   }
 
   const handleAddToCart = () => {
+    if (!selectedVariant) {
+      console.error('No variant selected')
+      return
+    }
     dispatch({
       type: 'ADD_ITEM',
       payload: {
         productId: product.id,
+        variantId: selectedVariant.id,
         sizeId: selectedSize,
         frameId: selectedFrame,
         title: product.title,
         artist: product.artist,
-        image: product.image
+        image: product.image,
+        price: parseFloat(selectedVariant.price)
       }
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
 
-  const price = calculatePrice(selectedSize, selectedFrame)
-  const frame = frames.find(f => f.id === selectedFrame)
-  const currentSize = sizes.find(s => s.id === selectedSize)
+  const frameColor = frameColors[selectedFrame] || '#1a1a1a'
 
   // Generate direct Smithsonian object URL
   const titleSlug = product.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
@@ -226,10 +272,10 @@ export default function Product() {
           {/* Left Column: Image */}
           <div>
             {/* Frame Preview */}
-            <div 
-              className={`frame-preview frame-${selectedFrame} relative transition-all duration-300 cursor-zoom-in group mx-auto w-fit rounded-lg overflow-hidden p-5`}
-              style={{ 
-                backgroundColor: frame?.color,
+            <div
+              className="frame-preview relative transition-all duration-300 cursor-zoom-in group mx-auto w-fit rounded-lg overflow-hidden p-5"
+              style={{
+                backgroundColor: frameColor,
                 boxShadow: 'inset 0 0 20px rgba(0,0,0,0.15), 0 10px 40px rgba(0,0,0,0.2)'
               }}
               onClick={() => setLightboxOpen(true)}
@@ -289,7 +335,7 @@ export default function Product() {
             
             {/* Price */}
             <p className="text-3xl font-display font-semibold mb-6 text-primary">
-              ${price}
+              ${price.toFixed(0)}
             </p>
 
             {/* Options Card */}
@@ -305,8 +351,8 @@ export default function Product() {
                   className="w-full px-4 py-3 border-2 rounded-lg cursor-pointer text-base font-medium transition-colors border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
                 >
                   {sizes.map(size => (
-                    <option key={size.id} value={size.id}>
-                      {size.name} — ${size.basePrice}
+                    <option key={size} value={size}>
+                      {size}
                     </option>
                   ))}
                 </select>
@@ -322,9 +368,9 @@ export default function Product() {
                   onChange={(e) => setSelectedFrame(e.target.value)}
                   className="w-full px-4 py-3 border-2 rounded-lg cursor-pointer text-base font-medium transition-colors border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
                 >
-                  {frames.map(frameOption => (
-                    <option key={frameOption.id} value={frameOption.id}>
-                      {frameOption.name}{frameOption.priceAdd > 0 ? ` — +$${frameOption.priceAdd}` : ' — Included'}
+                  {frames.map(frame => (
+                    <option key={frame} value={frame}>
+                      {frame}
                     </option>
                   ))}
                 </select>
@@ -332,16 +378,16 @@ export default function Product() {
 
               {/* Frame Color Preview */}
               <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
-                <span 
+                <span
                   className="w-8 h-8 rounded border border-gray-300 shadow-inner"
-                  style={{ backgroundColor: frame?.color }}
+                  style={{ backgroundColor: frameColor }}
                 />
                 <div>
                   <p className="text-sm font-medium text-gray-700">
-                    {frame?.name} Frame
+                    {selectedFrame}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {currentSize?.name} print
+                    {selectedSize} print
                   </p>
                 </div>
               </div>
@@ -350,13 +396,16 @@ export default function Product() {
             {/* Add to Cart */}
             <button
               onClick={handleAddToCart}
+              disabled={!selectedVariant}
               className={`w-full py-4 rounded-xl font-semibold text-lg text-white transition-all ${
-                added 
-                  ? 'bg-green-600' 
+                added
+                  ? 'bg-green-600'
+                  : !selectedVariant
+                  ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-primary hover:bg-primary-dark'
               }`}
             >
-              {added ? '✓ Added to Cart' : 'Add to Cart'}
+              {added ? '✓ Added to Cart' : !selectedVariant ? 'Select Options' : 'Add to Cart'}
             </button>
 
             <p className="text-center text-xs mt-3 text-gray-400">

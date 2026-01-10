@@ -1,35 +1,19 @@
 import { Link } from 'react-router-dom'
 import { useCart, useCartDispatch } from '../../context/CartContext'
 import { getResizedImage } from '../../utils/images'
-import { sizes, frames } from '../../data/products'
-import type { CartItem, ProductRouterState } from '../../types'
+import type { ProductRouterState } from '../../types'
+
+// Frame colors for display
+const frameColors: Record<string, string> = {
+  'Unframed': '#f5f5f5',
+  'Black Frame': '#1a1a1a',
+  'White Frame': '#ffffff',
+  'Natural Wood': '#c4a574',
+}
 
 export default function Cart() {
   const { items, isOpen, total } = useCart()
   const dispatch = useCartDispatch()
-
-  // Handle option change - remove old item, add new one with same quantity
-  const handleOptionChange = (item: CartItem, newSizeId: string, newFrameId: string) => {
-    const oldQuantity = item.quantity
-    
-    // Remove the old item
-    dispatch({ type: 'REMOVE_ITEM', payload: item.key })
-    
-    // Add new item(s) - loop to preserve quantity
-    for (let i = 0; i < oldQuantity; i++) {
-      dispatch({
-        type: 'ADD_ITEM',
-        payload: {
-          productId: item.productId,
-          sizeId: newSizeId,
-          frameId: newFrameId,
-          title: item.title,
-          artist: item.artist,
-          image: item.image
-        }
-      })
-    }
-  }
 
   return (
     <>
@@ -81,8 +65,8 @@ export default function Cart() {
           ) : (
             <div className="space-y-4">
               {items.map(item => {
-                const currentFrame = frames.find(f => f.id === item.frameId)
-                
+                const frameColor = frameColors[item.frameId] || '#1a1a1a'
+
                 // Build product state with selected options for the Product page
                 const productState: ProductRouterState = {
                   product: {
@@ -101,8 +85,8 @@ export default function Cart() {
                 }
 
                 return (
-                  <div 
-                    key={item.key} 
+                  <div
+                    key={item.key}
                     className="p-4 rounded-xl bg-white"
                   >
                     <div className="flex gap-3">
@@ -112,8 +96,8 @@ export default function Cart() {
                         state={productState}
                         onClick={() => dispatch({ type: 'TOGGLE_CART' })}
                         className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity bg-gray-100"
-                        style={{ 
-                          border: `3px solid ${currentFrame?.color || '#333'}`,
+                        style={{
+                          border: `3px solid ${frameColor}`,
                           boxShadow: 'inset 0 0 4px rgba(0,0,0,0.1)'
                         }}
                       >
@@ -139,63 +123,24 @@ export default function Cart() {
                         <p className="text-xs mt-0.5 text-gray-500">
                           {item.artist}
                         </p>
+                        {/* Display selected options */}
+                        <p className="text-xs mt-1 text-gray-400">
+                          {item.sizeId} • {item.frameId}
+                        </p>
                       </div>
 
                       {/* Price */}
                       <span className="font-semibold text-sm whitespace-nowrap text-gray-800">
-                        ${item.price * item.quantity}
+                        ${(item.price * item.quantity).toFixed(0)}
                       </span>
-                    </div>
-
-                    {/* Options Dropdowns - Etsy style */}
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      {/* Size Dropdown */}
-                      <div>
-                        <label className="block text-xs mb-1 text-gray-500">
-                          Size
-                        </label>
-                        <select
-                          value={item.sizeId}
-                          onChange={(e) => handleOptionChange(item, e.target.value, item.frameId)}
-                          className="w-full px-2 py-1.5 text-sm border rounded-lg cursor-pointer border-gray-200 text-gray-700 bg-white"
-                        >
-                          {sizes.map(size => (
-                            <option key={size.id} value={size.id}>
-                              {size.name} - ${size.basePrice}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Frame Dropdown with color indicator */}
-                      <div>
-                        <label className="block text-xs mb-1 flex items-center gap-1 text-gray-500">
-                          Frame
-                          <span 
-                            className="inline-block w-3 h-3 rounded border border-gray-300"
-                            style={{ backgroundColor: currentFrame?.color }}
-                          />
-                        </label>
-                        <select
-                          value={item.frameId}
-                          onChange={(e) => handleOptionChange(item, item.sizeId, e.target.value)}
-                          className="w-full px-2 py-1.5 text-sm border rounded-lg cursor-pointer border-gray-200 text-gray-700 bg-white"
-                        >
-                          {frames.map(frameOption => (
-                            <option key={frameOption.id} value={frameOption.id}>
-                              {frameOption.name}{frameOption.priceAdd > 0 ? ` (+$${frameOption.priceAdd})` : ''}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
                     </div>
 
                     {/* Quantity Controls */}
                     <div className="mt-3 flex items-center justify-between">
                       <div className="flex items-center border rounded-lg border-gray-200">
                         <button
-                          onClick={() => dispatch({ 
-                            type: 'UPDATE_QUANTITY', 
+                          onClick={() => dispatch({
+                            type: 'UPDATE_QUANTITY',
                             payload: { key: item.key, quantity: item.quantity - 1 }
                           })}
                           className="w-8 h-8 flex items-center justify-center text-sm hover:bg-gray-50 rounded-l-lg text-gray-600"
@@ -206,8 +151,8 @@ export default function Cart() {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => dispatch({ 
-                            type: 'UPDATE_QUANTITY', 
+                          onClick={() => dispatch({
+                            type: 'UPDATE_QUANTITY',
                             payload: { key: item.key, quantity: item.quantity + 1 }
                           })}
                           className="w-8 h-8 flex items-center justify-center text-sm hover:bg-gray-50 rounded-r-lg text-gray-600"
@@ -215,7 +160,7 @@ export default function Cart() {
                           +
                         </button>
                       </div>
-                      
+
                       {/* Remove button */}
                       <button
                         onClick={() => dispatch({ type: 'REMOVE_ITEM', payload: item.key })}
@@ -237,7 +182,7 @@ export default function Cart() {
             <div className="flex items-center justify-between mb-3">
               <span className="text-gray-600">Subtotal</span>
               <span className="text-xl font-semibold text-gray-900">
-                ${total}
+                ${total.toFixed(0)}
               </span>
             </div>
             

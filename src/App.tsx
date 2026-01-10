@@ -6,8 +6,8 @@ import Home from './pages/Home'
 import Product from './pages/Product'
 import { ErrorPage } from './components/error/ErrorPage'
 
-// Lazy load Checkout - prevents Stripe from loading on Home/Product pages
-// This saves ~224KB on initial load
+// Lazy load Checkout - Stripe checkout for full headless experience
+// Payment via Stripe, orders created in Shopify after payment
 const Checkout = lazy(() => import('./pages/Checkout'))
 
 // Loading fallback for Checkout page
