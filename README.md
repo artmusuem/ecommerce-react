@@ -356,6 +356,16 @@ npm run build
 
 ---
 
+## Documentation
+
+### Guides
+
+| Guide | Description |
+|-------|-------------|
+| [Shopify Protected Customer Data](docs/guides/shopify-protected-customer-data/README.md) | Complete guide to enabling customer data access for Shopify apps - from Partner account setup to API integration |
+
+---
+
 ## Deployment
 
 ### Vercel (Recommended)
