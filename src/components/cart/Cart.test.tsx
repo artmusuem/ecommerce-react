@@ -224,30 +224,28 @@ describe('Cart', () => {
     })
   })
 
-  describe('option dropdowns', () => {
-    it('should have Size dropdown', async () => {
+  describe('selected options display', () => {
+    it('should display size in options text', async () => {
       renderCart({ withItem: true })
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Size')).toBeInTheDocument()
+        expect(screen.getByText(/8x10/)).toBeInTheDocument()
       })
     })
 
-    it('should have Frame label', async () => {
+    it('should display frame in options text', async () => {
       renderCart({ withItem: true })
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Frame')).toBeInTheDocument()
+        expect(screen.getByText(/black/)).toBeInTheDocument()
       })
     })
 
-    it('should show all size options', async () => {
+    it('should show size and frame together', async () => {
       renderCart({ withItem: true })
-      
+
       await waitFor(() => {
-        const selects = screen.getAllByRole('combobox')
-        const sizeSelect = selects[0] as HTMLSelectElement
-        expect(sizeSelect.options.length).toBe(4)
+        expect(screen.getByText('8x10 • black')).toBeInTheDocument()
       })
     })
   })
