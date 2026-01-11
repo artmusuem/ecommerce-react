@@ -15,7 +15,8 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const imgRef = useRef<HTMLImageElement>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  // Priority images start visible (no opacity transition = faster LCP)
+  const [isLoaded, setIsLoaded] = useState(priority)
   const [useFallback, setUseFallback] = useState(false)
   const [imageError, setImageError] = useState(false)
 

@@ -6,14 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Gallery Store - Museum-quality art prints from the Smithsonian American Art Museum. Shop framed prints by Winslow Homer, Mary Cassatt, Georgia O'Keeffe, and more." />
     <title>Gallery Store - Smithsonian Art Prints</title>
-    
-    <!-- Preconnect to image CDNs (no crossorigin for regular img fetches) -->
+
+    <!-- Preconnect to CDNs and APIs (critical for LCP) -->
     <link rel="preconnect" href="https://res.cloudinary.com" />
-    <link rel="preconnect" href="https://ids.si.edu" />
-    
-    <!-- DNS prefetch as fallback for older browsers -->
+    <link rel="preconnect" href="https://cdn.shopify.com" />
+    <link rel="preconnect" href="https://dev-store-749237498237498787.myshopify.com" />
+
+    <!-- DNS prefetch as fallback -->
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+    <link rel="dns-prefetch" href="https://cdn.shopify.com" />
     <link rel="dns-prefetch" href="https://ids.si.edu" />
+
+    <!-- Preload first product image (LCP optimization) -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://res.cloudinary.com/dh4qwuvuo/image/fetch/w_400,c_limit,q_auto,f_auto/https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0659%2F3275%2F5057%2Ffiles%2FdeliveryService.jpg%3Fv%3D1768078611"
+      fetchpriority="high"
+    />
   </head>
   <body>
     <div id="root"></div>
