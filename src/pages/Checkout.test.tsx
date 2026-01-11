@@ -195,7 +195,7 @@ describe('Checkout Page', () => {
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith(
-          'http://localhost:3001/api/create-payment-intent',
+          '/api/create-payment-intent',
           expect.objectContaining({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }

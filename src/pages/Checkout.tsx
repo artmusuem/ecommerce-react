@@ -177,7 +177,7 @@ export default function Checkout() {
 
     async function createPaymentIntent() {
       try {
-        const response = await fetch('http://localhost:3001/api/create-payment-intent', {
+        const response = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ items, total })
