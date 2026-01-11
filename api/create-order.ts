@@ -124,7 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { email, lineItems, shippingAddress, paymentIntentId, total } = req.body as OrderRequest
+    const { email, lineItems, shippingAddress, paymentIntentId } = req.body as OrderRequest
 
     // Validate required fields
     if (!email || !lineItems?.length || !shippingAddress || !paymentIntentId) {
