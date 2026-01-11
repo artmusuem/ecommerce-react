@@ -1,14 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import Stripe from 'stripe'
 
-// Check if Stripe key is configured
-const stripeKey = process.env.STRIPE_SECRET_KEY
+// Check if Stripe key is configured and valid format
+const stripeKey = process.env.STRIPE_SECRET_KEY?.trim()
+const isValidKey = stripeKey && (stripeKey.startsWith('sk_test_') || stripeKey.startsWith('sk_live_'))
+
 if (!stripeKey) {
   console.error('STRIPE_SECRET_KEY is not configured')
+} else if (!isValidKey) {
+  console.error('STRIPE_SECRET_KEY has invalid format. Expected sk_test_... or sk_live_...')
 }
 
-const stripe = stripeKey ? new Stripe(stripeKey, {
-  apiVersion: '2024-06-20',
+const stripe = isValidKey ? new Stripe(stripeKey, {
+  apiVersion: '2023-10-16',
 }) : null
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -27,9 +31,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Check Stripe is configured
   if (!stripe) {
+    const details = !stripeKey
+      ? 'STRIPE_SECRET_KEY environment variable is missing'
+      : 'STRIPE_SECRET_KEY has invalid format (should start with sk_test_ or sk_live_)'
     return res.status(500).json({
       error: 'Stripe is not configured',
-      details: 'STRIPE_SECRET_KEY environment variable is missing'
+      details,
+      keyPresent: !!stripeKey,
+      keyLength: stripeKey?.length || 0
     })
   }
 
