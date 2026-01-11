@@ -60,6 +60,22 @@ A production-grade headless e-commerce application selling museum-quality art pr
 
 ---
 
+## Performance Scores
+
+### Core Web Vitals (Mobile)
+
+| Metric | Score | Target | Status |
+|--------|-------|--------|--------|
+| **FCP** (First Contentful Paint) | 1.4s | < 1.8s | ✅ Good |
+| **LCP** (Largest Contentful Paint) | 2.9s | < 2.5s | ⚠️ Needs Improvement |
+| **TBT** (Total Blocking Time) | 0 ms | < 200ms | ✅ Perfect |
+| **CLS** (Cumulative Layout Shift) | 0 | < 0.1 | ✅ Perfect |
+| **Speed Index** | 1.8s | < 3.4s | ✅ Good |
+
+> Run your own test: [PageSpeed Insights](https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fecommerce-react-shopify.vercel.app)
+
+---
+
 ## Key Achievements
 
 | Metric | Value | Details |
@@ -68,7 +84,7 @@ A production-grade headless e-commerce application selling museum-quality art pr
 | **TypeScript** | 100% strict | Zero `any` types, full type safety |
 | **Bundle Size** | 88KB gzipped | Code-split with lazy loading |
 | **Image Optimization** | ~70% reduction | Cloudinary CDN with auto-format |
-| **Core Web Vitals** | CLS: 0, TBT: 140ms | Excellent layout stability |
+| **Core Web Vitals** | TBT: 0ms, CLS: 0 | Perfect blocking time and layout stability |
 
 ---
 
