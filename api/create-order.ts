@@ -59,7 +59,6 @@ const DRAFT_ORDER_COMPLETE = `
         order {
           id
           name
-          orderNumber
           totalPriceSet {
             shopMoney {
               amount
@@ -218,7 +217,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       order: {
         id: order.id,
         name: order.name,
-        orderNumber: order.orderNumber,
         total: order.totalPriceSet?.shopMoney?.amount,
         currency: order.totalPriceSet?.shopMoney?.currencyCode,
         customerEmail: order.customer?.email,
