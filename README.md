@@ -7,7 +7,7 @@
 
 A production-grade headless e-commerce application selling museum-quality art prints. Built with React + TypeScript, powered by Shopify's Storefront API, optimized with Cloudinary CDN.
 
-**Live Demo:** [Coming Soon - Vercel Deployment]
+**Live Demo:** [ecommerce-react-shopify.vercel.app](https://ecommerce-react-shopify.vercel.app)
 **Repository:** [github.com/nathanmcmullendev/ecommerce-react](https://github.com/nathanmcmullendev/ecommerce-react)
 
 ---
