@@ -60,6 +60,9 @@ interface ShopifyProduct {
       }
     }>
   }
+  accessionNumber?: {
+    value: string
+  } | null
 }
 
 interface ShopifyResponse {
@@ -137,6 +140,9 @@ const PRODUCTS_QUERY = `
               }
             }
           }
+          accessionNumber: metafield(namespace: "museum", key: "accession_number") {
+            value
+          }
         }
       }
       pageInfo {
@@ -201,7 +207,8 @@ function transformShopifyProduct(shopifyProduct: ShopifyProduct): Product {
     priceRange: {
       minPrice: shopifyProduct.priceRange?.minVariantPrice?.amount || '0',
       maxPrice: shopifyProduct.priceRange?.maxVariantPrice?.amount || '0'
-    }
+    },
+    accession_number: shopifyProduct.accessionNumber?.value
   }
 }
 
@@ -282,6 +289,9 @@ export async function fetchShopifyProduct(handle: string): Promise<Product | nul
               altText
             }
           }
+        }
+        accessionNumber: metafield(namespace: "museum", key: "accession_number") {
+          value
         }
       }
     }
@@ -407,6 +417,9 @@ export async function fetchCollectionProducts(handle: string): Promise<Product[]
                     altText
                   }
                 }
+              }
+              accessionNumber: metafield(namespace: "museum", key: "accession_number") {
+                value
               }
             }
           }

@@ -14,33 +14,37 @@ function CartTestComponent() {
       <span data-testid="total">{total}</span>
       <span data-testid="is-open">{isOpen ? 'open' : 'closed'}</span>
       <span data-testid="items">{JSON.stringify(items)}</span>
-      <button 
+      <button
         data-testid="add-item"
         onClick={() => dispatch({
           type: 'ADD_ITEM',
           payload: {
             productId: 'test-product-1',
+            variantId: 'gid://shopify/ProductVariant/12345',
             sizeId: '8x10',
             frameId: 'black',
             title: 'Test Artwork',
             artist: 'Test Artist',
-            image: 'https://example.com/image.jpg'
+            image: 'https://example.com/image.jpg',
+            price: 45
           }
         })}
       >
         Add Item
       </button>
-      <button 
+      <button
         data-testid="add-premium"
         onClick={() => dispatch({
           type: 'ADD_ITEM',
           payload: {
             productId: 'test-product-2',
+            variantId: 'gid://shopify/ProductVariant/67890',
             sizeId: '24x30',
             frameId: 'gold',
             title: 'Premium Artwork',
             artist: 'Premium Artist',
-            image: 'https://example.com/premium.jpg'
+            image: 'https://example.com/premium.jpg',
+            price: 170
           }
         })}
       >
@@ -219,16 +223,20 @@ describe('CartContext', () => {
       })
     })
 
-    it('should generate unique key from product/size/frame', () => {
+    it('should generate unique key from product and variant', () => {
       renderWithCart(<CartTestComponent />)
-      
+
       act(() => {
         screen.getByTestId('add-item').click()
       })
-      
+
       const items = JSON.parse(screen.getByTestId('items').textContent || '[]')
-      
-      expect(items[0].key).toBe('test-product-1-8x10-black')
+
+      // Key is now productId-variantId for Shopify integration
+      expect(items[0].key).toBe('test-product-1-gid://shopify/ProductVariant/12345')
+      expect(items[0].variantId).toBe('gid://shopify/ProductVariant/12345')
+      expect(items[0].sizeId).toBe('8x10')
+      expect(items[0].frameId).toBe('black')
     })
   })
 })

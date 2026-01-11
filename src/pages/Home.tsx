@@ -28,11 +28,6 @@ export default function Home() {
       try {
         const fetchedCollections = await fetchCollections()
         setCollections(fetchedCollections)
-
-        // If no collection selected, default to first one or show all
-        if (!selectedCollection && fetchedCollections.length > 0) {
-          // Don't auto-select - show all products by default
-        }
       } catch (err) {
         console.error('Error loading collections:', err)
       }

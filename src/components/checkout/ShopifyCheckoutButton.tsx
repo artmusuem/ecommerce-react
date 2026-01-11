@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState } from 'react'
 import { useCart as useHydrogenCart } from '@shopify/hydrogen-react'
 

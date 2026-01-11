@@ -25,11 +25,13 @@ function HeaderWithCartHelper({ children }: { children?: ReactNode }) {
       type: 'ADD_ITEM',
       payload: {
         productId: 'test',
+        variantId: 'gid://shopify/ProductVariant/12345',
         sizeId: '8x10',
         frameId: 'black',
         title: 'Test',
         artist: 'Artist',
-        image: 'http://example.com/img.jpg'
+        image: 'http://example.com/img.jpg',
+        price: 45
       }
     })
   }, [dispatch])

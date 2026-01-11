@@ -70,6 +70,7 @@ export const mockCartItems: CartItem[] = [
   {
     key: 'test-artwork-1-8x10-black',
     productId: 'test-artwork-1',
+    variantId: 'gid://shopify/ProductVariant/12345',
     sizeId: '8x10',
     frameId: 'black',
     title: 'The Gulf Stream',
@@ -81,6 +82,7 @@ export const mockCartItems: CartItem[] = [
   {
     key: 'test-artwork-2-24x30-gold',
     productId: 'test-artwork-2',
+    variantId: 'gid://shopify/ProductVariant/67890',
     sizeId: '24x30',
     frameId: 'gold',
     title: 'Nighthawks',
@@ -116,12 +118,14 @@ export function createMockProduct(overrides: Partial<Product> = {}): Product {
  */
 export function createMockCartItem(overrides: Partial<CartItem> = {}): CartItem {
   const productId = overrides.productId || 'test-product'
+  const variantId = overrides.variantId || 'gid://shopify/ProductVariant/test-variant'
   const sizeId = overrides.sizeId || '8x10'
   const frameId = overrides.frameId || 'black'
-  
+
   return {
     key: `${productId}-${sizeId}-${frameId}`,
     productId,
+    variantId,
     sizeId,
     frameId,
     title: 'Test Artwork',

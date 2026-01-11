@@ -29,10 +29,10 @@ export function ShopifyProvider({ children }: ShopifyProviderProps) {
     >
       <CartProvider
         onLineAdd={() => {
-          console.log('Item added to cart')
+          // Cart line added - handled by UI
         }}
         onLineRemove={() => {
-          console.log('Item removed from cart')
+          // Cart line removed - handled by UI
         }}
       >
         {children}

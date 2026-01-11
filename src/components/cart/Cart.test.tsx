@@ -18,11 +18,13 @@ function CartWithItem({ children }: { children?: ReactNode }) {
       type: 'ADD_ITEM',
       payload: {
         productId: 'test-artwork-1',
+        variantId: 'gid://shopify/ProductVariant/12345',
         sizeId: '8x10',
         frameId: 'black',
         title: 'Test Artwork',
         artist: 'Test Artist',
-        image: 'https://example.com/img.jpg'
+        image: 'https://example.com/img.jpg',
+        price: 45
       }
     })
   }, [dispatch])

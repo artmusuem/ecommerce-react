@@ -39,9 +39,9 @@ describe('ProductCard', () => {
       expect(screen.getByText('The Gulf Stream')).toBeInTheDocument()
     })
 
-    it('should render product year', () => {
+    it('should render product artist', () => {
       renderProductCard()
-      expect(screen.getByText('1899')).toBeInTheDocument()
+      expect(screen.getByText('Winslow Homer')).toBeInTheDocument()
     })
 
     it('should render starting price', () => {

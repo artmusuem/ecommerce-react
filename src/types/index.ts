@@ -159,6 +159,7 @@ export interface ImageSizes {
 // Router state types
 export interface ProductRouterState {
   product?: Product
+  artistId?: string
   selectedSizeId?: string
   selectedFrameId?: string
 }

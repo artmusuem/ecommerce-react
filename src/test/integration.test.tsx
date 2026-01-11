@@ -21,27 +21,31 @@ function CartStateDisplay() {
 }
 
 // Helper to add items
-function AddItemButton({ 
+function AddItemButton({
   productId = 'test-product',
+  variantId = 'gid://shopify/ProductVariant/12345',
   sizeId = '8x10',
-  frameId = 'black'
-}: { productId?: string; sizeId?: string; frameId?: string }) {
+  frameId = 'black',
+  price = 45
+}: { productId?: string; variantId?: string; sizeId?: string; frameId?: string; price?: number }) {
   const dispatch = useCartDispatch()
-  
+
   const handleAdd = () => {
     dispatch({
       type: 'ADD_ITEM',
       payload: {
         productId,
+        variantId,
         sizeId,
         frameId,
         title: 'Test',
         artist: 'Artist',
-        image: 'https://example.com/img.jpg'
+        image: 'https://example.com/img.jpg',
+        price
       }
     })
   }
-  
+
   return <button onClick={handleAdd} data-testid="add-btn">Add</button>
 }
 
@@ -122,58 +126,62 @@ describe('Integration: Cart Flow', () => {
             type: 'ADD_ITEM',
             payload: {
               productId: 'product-1',
+              variantId: 'gid://shopify/ProductVariant/11111',
               sizeId: '8x10',
               frameId: 'black',
               title: 'Test 1',
               artist: 'Artist',
-              image: 'https://example.com/1.jpg'
+              image: 'https://example.com/1.jpg',
+              price: 45
             }
           })
           dispatch({
             type: 'ADD_ITEM',
             payload: {
               productId: 'product-2',
+              variantId: 'gid://shopify/ProductVariant/22222',
               sizeId: '11x14',
               frameId: 'gold',
               title: 'Test 2',
               artist: 'Artist',
-              image: 'https://example.com/2.jpg'
+              image: 'https://example.com/2.jpg',
+              price: 90
             }
           })
         }
         return <button onClick={handleAdd} data-testid="add-multi">Add Both</button>
       }
-      
+
       render(
         <TestWrapper>
           <CartStateDisplay />
           <MultiAddHelper />
         </TestWrapper>
       )
-      
+
       fireEvent.click(screen.getByTestId('add-multi'))
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('items')).toHaveTextContent('2')
-        // $45 + ($65 + $25) = $135
+        // $45 + $90 = $135
         expect(screen.getByTestId('total')).toHaveTextContent('135')
       })
     })
   })
 
   describe('Price Calculations', () => {
-    it('should calculate price with frame addon', async () => {
+    it('should use variant price from Shopify', async () => {
       render(
         <TestWrapper>
           <CartStateDisplay />
-          <AddItemButton sizeId="8x10" frameId="gold" />
+          <AddItemButton sizeId="8x10" frameId="gold" price={70} />
         </TestWrapper>
       )
-      
+
       fireEvent.click(screen.getByTestId('add-btn'))
-      
+
       await waitFor(() => {
-        // 8x10 ($45) + gold frame ($25) = $70
+        // Price comes from Shopify variant
         expect(screen.getByTestId('total')).toHaveTextContent('70')
       })
     })

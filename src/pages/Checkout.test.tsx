@@ -40,11 +40,13 @@ function CartLoader({ items, children }: { items: ReturnType<typeof createMockCa
         type: 'ADD_ITEM',
         payload: {
           productId: item.productId,
+          variantId: item.variantId,
           sizeId: item.sizeId,
           frameId: item.frameId,
           title: item.title,
           artist: item.artist,
-          image: item.image
+          image: item.image,
+          price: item.price
         }
       })
     })
