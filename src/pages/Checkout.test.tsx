@@ -91,15 +91,13 @@ function TestWrapper({
 
 // Helper to fill shipping form (required for payment section to appear)
 async function fillShippingForm(user: ReturnType<typeof userEvent.setup>) {
-  // Get all textboxes in order: email, firstName, lastName, address1, address2, city, state, zip, phone
-  const textboxes = screen.getAllByRole("textbox")
-  await user.type(textboxes[0], "test@example.com")  // email
-  await user.type(textboxes[1], "John")              // firstName
-  await user.type(textboxes[2], "Doe")               // lastName
-  await user.type(textboxes[3], "123 Main St")       // address1
-  await user.type(textboxes[5], "New York")          // city (skip address2)
-  await user.type(textboxes[6], "NY")                // state
-  await user.type(textboxes[7], "10001")             // zip
+  await user.type(screen.getByLabelText('Email'), 'test@example.com')
+  await user.type(screen.getByLabelText('First Name'), 'John')
+  await user.type(screen.getByLabelText('Last Name'), 'Doe')
+  await user.type(screen.getByLabelText('Address'), '123 Main St')
+  await user.type(screen.getByLabelText('City'), 'New York')
+  await user.type(screen.getByLabelText(/State\/Province/), 'NY')
+  await user.type(screen.getByLabelText(/ZIP\/Postal Code/), '10001')
 }
 
 describe('Checkout Page', () => {

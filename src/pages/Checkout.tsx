@@ -234,10 +234,11 @@ function ShippingForm({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-2 text-gray-700">
+        <label htmlFor="email" className="block text-sm font-medium mb-2 text-gray-700">
           Email
         </label>
         <input
+          id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -249,10 +250,11 @@ function ShippingForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">
+          <label htmlFor="firstName" className="block text-sm font-medium mb-2 text-gray-700">
             First Name
           </label>
           <input
+            id="firstName"
             type="text"
             value={address.firstName}
             onChange={(e) => updateField('firstName', e.target.value)}
@@ -261,10 +263,11 @@ function ShippingForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">
+          <label htmlFor="lastName" className="block text-sm font-medium mb-2 text-gray-700">
             Last Name
           </label>
           <input
+            id="lastName"
             type="text"
             value={address.lastName}
             onChange={(e) => updateField('lastName', e.target.value)}
@@ -275,10 +278,11 @@ function ShippingForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2 text-gray-700">
+        <label htmlFor="address1" className="block text-sm font-medium mb-2 text-gray-700">
           Address
         </label>
         <input
+          id="address1"
           type="text"
           value={address.address1}
           onChange={(e) => updateField('address1', e.target.value)}
@@ -289,10 +293,11 @@ function ShippingForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2 text-gray-700">
+        <label htmlFor="address2" className="block text-sm font-medium mb-2 text-gray-700">
           Apartment, suite, etc. (optional)
         </label>
         <input
+          id="address2"
           type="text"
           value={address.address2}
           onChange={(e) => updateField('address2', e.target.value)}
@@ -302,10 +307,11 @@ function ShippingForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">
+          <label htmlFor="city" className="block text-sm font-medium mb-2 text-gray-700">
             City
           </label>
           <input
+            id="city"
             type="text"
             value={address.city}
             onChange={(e) => updateField('city', e.target.value)}
@@ -314,10 +320,11 @@ function ShippingForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">
+          <label htmlFor="province" className="block text-sm font-medium mb-2 text-gray-700">
             State/Province
           </label>
           <input
+            id="province"
             type="text"
             value={address.province}
             onChange={(e) => updateField('province', e.target.value)}
@@ -329,10 +336,11 @@ function ShippingForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">
+          <label htmlFor="zip" className="block text-sm font-medium mb-2 text-gray-700">
             ZIP/Postal Code
           </label>
           <input
+            id="zip"
             type="text"
             value={address.zip}
             onChange={(e) => updateField('zip', e.target.value)}
@@ -341,10 +349,11 @@ function ShippingForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">
+          <label htmlFor="country" className="block text-sm font-medium mb-2 text-gray-700">
             Country
           </label>
           <select
+            id="country"
             value={address.country}
             onChange={(e) => updateField('country', e.target.value)}
             required
@@ -359,10 +368,11 @@ function ShippingForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2 text-gray-700">
+        <label htmlFor="phone" className="block text-sm font-medium mb-2 text-gray-700">
           Phone (optional)
         </label>
         <input
+          id="phone"
           type="tel"
           value={address.phone}
           onChange={(e) => updateField('phone', e.target.value)}
