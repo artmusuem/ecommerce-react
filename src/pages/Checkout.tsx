@@ -239,7 +239,9 @@ function ShippingForm({
         </label>
         <input
           id="email"
+          name="email"
           type="email"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
@@ -255,7 +257,9 @@ function ShippingForm({
           </label>
           <input
             id="firstName"
+            name="fname"
             type="text"
+            autoComplete="given-name"
             value={address.firstName}
             onChange={(e) => updateField('firstName', e.target.value)}
             required
@@ -268,7 +272,9 @@ function ShippingForm({
           </label>
           <input
             id="lastName"
+            name="lname"
             type="text"
+            autoComplete="family-name"
             value={address.lastName}
             onChange={(e) => updateField('lastName', e.target.value)}
             required
@@ -283,7 +289,9 @@ function ShippingForm({
         </label>
         <input
           id="address1"
+          name="address1"
           type="text"
+          autoComplete="address-line1"
           value={address.address1}
           onChange={(e) => updateField('address1', e.target.value)}
           placeholder="Street address"
@@ -298,7 +306,9 @@ function ShippingForm({
         </label>
         <input
           id="address2"
+          name="address2"
           type="text"
+          autoComplete="address-line2"
           value={address.address2}
           onChange={(e) => updateField('address2', e.target.value)}
           className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
@@ -312,7 +322,9 @@ function ShippingForm({
           </label>
           <input
             id="city"
+            name="city"
             type="text"
+            autoComplete="address-level2"
             value={address.city}
             onChange={(e) => updateField('city', e.target.value)}
             required
@@ -325,7 +337,9 @@ function ShippingForm({
           </label>
           <input
             id="province"
+            name="state"
             type="text"
+            autoComplete="address-level1"
             value={address.province}
             onChange={(e) => updateField('province', e.target.value)}
             required
@@ -341,7 +355,9 @@ function ShippingForm({
           </label>
           <input
             id="zip"
+            name="zip"
             type="text"
+            autoComplete="postal-code"
             value={address.zip}
             onChange={(e) => updateField('zip', e.target.value)}
             required
@@ -354,6 +370,8 @@ function ShippingForm({
           </label>
           <select
             id="country"
+            name="country"
+            autoComplete="country"
             value={address.country}
             onChange={(e) => updateField('country', e.target.value)}
             required
@@ -373,7 +391,9 @@ function ShippingForm({
         </label>
         <input
           id="phone"
+          name="phone"
           type="tel"
+          autoComplete="tel"
           value={address.phone}
           onChange={(e) => updateField('phone', e.target.value)}
           placeholder="(555) 555-5555"
