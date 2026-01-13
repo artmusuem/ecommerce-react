@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import Checkout from './Checkout'
 import { CartProvider, useCartDispatch } from '../context/CartContext'
@@ -86,6 +87,19 @@ function TestWrapper({
       </CartProvider>
     </MemoryRouter>
   )
+}
+
+// Helper to fill shipping form (required for payment section to appear)
+async function fillShippingForm(user: ReturnType<typeof userEvent.setup>) {
+  // Get all textboxes in order: email, firstName, lastName, address1, address2, city, state, zip, phone
+  const textboxes = screen.getAllByRole("textbox")
+  await user.type(textboxes[0], "test@example.com")  // email
+  await user.type(textboxes[1], "John")              // firstName
+  await user.type(textboxes[2], "Doe")               // lastName
+  await user.type(textboxes[3], "123 Main St")       // address1
+  await user.type(textboxes[5], "New York")          // city (skip address2)
+  await user.type(textboxes[6], "NY")                // state
+  await user.type(textboxes[7], "10001")             // zip
 }
 
 describe('Checkout Page', () => {
@@ -205,40 +219,46 @@ describe('Checkout Page', () => {
     })
 
     it('should show error on payment intent failure', async () => {
+      const user = userEvent.setup()
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
-      
+
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
+      await fillShippingForm(user)
       await waitFor(() => {
         expect(screen.getByText('Unable to initialize payment. Please try again.')).toBeInTheDocument()
       })
     })
 
     it('should show Try Again button on error', async () => {
+      const user = userEvent.setup()
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
-      
+
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
+      await fillShippingForm(user)
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Try Again' })).toBeInTheDocument()
       })
     })
 
     it('should render Stripe Elements after payment intent loads', async () => {
+      const user = userEvent.setup()
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
+      await fillShippingForm(user)
       await waitFor(() => {
         expect(screen.getByTestId('stripe-elements')).toBeInTheDocument()
       })
@@ -261,24 +281,28 @@ describe('Checkout Page', () => {
     })
 
     it('should render pay button with total', async () => {
+      const user = userEvent.setup()
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
+      await fillShippingForm(user)
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Pay \$/ })).toBeInTheDocument()
       })
     })
 
     it('should show secured by Stripe message', async () => {
+      const user = userEvent.setup()
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
+      await fillShippingForm(user)
       await waitFor(() => {
         expect(screen.getByText(/Secured by Stripe/i)).toBeInTheDocument()
       })
