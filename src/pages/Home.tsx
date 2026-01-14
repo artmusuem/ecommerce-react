@@ -97,9 +97,6 @@ export default function Home() {
                   {currentCollection?.description || 'Museum-quality prints from the Smithsonian'}
                 </p>
               </div>
-              <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-primary text-white">
-                {products.length} prints
-              </span>
             </div>
 
             {/* Right: Collection selector */}
@@ -114,11 +111,13 @@ export default function Home() {
                   className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
                 >
                   <option value="">All Artists</option>
-                  {collections.map(collection => (
-                    <option key={collection.id} value={collection.handle}>
-                      {collection.title} ({collection.productsCount})
-                    </option>
-                  ))}
+                  {collections
+                    .filter(c => c.handle !== 'frontpage')
+                    .map(collection => (
+                      <option key={collection.id} value={collection.handle}>
+                        {collection.title}
+                      </option>
+                    ))}
                 </select>
               </div>
             )}
