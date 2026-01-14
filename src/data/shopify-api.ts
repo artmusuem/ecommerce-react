@@ -3,7 +3,7 @@ import type { Product, Collection } from '../types'
 // Shopify Storefront API configuration
 const SHOPIFY_STORE = import.meta.env.VITE_SHOPIFY_STORE || 'dev-store-749237498237498787.myshopify.com'
 const SHOPIFY_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN || '0280512affca137e1ea6ddd246cf1bc7'
-const API_VERSION = '2024-01'
+const API_VERSION = '2025-01'
 
 interface ShopifyVariant {
   id: string
@@ -320,8 +320,12 @@ export async function fetchCollections(): Promise<Collection[]> {
             image {
               url
             }
-            productsCount {
-              count
+            products(first: 1) {
+              edges {
+                node {
+                  id
+                }
+              }
             }
           }
         }
@@ -339,7 +343,9 @@ export async function fetchCollections(): Promise<Collection[]> {
             title: string
             description: string
             image: { url: string } | null
-            productsCount: { count: number }
+            products: {
+              edges: Array<{ node: { id: string } }>
+            }
           }
         }>
       }
@@ -348,6 +354,12 @@ export async function fetchCollections(): Promise<Collection[]> {
 
   const res = await shopifyFetch<CollectionsResponse>(query)
 
+  // Defensive check for response structure
+  if (!res?.data?.collections?.edges) {
+    console.warn('No collections found in response:', res)
+    return []
+  }
+
   return res.data.collections.edges
     .map(({ node }) => ({
       id: node.id,
@@ -355,7 +367,7 @@ export async function fetchCollections(): Promise<Collection[]> {
       title: node.title,
       description: node.description || '',
       image: node.image?.url,
-      productsCount: node.productsCount.count
+      productsCount: node.products?.edges?.length || 0
     }))
     .filter(collection => collection.productsCount > 0) // Only collections with products
 }
