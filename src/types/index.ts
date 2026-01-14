@@ -41,6 +41,7 @@ export interface Product {
   museum?: string
   accession_number?: string
   api_url?: string
+  smithsonian_id?: string
   // Shopify-specific fields
   options?: ProductOption[]
   variants?: ProductVariant[]

@@ -246,10 +246,9 @@ export default function Product() {
 
   const frameColor = frameColors[selectedFrame] || '#1a1a1a'
 
-  // Generate direct Smithsonian object URL
-  const titleSlug = product.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
-  const smithsonianUrl = product.accession_number 
-    ? `https://www.si.edu/object/${titleSlug}:${product.accession_number}`
+  // Generate direct Smithsonian collections URL using smithsonian_id
+  const smithsonianUrl = product.smithsonian_id
+    ? `https://collections.si.edu/search/detail/edanmdm:${product.smithsonian_id}`
     : `https://www.si.edu/search?edan_q=${encodeURIComponent(product.title)}&edan_fq=unit_code:SAAM`
 
   return (
