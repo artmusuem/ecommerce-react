@@ -45,7 +45,101 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Critical HTML Shell - renders BEFORE JavaScript loads -->
+      <!-- This eliminates the 2s+ "element render delay" from React hydration -->
+      <style>
+        /* Critical CSS for above-fold content - inlined to avoid render blocking */
+        .shell-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;max-width:80rem;margin:0 auto;padding:1.5rem 1rem}
+        .shell-card{background:#fff;border-radius:0.75rem;overflow:hidden}
+        .shell-img-wrap{aspect-ratio:1;background:#f1f5f9;overflow:hidden}
+        .shell-img{width:100%;height:100%;object-fit:cover}
+        .shell-info{padding:0.75rem}
+        .shell-title{font-weight:500;font-size:0.875rem;line-height:1.25;margin:0 0 0.25rem;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .shell-meta{display:flex;justify-content:space-between;align-items:center}
+        .shell-price{font-weight:600;color:#0A5EB8}
+        .shell-artist{font-size:0.75rem;color:#94a3b8}
+        .shell-toolbar{border-bottom:1px solid #e2e8f0;background:#fff;padding:0.75rem 1rem}
+        .shell-toolbar-inner{max-width:80rem;margin:0 auto}
+        .shell-h1{font-size:1.25rem;font-weight:600;color:#0f172a;margin:0}
+        .shell-sub{font-size:0.875rem;color:#64748b;margin:0.25rem 0 0}
+      </style>
+      <main style="background:#f8fafc;min-height:100vh">
+        <div class="shell-toolbar">
+          <div class="shell-toolbar-inner">
+            <h1 class="shell-h1">All Prints</h1>
+            <p class="shell-sub">Museum-quality prints from the Smithsonian</p>
+          </div>
+        </div>
+        <div class="shell-grid">
+          <a href="/product/gid%3A%2F%2Fshopify%2FProduct%2F10885688623297" class="shell-card">
+            <div class="shell-img-wrap">
+              <img
+                class="shell-img"
+                src="https://res.cloudinary.com/dh4qwuvuo/image/fetch/w_400,c_limit,q_auto,f_auto/https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0851%2F4774%2F6497%2Ffiles%2FdeliveryService_14d964d6-d24b-4ea7-9206-a158d95ffe6d.jpg%3Fv%3D1768763195"
+                alt="High Cliff, Coast of Maine"
+                fetchpriority="high"
+              />
+            </div>
+            <div class="shell-info">
+              <h2 class="shell-title">High Cliff, Coast of Maine</h2>
+              <div class="shell-meta">
+                <span class="shell-price">From $45</span>
+                <span class="shell-artist">Winslow Homer</span>
+              </div>
+            </div>
+          </a>
+          <a href="/product/gid%3A%2F%2Fshopify%2FProduct%2F10885688721601" class="shell-card">
+            <div class="shell-img-wrap">
+              <img
+                class="shell-img"
+                src="https://res.cloudinary.com/dh4qwuvuo/image/fetch/w_400,c_limit,q_auto,f_auto/https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0851%2F4774%2F6497%2Ffiles%2FdeliveryService_c906700d-3581-4827-a195-89500e39c1ae.jpg%3Fv%3D1768194852"
+                alt="A Visit from the Old Mistress"
+              />
+            </div>
+            <div class="shell-info">
+              <h2 class="shell-title">A Visit from the Old Mistress</h2>
+              <div class="shell-meta">
+                <span class="shell-price">From $55</span>
+                <span class="shell-artist">Winslow Homer</span>
+              </div>
+            </div>
+          </a>
+          <a href="/product/gid%3A%2F%2Fshopify%2FProduct%2F10885688787137" class="shell-card">
+            <div class="shell-img-wrap">
+              <img
+                class="shell-img"
+                src="https://res.cloudinary.com/dh4qwuvuo/image/fetch/w_400,c_limit,q_auto,f_auto/https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0851%2F4774%2F6497%2Ffiles%2FdeliveryService_bc82adbd-f045-4b73-a926-a349594f57e3.jpg%3Fv%3D1768194855"
+                alt="Boys in a Dory"
+              />
+            </div>
+            <div class="shell-info">
+              <h2 class="shell-title">Boys in a Dory</h2>
+              <div class="shell-meta">
+                <span class="shell-price">From $65</span>
+                <span class="shell-artist">Winslow Homer</span>
+              </div>
+            </div>
+          </a>
+          <a href="/product/gid%3A%2F%2Fshopify%2FProduct%2F10885688852673" class="shell-card">
+            <div class="shell-img-wrap">
+              <img
+                class="shell-img"
+                src="https://res.cloudinary.com/dh4qwuvuo/image/fetch/w_400,c_limit,q_auto,f_auto/https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0851%2F4774%2F6497%2Ffiles%2FdeliveryService_150b411d-95e2-4aa4-9848-73bbfa91aa23.jpg%3Fv%3D1768194857"
+                alt="Snap the Whip"
+              />
+            </div>
+            <div class="shell-info">
+              <h2 class="shell-title">Snap the Whip</h2>
+              <div class="shell-meta">
+                <span class="shell-price">From $45</span>
+                <span class="shell-artist">Winslow Homer</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
