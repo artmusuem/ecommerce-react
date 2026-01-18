@@ -7,6 +7,7 @@ import {
   isRouteErrorResponse,
 } from "react-router";
 import type { LinksFunction } from "react-router";
+import { CartProvider } from "@/context/CartContext";
 
 import "./app.css";
 
@@ -34,7 +35,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <CartProvider>
+      <Outlet />
+    </CartProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: { error: unknown }) {
