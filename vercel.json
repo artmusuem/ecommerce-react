@@ -2,12 +2,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build/client",
   "functions": {
-    "api/**/*.ts": {
+    "api/ssr.ts": {
       "includeFiles": "build/server/**"
     }
   },
   "rewrites": [
-    { "source": "/((?!assets/).*)", "destination": "/api/$1" }
+    { "source": "/(.*)", "destination": "/api/ssr" }
   ],
   "headers": [
     {
