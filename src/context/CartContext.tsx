@@ -6,8 +6,14 @@ const CartDispatchContext = createContext<Dispatch<CartAction> | null>(null)
 
 const CART_STORAGE_KEY = 'gallery-store-cart'
 
-// Load cart from localStorage
+// Check if we're in browser environment
+const isBrowser = typeof window !== 'undefined'
+
+// Load cart from localStorage (only in browser)
 function loadCartFromStorage(): CartState {
+  if (!isBrowser) {
+    return { items: [], isOpen: false }
+  }
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY)
     if (stored) {
@@ -23,8 +29,9 @@ function loadCartFromStorage(): CartState {
   return { items: [], isOpen: false }
 }
 
-// Save cart to localStorage
+// Save cart to localStorage (only in browser)
 function saveCartToStorage(cart: CartState): void {
+  if (!isBrowser) return
   try {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: cart.items }))
   } catch (err) {
