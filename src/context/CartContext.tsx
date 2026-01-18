@@ -43,9 +43,30 @@ const initialCartState: CartState = {
   isOpen: false
 }
 
+// Custom deserializer to handle legacy format migration
+// Old format: { items: [...] }
+// New format: [...]
+function deserializeCartItems(stored: string): CartItem[] {
+  const parsed = JSON.parse(stored)
+
+  // Handle legacy format
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items)) {
+    return parsed.items
+  }
+
+  // Handle new format
+  if (Array.isArray(parsed)) {
+    return parsed
+  }
+
+  return []
+}
+
 // Create the persisted store for cart items
 // Only items are persisted - isOpen is transient UI state
-const cartItemsStore = createPersistedStore<CartItem[]>(CART_STORAGE_KEY, [])
+const cartItemsStore = createPersistedStore<CartItem[]>(CART_STORAGE_KEY, [], {
+  deserialize: deserializeCartItems
+})
 
 // Separate in-memory store for transient UI state (cart open/closed)
 let cartIsOpen = false
