@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useCart } from '../context/CartContext'
 
 const SHOPIFY_STORE = import.meta.env.VITE_SHOPIFY_STORE

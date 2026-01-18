@@ -1,4 +1,4 @@
-import { useRouteError, isRouteErrorResponse, Link } from 'react-router-dom'
+import { useRouteError, isRouteErrorResponse, Link } from 'react-router'
 
 /**
  * ErrorPage - Displays when React Router catches an error

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, ImgHTMLAttributes } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { getResizedImage, IMAGE_SIZES } from '../../utils/images'
 import type { Product } from '../../types'
 

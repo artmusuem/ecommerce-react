@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router'
 import Header from './components/layout/Header'
 import Cart from './components/cart/Cart'
 import Home from './pages/Home'

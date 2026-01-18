@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useCart, useCartDispatch } from '../../context/CartContext'
 import { getResizedImage } from '../../utils/images'
 import type { ProductRouterState } from '../../types'

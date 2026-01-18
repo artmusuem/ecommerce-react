@@ -1,0 +1,295 @@
+@import "tailwindcss";
+
+@theme {
+  /* Chase Blue Primary Palette */
+  --color-primary: #0A5EB8;
+  --color-primary-dark: #084A91;
+  --color-primary-light: #1E7BE0;
+  
+  /* Neutrals - override Tailwind defaults */
+  --color-white: #FFFFFF;
+  --color-gray-50: #F8FAFC;
+  --color-gray-100: #F1F5F9;
+  --color-gray-200: #E2E8F0;
+  --color-gray-300: #CBD5E1;
+  --color-gray-400: #94A3B8;
+  --color-gray-500: #64748B;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1E293B;
+  --color-gray-900: #0F172A;
+  
+  /* Accent - Warm Gold for art */
+  --color-accent: #D97706;
+  --color-accent-light: #F59E0B;
+  
+  /* Typography */
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+:root {
+  /* Keep CSS variables for backward compatibility with existing inline styles */
+  --color-primary: #0A5EB8;
+  --color-primary-dark: #084A91;
+  --color-primary-light: #1E7BE0;
+  
+  --color-white: #FFFFFF;
+  --color-gray-50: #F8FAFC;
+  --color-gray-100: #F1F5F9;
+  --color-gray-200: #E2E8F0;
+  --color-gray-300: #CBD5E1;
+  --color-gray-400: #94A3B8;
+  --color-gray-500: #64748B;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1E293B;
+  --color-gray-900: #0F172A;
+  
+  --color-accent: #D97706;
+  --color-accent-light: #F59E0B;
+  
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-800);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Skeleton pulse animation (Etsy-style) */
+.skeleton-pulse {
+  background-color: var(--color-gray-200);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Loading shimmer (legacy) */
+.image-loading {
+  background: linear-gradient(90deg, var(--color-gray-100) 25%, var(--color-gray-200) 50%, var(--color-gray-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Smooth fade in */
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 94, 184, 0.25);
+}
+
+.btn-secondary {
+  background-color: var(--color-gray-800);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease;
+}
+.btn-secondary:hover {
+  background-color: var(--color-gray-700);
+}
+
+/* Card hover */
+.card-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+}
+
+/* Focus states */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* ============================================
+   3D FRAME ENHANCEMENT
+   Adds realistic depth to frame preview
+   ============================================ */
+
+/* Base frame container - adds 3D bevel effect */
+.frame-preview {
+  transition: all 0.3s ease;
+}
+
+/* Black frame - 3D bevel (light top-left, dark bottom-right) */
+.frame-preview.frame-black {
+  border: 4px solid;
+  border-color: #3a3a3a #0a0a0a #0a0a0a #3a3a3a;
+}
+
+/* White frame */
+.frame-preview.frame-white {
+  border: 4px solid;
+  border-color: #ffffff #d8d8d8 #d8d8d8 #ffffff;
+}
+
+/* Natural oak frame */
+.frame-preview.frame-natural {
+  border: 4px solid;
+  border-color: #d4b896 #9a7040 #9a7040 #d4b896;
+}
+
+/* Walnut frame */
+.frame-preview.frame-walnut {
+  border: 4px solid;
+  border-color: #7a5a40 #3a2010 #3a2010 #7a5a40;
+}
+
+/* Gold frame */
+.frame-preview.frame-gold {
+  border: 4px solid;
+  border-color: #f0d875 #a08020 #a08020 #f0d875;
+}
+
+
+/* ============================================
+   ROOM MOCKUP VIEW
+   Shows framed art in a real room setting
+   ============================================ */
+
+.room-mockup {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 4/3;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 auto;
+  /* Real room photo from Unsplash (free for commercial use) */
+  background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Subtle overlay to help art stand out */
+.room-mockup::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.02);
+  pointer-events: none;
+}
+
+/* Art container positioned on wall */
+.room-art-container {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+/* Realistic wall shadow behind frame */
+.room-art-container::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: -4px;
+  bottom: -4px;
+  background: rgba(0,0,0,0.2);
+  filter: blur(6px);
+  z-index: -1;
+  border-radius: 2px;
+}
+
+/* Hide the placeholder furniture */
+.room-furniture {
+  display: none;
+}
+/* View toggle buttons */
+.view-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.view-toggle-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-toggle-btn:hover {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.view-toggle-btn.active {
+  background: #1e293b;
+  border-color: #1e293b;
+  color: white;
+}

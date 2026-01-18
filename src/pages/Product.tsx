@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { useParams, useLocation, Link } from 'react-router-dom'
+import { useParams, useLocation, Link } from 'react-router'
 import { artists, transformArtwork } from '../data/products'
 import { fetchShopifyProduct, shopifyConfig } from '../data/shopify-api'
 import { useCartDispatch } from '../context/CartContext'

@@ -6,3 +6,5 @@ dist/
 *.log 
 .vercel
 .env*.local
+build/
+.react-router/

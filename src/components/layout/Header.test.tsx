@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router'
 import Header from './Header'
 import { CartProvider, useCartDispatch } from '../../context/CartContext'
 import { useEffect, type ReactNode } from 'react'
