@@ -8,6 +8,8 @@ import {
 } from "react-router";
 import type { LinksFunction } from "react-router";
 import { CartProvider } from "@/context/CartContext";
+import Header from "@/components/layout/Header";
+import Cart from "@/components/cart/Cart";
 
 import "./app.css";
 
@@ -37,6 +39,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <CartProvider>
+      <Header />
+      <Cart />
       <Outlet />
     </CartProvider>
   );
