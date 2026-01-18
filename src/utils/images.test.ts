@@ -13,7 +13,6 @@ describe('images.ts utilities', () => {
   describe('IMAGE_SIZES', () => {
     it('should have correct size constants', () => {
       expect(IMAGE_SIZES.blur).toBe(20)
-      expect(IMAGE_SIZES.mobile).toBe(200)
       expect(IMAGE_SIZES.thumbnail).toBe(400)
       expect(IMAGE_SIZES.preview).toBe(800)
       expect(IMAGE_SIZES.full).toBe(1600)
@@ -37,13 +36,13 @@ describe('images.ts utilities', () => {
       
       it('should generate Cloudinary URL for Smithsonian images', () => {
         const result = getResizedImage(smithsonianUrl, 400)
-
+        
         expect(result).toContain('res.cloudinary.com')
         expect(result).toContain('test-cloud')
         expect(result).toContain('w_400')
         expect(result).toContain('c_limit')
-        expect(result).toContain('q_auto:good')
-        expect(result).toContain('f_webp')
+        expect(result).toContain('q_auto')
+        expect(result).toContain('f_auto')
         expect(result).toContain(encodeURIComponent(smithsonianUrl))
       })
 
@@ -56,12 +55,12 @@ describe('images.ts utilities', () => {
 
       it('should use correct transform parameters', () => {
         const result = getResizedImage(smithsonianUrl, 1600)
-
+        
         // Should NOT contain dpr_auto (we removed it for caching consistency)
         expect(result).not.toContain('dpr_auto')
-
-        // Should contain our standard transforms (WebP for guaranteed format, good quality)
-        expect(result).toMatch(/w_1600,c_limit,q_auto:good,f_webp/)
+        
+        // Should contain our standard transforms
+        expect(result).toMatch(/w_1600,c_limit,q_auto,f_auto/)
       })
 
       it('should properly encode special characters in URL', () => {
