@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 
 // Lazy load the checkout component (contains Stripe)
-const CheckoutComponent = lazy(() => import("../../src/pages/Checkout"));
+const CheckoutComponent = lazy(() => import("@/pages/Checkout"));
 
 function CheckoutLoading() {
   return (

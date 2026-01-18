@@ -1,10 +1,10 @@
 import { useLoaderData, Link } from "react-router";
 import type { Route } from "./+types/product";
-import { fetchShopifyProduct } from "../../src/data/shopify-api";
-import { getResizedImage, IMAGE_SIZES } from "../../src/utils/images";
-import { useCartDispatch } from "../../src/context/CartContext";
+import { fetchShopifyProduct } from "@/data/shopify-api";
+import { getResizedImage, IMAGE_SIZES } from "@/utils/images";
+import { useCartDispatch } from "@/context/CartContext";
 import { useState, useMemo } from "react";
-import type { ProductVariant } from "../../src/types";
+import type { ProductVariant } from "@/types";
 
 // Frame color mapping for preview
 const frameColors: Record<string, string> = {

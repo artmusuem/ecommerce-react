@@ -7,10 +7,10 @@ import {
   isRouteErrorResponse,
 } from "react-router";
 import type { LinksFunction } from "react-router";
-import { CartProvider } from "../src/context/CartContext";
-import { ShopifyProvider } from "../src/context/ShopifyProvider";
-import Header from "../src/components/layout/Header";
-import Cart from "../src/components/cart/Cart";
+import { CartProvider } from "@/context/CartContext";
+import { ShopifyProvider } from "@/context/ShopifyProvider";
+import Header from "@/components/layout/Header";
+import Cart from "@/components/cart/Cart";
 
 import "./app.css";
 

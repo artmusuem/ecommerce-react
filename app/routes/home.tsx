@@ -1,8 +1,8 @@
 import { useLoaderData, useSearchParams, Link } from "react-router";
 import type { Route } from "./+types/home";
-import { fetchShopifyProducts, fetchCollections, fetchCollectionProducts } from "../../src/data/shopify-api";
-import { getResizedImage, IMAGE_SIZES } from "../../src/utils/images";
-import type { Product, Collection } from "../../src/types";
+import { fetchShopifyProducts, fetchCollections, fetchCollectionProducts } from "@/data/shopify-api";
+import { getResizedImage, IMAGE_SIZES } from "@/utils/images";
+import type { Product, Collection } from "@/types";
 
 // Server-side data loading - this runs on the server BEFORE HTML is sent
 export async function loader({ request }: Route.LoaderArgs) {
