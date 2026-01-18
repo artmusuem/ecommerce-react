@@ -6,18 +6,24 @@ import type { Product, Collection } from "../../src/types";
 
 // Server-side data loading - this runs on the server BEFORE HTML is sent
 export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const collectionHandle = url.searchParams.get("collection");
+  try {
+    const url = new URL(request.url);
+    const collectionHandle = url.searchParams.get("collection");
 
-  // Fetch data on server - no client-side loading delay!
-  const [products, collections] = await Promise.all([
-    collectionHandle
-      ? fetchCollectionProducts(collectionHandle)
-      : fetchShopifyProducts(),
-    fetchCollections(),
-  ]);
+    // Fetch data on server - no client-side loading delay!
+    const [products, collections] = await Promise.all([
+      collectionHandle
+        ? fetchCollectionProducts(collectionHandle)
+        : fetchShopifyProducts(),
+      fetchCollections(),
+    ]);
 
-  return { products, collections, selectedCollection: collectionHandle };
+    return { products, collections, selectedCollection: collectionHandle };
+  } catch (error) {
+    console.error("Loader error:", error);
+    // Return empty data on error so page still renders
+    return { products: [], collections: [], selectedCollection: null };
+  }
 }
 
 // Meta tags for SEO
