@@ -1,4 +1,9 @@
 {
   "framework": "react-router",
-  "outputDirectory": "build/client"
+  "outputDirectory": "build/client",
+  "functions": {
+    "api/*.ts": {
+      "runtime": "@vercel/node@3"
+    }
+  }
 }
