@@ -1,6 +1,6 @@
 # Gallery Store - Headless Shopify E-Commerce
 
-[![Tests](https://img.shields.io/badge/tests-185%20passed-brightgreen)](https://github.com/nathanmcmullendev/ecommerce-react)
+[![Tests](https://img.shields.io/badge/tests-184%20passed-brightgreen)](https://github.com/nathanmcmullendev/ecommerce-react)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.2-61dafb)](https://react.dev/)
 [![Shopify](https://img.shields.io/badge/Shopify-Storefront%20API-96bf48)](https://shopify.dev/docs/api/storefront)
@@ -80,7 +80,7 @@ A production-grade headless e-commerce application selling museum-quality art pr
 
 | Metric | Value | Details |
 |--------|-------|---------|
-| **Test Coverage** | 185 tests | Unit, component, and integration tests |
+| **Test Coverage** | 184 tests | Unit, component, and integration tests |
 | **TypeScript** | 100% strict | Zero `any` types, full type safety |
 | **Bundle Size** | 88KB gzipped | Code-split with lazy loading |
 | **Image Optimization** | ~70% reduction | Cloudinary CDN with auto-format |
@@ -423,7 +423,7 @@ This project was built following senior-level development practices:
 # Every commit passes:
 npm run typecheck  # 0 errors
 npm run lint       # 0 errors
-npm run test:run   # 185 tests pass
+npm run test:run   # 184 tests pass
 npm run build      # Production build succeeds
 ```
 

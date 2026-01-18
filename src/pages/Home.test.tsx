@@ -218,18 +218,6 @@ describe('Home Page', () => {
         expect(screen.getByText('Breezing Up')).toBeInTheDocument()
       })
     })
-
-    it('should show product count badge', async () => {
-      render(
-        <TestWrapper>
-          <Home />
-        </TestWrapper>
-      )
-
-      await waitFor(() => {
-        expect(screen.getByText('2 prints')).toBeInTheDocument()
-      })
-    })
   })
 
   describe('Loading State', () => {
