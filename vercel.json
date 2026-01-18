@@ -3,11 +3,12 @@
   "outputDirectory": "build/client",
   "functions": {
     "api/**/*.ts": {
-      "runtime": "@vercel/node@3"
+      "runtime": "@vercel/node@3",
+      "includeFiles": "build/server/**"
     }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api" }
+    { "source": "/((?!assets/).*)", "destination": "/api/$1" }
   ],
   "headers": [
     {
