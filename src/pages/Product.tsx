@@ -246,9 +246,21 @@ export default function Product() {
 
   const frameColor = frameColors[selectedFrame] || '#1a1a1a'
 
-  // Generate direct Smithsonian collections URL using smithsonian_id
-  const smithsonianUrl = product.smithsonian_id
-    ? `https://collections.si.edu/search/detail/edanmdm:${product.smithsonian_id}`
+  // Generate correct Smithsonian object URL from title slug + accession_number
+  const getSmithsonianSlug = (title: string): string => {
+    return title.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')  // Remove special characters
+      .replace(/\s+/g, '-')           // Replace spaces with dashes
+      .replace(/-+/g, '-')            // Collapse multiple dashes
+      .replace(/^-|-$/g, '')          // Trim leading/trailing dashes
+  }
+
+  const smithsonianId = product.accession_number
+    ? `${getSmithsonianSlug(product.title)}:${product.accession_number}`
+    : null
+
+  const smithsonianUrl = smithsonianId
+    ? `https://www.si.edu/object/${smithsonianId}`
     : `https://www.si.edu/search?edan_q=${encodeURIComponent(product.title)}&edan_fq=unit_code:SAAM`
 
   return (
