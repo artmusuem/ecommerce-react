@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, type ReactNode, type Dispatch } from 'react'
+import { createContext, useContext, useReducer, useEffect, useState, type ReactNode, type Dispatch } from 'react'
 import type { CartState, CartAction, CartContextValue } from '../types'
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -6,14 +6,11 @@ const CartDispatchContext = createContext<Dispatch<CartAction> | null>(null)
 
 const CART_STORAGE_KEY = 'gallery-store-cart'
 
-// Check if we're in browser environment
-const isBrowser = typeof window !== 'undefined'
+// Initial state - always empty for consistent SSR/client initial render
+const initialState: CartState = { items: [], isOpen: false }
 
-// Load cart from localStorage (only in browser)
+// Load cart from localStorage (only called in useEffect on client)
 function loadCartFromStorage(): CartState {
-  if (!isBrowser) {
-    return { items: [], isOpen: false }
-  }
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY)
     if (stored) {
@@ -31,7 +28,7 @@ function loadCartFromStorage(): CartState {
 
 // Save cart to localStorage (only in browser)
 function saveCartToStorage(cart: CartState): void {
-  if (!isBrowser) return
+  if (typeof window === 'undefined') return
   try {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: cart.items }))
   } catch (err) {
@@ -107,7 +104,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case 'CLEAR_CART': {
       return { ...state, items: [] }
     }
-    
+
+    case 'LOAD_CART': {
+      return { ...state, items: action.payload }
+    }
+
     default:
       return state
   }
@@ -118,13 +119,24 @@ interface CartProviderProps {
 }
 
 export function CartProvider({ children }: CartProviderProps) {
-  const [cart, dispatch] = useReducer(cartReducer, null, loadCartFromStorage)
-  
-  // Save to localStorage whenever cart items change
+  const [cart, dispatch] = useReducer(cartReducer, initialState)
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Load cart from localStorage after hydration (client-side only)
   useEffect(() => {
-    saveCartToStorage(cart)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cart.items])
+    const storedCart = loadCartFromStorage()
+    if (storedCart.items.length > 0) {
+      dispatch({ type: 'LOAD_CART', payload: storedCart.items })
+    }
+    setIsHydrated(true)
+  }, [])
+
+  // Save to localStorage whenever cart items change (only after hydration)
+  useEffect(() => {
+    if (isHydrated) {
+      saveCartToStorage(cart)
+    }
+  }, [cart.items, isHydrated])
   
   const total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0)

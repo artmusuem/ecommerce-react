@@ -121,6 +121,7 @@ export type CartAction =
   | { type: 'TOGGLE_CART' }
   | { type: 'CLOSE_CART' }
   | { type: 'CLEAR_CART' }
+  | { type: 'LOAD_CART'; payload: CartItem[] }
 
 export interface AddItemPayload {
   productId: string
