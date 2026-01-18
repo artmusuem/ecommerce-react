@@ -1,152 +1,205 @@
-import { createContext, useContext, useReducer, useEffect, useState, type ReactNode, type Dispatch } from 'react'
-import type { CartState, CartAction, CartContextValue } from '../types'
+/**
+ * CartContext - Shopping cart state management with SSR-safe persistence
+ *
+ * Uses React 18's useSyncExternalStore for proper hydration without flicker.
+ * The cart state is persisted to localStorage and syncs across browser tabs.
+ *
+ * Architecture:
+ * - External store pattern (not useState/useReducer) for localStorage sync
+ * - useSyncExternalStore provides different snapshots for server vs client
+ * - Server always sees empty cart (consistent SSR HTML)
+ * - Client hydrates with empty, then immediately syncs to localStorage value
+ * - No hydration mismatch because React handles the transition internally
+ *
+ * @example
+ * function Component() {
+ *   const { items, total, itemCount } = useCart()
+ *   const dispatch = useCartDispatch()
+ *
+ *   dispatch({ type: 'ADD_ITEM', payload: { ... } })
+ * }
+ */
 
-const CartContext = createContext<CartContextValue | null>(null)
-const CartDispatchContext = createContext<Dispatch<CartAction> | null>(null)
+import {
+  createContext,
+  useContext,
+  useSyncExternalStore,
+  useCallback,
+  useMemo,
+  type ReactNode
+} from 'react'
+import { createPersistedStore } from '../lib/createPersistedStore'
+import type { CartItem, CartState, CartAction, CartContextValue } from '../types'
+
+// ============================================================================
+// Store Setup
+// ============================================================================
 
 const CART_STORAGE_KEY = 'gallery-store-cart'
 
-// Initial state - always empty for consistent SSR/client initial render
-const initialState: CartState = { items: [], isOpen: false }
-
-// Load cart from localStorage (only called in useEffect on client)
-function loadCartFromStorage(): CartState {
-  try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      return {
-        items: Array.isArray(parsed.items) ? parsed.items : [],
-        isOpen: false
-      }
-    }
-  } catch (err) {
-    console.error('Failed to load cart from storage:', err)
-  }
-  return { items: [], isOpen: false }
+// Initial state - used for SSR and as default
+const initialCartState: CartState = {
+  items: [],
+  isOpen: false
 }
 
-// Save cart to localStorage (only in browser)
-function saveCartToStorage(cart: CartState): void {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: cart.items }))
-  } catch (err) {
-    console.error('Failed to save cart to storage:', err)
-  }
+// Create the persisted store for cart items
+// Only items are persisted - isOpen is transient UI state
+const cartItemsStore = createPersistedStore<CartItem[]>(CART_STORAGE_KEY, [])
+
+// Separate in-memory store for transient UI state (cart open/closed)
+let cartIsOpen = false
+const isOpenListeners = new Set<() => void>()
+
+function subscribeToIsOpen(listener: () => void): () => void {
+  isOpenListeners.add(listener)
+  return () => isOpenListeners.delete(listener)
 }
 
-function cartReducer(state: CartState, action: CartAction): CartState {
+function getIsOpenSnapshot(): boolean {
+  return cartIsOpen
+}
+
+function getIsOpenServerSnapshot(): boolean {
+  return false
+}
+
+function setIsOpen(value: boolean): void {
+  cartIsOpen = value
+  isOpenListeners.forEach(listener => listener())
+}
+
+// ============================================================================
+// Reducer Logic
+// ============================================================================
+
+function reduceCartItems(items: CartItem[], action: CartAction): CartItem[] {
   switch (action.type) {
     case 'ADD_ITEM': {
       const { productId, variantId, sizeId, frameId, title, artist, image, price } = action.payload
       const itemKey = `${productId}-${variantId}`
-      const existingIndex = state.items.findIndex(item => item.key === itemKey)
+      const existingIndex = items.findIndex(item => item.key === itemKey)
 
       if (existingIndex >= 0) {
-        const newItems = [...state.items]
+        const newItems = [...items]
         newItems[existingIndex] = {
           ...newItems[existingIndex],
           quantity: newItems[existingIndex].quantity + 1
         }
-        return { ...state, items: newItems, isOpen: true }
+        return newItems
       }
 
-      return {
-        ...state,
-        items: [...state.items, {
-          key: itemKey,
-          productId,
-          variantId,
-          sizeId,
-          frameId,
-          title,
-          artist,
-          image,
-          price,
-          quantity: 1
-        }],
-        isOpen: true
-      }
+      return [...items, {
+        key: itemKey,
+        productId,
+        variantId,
+        sizeId,
+        frameId,
+        title,
+        artist,
+        image,
+        price,
+        quantity: 1
+      }]
     }
-    
-    case 'REMOVE_ITEM': {
-      return {
-        ...state,
-        items: state.items.filter(item => item.key !== action.payload)
-      }
-    }
-    
+
+    case 'REMOVE_ITEM':
+      return items.filter(item => item.key !== action.payload)
+
     case 'UPDATE_QUANTITY': {
       const { key, quantity } = action.payload
       if (quantity <= 0) {
-        return {
-          ...state,
-          items: state.items.filter(item => item.key !== key)
-        }
+        return items.filter(item => item.key !== key)
       }
-      return {
-        ...state,
-        items: state.items.map(item =>
-          item.key === key ? { ...item, quantity } : item
-        )
-      }
-    }
-    
-    case 'TOGGLE_CART': {
-      return { ...state, isOpen: !state.isOpen }
-    }
-    
-    case 'CLOSE_CART': {
-      return { ...state, isOpen: false }
-    }
-    
-    case 'CLEAR_CART': {
-      return { ...state, items: [] }
+      return items.map(item =>
+        item.key === key ? { ...item, quantity } : item
+      )
     }
 
-    case 'LOAD_CART': {
-      return { ...state, items: action.payload }
-    }
+    case 'CLEAR_CART':
+      return []
+
+    case 'LOAD_CART':
+      return action.payload
 
     default:
-      return state
+      return items
   }
 }
+
+// ============================================================================
+// Context
+// ============================================================================
+
+type CartDispatch = (action: CartAction) => void
+
+const CartContext = createContext<CartContextValue | null>(null)
+const CartDispatchContext = createContext<CartDispatch | null>(null)
+
+// ============================================================================
+// Provider Component
+// ============================================================================
 
 interface CartProviderProps {
   children: ReactNode
 }
 
 export function CartProvider({ children }: CartProviderProps) {
-  const [cart, dispatch] = useReducer(cartReducer, initialState)
-  const [isHydrated, setIsHydrated] = useState(false)
+  // Subscribe to persisted items store using useSyncExternalStore
+  // This is the React 18+ pattern for external state with SSR
+  const items = useSyncExternalStore(
+    cartItemsStore.subscribe,
+    cartItemsStore.getSnapshot,
+    cartItemsStore.getServerSnapshot
+  )
 
-  // Load cart from localStorage after hydration (client-side only)
-  useEffect(() => {
-    const storedCart = loadCartFromStorage()
-    if (storedCart.items.length > 0) {
-      dispatch({ type: 'LOAD_CART', payload: storedCart.items })
+  // Subscribe to transient isOpen state
+  const isOpen = useSyncExternalStore(
+    subscribeToIsOpen,
+    getIsOpenSnapshot,
+    getIsOpenServerSnapshot
+  )
+
+  // Dispatch function that updates both stores as needed
+  const dispatch = useCallback<CartDispatch>((action) => {
+    switch (action.type) {
+      case 'TOGGLE_CART':
+        setIsOpen(!cartIsOpen)
+        break
+
+      case 'CLOSE_CART':
+        setIsOpen(false)
+        break
+
+      case 'ADD_ITEM':
+        cartItemsStore.setState(prev => reduceCartItems(prev, action))
+        setIsOpen(true) // Open cart when adding item
+        break
+
+      default:
+        cartItemsStore.setState(prev => reduceCartItems(prev, action))
     }
-    setIsHydrated(true)
   }, [])
 
-  // Save to localStorage whenever cart items change (only after hydration)
-  useEffect(() => {
-    if (isHydrated) {
-      saveCartToStorage(cart)
-    }
-  }, [cart.items, isHydrated])
-  
-  const total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-  const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0)
-  
-  const value: CartContextValue = {
-    ...cart,
+  // Compute derived values
+  const total = useMemo(
+    () => items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+    [items]
+  )
+
+  const itemCount = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items]
+  )
+
+  // Build context value
+  const value = useMemo<CartContextValue>(() => ({
+    items,
+    isOpen,
     total,
     itemCount
-  }
-  
+  }), [items, isOpen, total, itemCount])
+
   return (
     <CartContext.Provider value={value}>
       <CartDispatchContext.Provider value={dispatch}>
@@ -156,7 +209,14 @@ export function CartProvider({ children }: CartProviderProps) {
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// ============================================================================
+// Hooks
+// ============================================================================
+
+/**
+ * Access cart state (items, totals, open/closed)
+ * @throws Error if used outside CartProvider
+ */
 export function useCart(): CartContextValue {
   const cart = useContext(CartContext)
   if (cart === null) {
@@ -165,8 +225,11 @@ export function useCart(): CartContextValue {
   return cart
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
-export function useCartDispatch(): Dispatch<CartAction> {
+/**
+ * Access cart dispatch function for actions
+ * @throws Error if used outside CartProvider
+ */
+export function useCartDispatch(): CartDispatch {
   const dispatch = useContext(CartDispatchContext)
   if (dispatch === null) {
     throw new Error('useCartDispatch must be used within a CartProvider')
