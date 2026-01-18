@@ -64,9 +64,14 @@ export default function Product() {
     dispatch({
       type: 'ADD_ITEM',
       payload: {
-        product,
-        variant: selectedVariant,
-        quantity: 1
+        productId: product.id,
+        variantId: selectedVariant.id,
+        sizeId: selectedSize,
+        frameId: selectedFrame,
+        title: product.title,
+        artist: product.artist || '',
+        image: product.image,
+        price: parseFloat(selectedVariant.price) || 0
       }
     });
 
