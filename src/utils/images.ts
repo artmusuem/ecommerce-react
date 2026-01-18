@@ -68,7 +68,7 @@ function getCloudinaryUrl(url: string, maxSize: number, options: {
 } = {}): string {
   const {
     quality = 'auto',
-    format = 'auto',
+    format = 'webp',  // Force WebP - f_auto was serving JPEGs
     crop = 'limit'
   } = options
   

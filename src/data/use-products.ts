@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react'
-import type { Product } from '../types'
+import type { Product, RawArtwork } from '../types'
 import { fetchShopifyProducts, fetchShopifyProduct, shopifyConfig } from './shopify-api'
+import { transformArtwork } from './products'
 
 // Data source configuration
 const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'json' // 'json' or 'shopify'
+
+interface ArtistData {
+  collection_info: {
+    source: string
+    total_items: number
+  }
+  artworks: RawArtwork[]
+}
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([])
@@ -31,14 +40,23 @@ export function useProducts() {
               '/data/winslow-homer.json',
               '/data/mary-cassatt.json',
               '/data/thomas-cole.json',
+              '/data/frederic-remington.json',
+              '/data/georgia-okeeffe.json',
+              '/data/edward-hopper.json',
             ]
             const allProducts: Product[] = []
+            let productIndex = 0
             for (const file of artistFiles) {
               try {
                 const res = await fetch(file)
                 if (res.ok) {
-                  const data = await res.json()
-                  allProducts.push(...data)
+                  const data: ArtistData = await res.json()
+                  // Transform artworks to products
+                  const products = data.artworks.map((artwork, i) =>
+                    transformArtwork(artwork, productIndex + i)
+                  )
+                  productIndex += data.artworks.length
+                  allProducts.push(...products)
                 }
               } catch {
                 // Skip failed files
@@ -85,6 +103,35 @@ export function useProduct(id: string) {
             const products: Product[] = await response.json()
             const found = products.find(p => p.id === id)
             setProduct(found || null)
+          } else {
+            // Fallback to searching individual artist files
+            const artistFiles = [
+              '/data/winslow-homer.json',
+              '/data/mary-cassatt.json',
+              '/data/thomas-cole.json',
+              '/data/frederic-remington.json',
+              '/data/georgia-okeeffe.json',
+              '/data/edward-hopper.json',
+            ]
+            let found: Product | null = null
+            let productIndex = 0
+            for (const file of artistFiles) {
+              try {
+                const res = await fetch(file)
+                if (res.ok) {
+                  const data: ArtistData = await res.json()
+                  const products = data.artworks.map((artwork, i) =>
+                    transformArtwork(artwork, productIndex + i)
+                  )
+                  productIndex += data.artworks.length
+                  found = products.find(p => p.id === id) || null
+                  if (found) break
+                }
+              } catch {
+                // Skip failed files
+              }
+            }
+            setProduct(found)
           }
         }
       } catch (err) {

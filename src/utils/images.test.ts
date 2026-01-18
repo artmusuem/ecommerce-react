@@ -42,7 +42,7 @@ describe('images.ts utilities', () => {
         expect(result).toContain('w_400')
         expect(result).toContain('c_limit')
         expect(result).toContain('q_auto')
-        expect(result).toContain('f_auto')
+        expect(result).toContain('f_webp')
         expect(result).toContain(encodeURIComponent(smithsonianUrl))
       })
 
@@ -60,7 +60,7 @@ describe('images.ts utilities', () => {
         expect(result).not.toContain('dpr_auto')
         
         // Should contain our standard transforms
-        expect(result).toMatch(/w_1600,c_limit,q_auto,f_auto/)
+        expect(result).toMatch(/w_1600,c_limit,q_auto,f_webp/)
       })
 
       it('should properly encode special characters in URL', () => {

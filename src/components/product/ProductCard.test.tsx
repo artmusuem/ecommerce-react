@@ -79,7 +79,7 @@ describe('ProductCard', () => {
     it('should include auto format transform', () => {
       renderProductCard()
       const img = screen.getByAltText('The Gulf Stream')
-      expect(img.getAttribute('src')).toContain('f_auto')
+      expect(img.getAttribute('src')).toContain('f_webp')
     })
   })
 
