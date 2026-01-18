@@ -1,8 +1,17 @@
 import type { Product, Collection } from '../types'
 
 // Shopify Storefront API configuration
-const SHOPIFY_STORE = import.meta.env.VITE_SHOPIFY_STORE || 'dev-store-749237498237498787.myshopify.com'
-const SHOPIFY_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN || '0280512affca137e1ea6ddd246cf1bc7'
+// Works in both client (Vite) and server (Node.js) contexts
+const SHOPIFY_STORE =
+  (typeof process !== 'undefined' && process.env?.SHOPIFY_STORE) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SHOPIFY_STORE) ||
+  'dev-store-749237498237498787.myshopify.com'
+
+const SHOPIFY_TOKEN =
+  (typeof process !== 'undefined' && process.env?.SHOPIFY_STOREFRONT_TOKEN) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SHOPIFY_STOREFRONT_TOKEN) ||
+  '0280512affca137e1ea6ddd246cf1bc7'
+
 const API_VERSION = '2025-01'
 
 interface ShopifyVariant {
