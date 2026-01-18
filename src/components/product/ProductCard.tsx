@@ -25,9 +25,17 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     ? parseFloat(product.priceRange.minPrice)
     : 45
 
+  // Mobile-first: smaller image for faster LCP on mobile
+  const mobileSrc = getResizedImage(product.image, IMAGE_SIZES.mobile)
   const thumbnailSrc = getResizedImage(product.image, IMAGE_SIZES.thumbnail)
+
+  // Responsive srcset: mobile gets 200px, desktop gets 400px
+  const srcSet = `${mobileSrc} 200w, ${thumbnailSrc} 400w`
+  // sizes: on mobile (<640px) cards are ~50vw, on desktop they're smaller
+  const sizes = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px'
+
   const fallbackSrc = product.image.includes('ids.si.edu')
-    ? `${product.image}${product.image.includes('?') ? '&' : '?'}max=${IMAGE_SIZES.thumbnail}`
+    ? `${product.image}${product.image.includes('?') ? '&' : '?'}max=${IMAGE_SIZES.mobile}`
     : product.image
 
   const handleImageError = () => {
@@ -46,7 +54,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   }, [useFallback])
 
   const imgProps: ExtendedImgProps = {
-    src: useFallback ? fallbackSrc : thumbnailSrc,
+    // Mobile-first: use smaller mobileSrc as default, srcset for responsive
+    src: useFallback ? fallbackSrc : mobileSrc,
+    srcSet: useFallback ? undefined : srcSet,
+    sizes: useFallback ? undefined : sizes,
     alt: product.title,
     className: 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105',
     loading: priority ? "eager" : "lazy",

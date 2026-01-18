@@ -17,12 +17,14 @@ const CLOUDINARY_CLOUD = import.meta.env.VITE_CLOUDINARY_CLOUD || ''
 
 /**
  * Image size presets (in pixels)
+ * Mobile-first: smaller sizes for faster LCP
  */
 export const IMAGE_SIZES = {
   blur: 20,        // Tiny placeholder for blur-up effect (~1KB)
-  thumbnail: 400,  // Product grid cards (~30-50KB)
-  preview: 800,    // Product page framed preview (~80-120KB)
-  full: 1600       // Lightbox / high-res (~200-400KB)
+  mobile: 200,     // Mobile grid (2 columns ~160px display) (~10-15KB)
+  thumbnail: 400,  // Desktop grid cards (~20-30KB)
+  preview: 800,    // Product page framed preview (~50-80KB)
+  full: 1600       // Lightbox / high-res (~150-250KB)
 }
 
 /**
@@ -67,11 +69,13 @@ function getCloudinaryUrl(url: string, maxSize: number, options: {
   crop?: string
 } = {}): string {
   const {
-    quality = 'auto',
-    format = 'auto',
+    // Use auto:good for better compression (smaller files)
+    quality = 'auto:good',
+    // Force WebP for guaranteed modern format (f_auto unreliable in some contexts)
+    format = 'webp',
     crop = 'limit'
   } = options
-  
+
   // Note: Removed dpr_auto to ensure consistent URLs for caching
   // Same URL = cache hit when navigating from grid to product page
   const transforms = [

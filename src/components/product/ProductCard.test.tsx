@@ -64,22 +64,31 @@ describe('ProductCard', () => {
       expect(img.getAttribute('src')).toContain('res.cloudinary.com')
     })
 
-    it('should use 400px thumbnail size', () => {
+    it('should use mobile-first 200px size for faster LCP', () => {
       renderProductCard()
       const img = screen.getByAltText('The Gulf Stream')
-      expect(img.getAttribute('src')).toContain('w_400')
+      // Mobile-first: default src uses 200px for faster mobile LCP
+      expect(img.getAttribute('src')).toContain('w_200')
     })
 
-    it('should include auto quality transform', () => {
+    it('should have responsive srcset with mobile and desktop sizes', () => {
       renderProductCard()
       const img = screen.getByAltText('The Gulf Stream')
-      expect(img.getAttribute('src')).toContain('q_auto')
+      const srcset = img.getAttribute('srcset')
+      expect(srcset).toContain('200w')
+      expect(srcset).toContain('400w')
     })
 
-    it('should include auto format transform', () => {
+    it('should include good quality transform', () => {
       renderProductCard()
       const img = screen.getByAltText('The Gulf Stream')
-      expect(img.getAttribute('src')).toContain('f_auto')
+      expect(img.getAttribute('src')).toContain('q_auto:good')
+    })
+
+    it('should use WebP format for guaranteed modern format', () => {
+      renderProductCard()
+      const img = screen.getByAltText('The Gulf Stream')
+      expect(img.getAttribute('src')).toContain('f_webp')
     })
   })
 
