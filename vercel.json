@@ -1,14 +1,4 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "build/client",
-  "functions": {
-    "api/ssr.ts": {
-      "includeFiles": "build/server/**"
-    }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/ssr" }
-  ],
   "headers": [
     {
       "source": "/assets/(.*)",
