@@ -81,7 +81,7 @@ export default function Product() {
   };
 
   return (
-    <main className="bg-gray-50 min-h-screen">
+    <main className="bg-gray-50 min-h-screen page-enter">
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Link to="/" className="text-primary hover:underline text-sm">
