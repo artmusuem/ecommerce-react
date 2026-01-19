@@ -247,6 +247,120 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 ## How It Actually Works
 
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        SSR-SAFE LOCALSTORAGE PATTERN                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                    ┌──────────────────────────────────────┐
+                    │           useSyncExternalStore       │
+                    │  ┌────────────────────────────────┐  │
+                    │  │  • subscribe()                 │  │
+                    │  │  • getSnapshot()        ────────────────┐
+                    │  │  • getServerSnapshot()  ───────────┐    │
+                    │  └────────────────────────────────┘  │    │
+                    └──────────────────────────────────────┘    │
+                                       │                        │
+           ┌───────────────────────────┴────────────────────┐   │
+           │                                                │   │
+           ▼                                                ▼   │
+┌─────────────────────┐                         ┌─────────────────────┐
+│       SERVER        │                         │       CLIENT        │
+│      (Node.js)      │                         │      (Browser)      │
+├─────────────────────┤                         ├─────────────────────┤
+│                     │                         │                     │
+│  getServerSnapshot()│                         │  ┌───────────────┐  │
+│         │           │                         │  │  localStorage │  │
+│         ▼           │                         │  └───────┬───────┘  │
+│   ┌───────────┐     │                         │          │          │
+│   │    []     │     │                         │          ▼          │
+│   │ (initial) │     │                         │  getSnapshot()      │
+│   └─────┬─────┘     │                         │         │           │
+│         │           │                         │         ▼           │
+│         ▼           │                         │   ┌───────────┐     │
+│  Render HTML        │                         │   │ [item1,   │     │
+│  "Cart (0)"         │                         │   │  item2,   │     │
+│         │           │                         │   │  item3]   │     │
+└─────────┼───────────┘                         │   └─────┬─────┘     │
+          │                                     │         │           │
+          │         ┌─────────────────────┐     │         ▼           │
+          └────────►│   HYDRATION PHASE   │◄────┘   Re-render         │
+                    ├─────────────────────┤         "Cart (3)"        │
+                    │                     │               │           │
+                    │  Uses server        │     └─────────┼───────────┘
+                    │  snapshot on BOTH   │               │
+                    │  server AND client  │               │
+                    │  during hydration   │               │
+                    │                     │               ▼
+                    │  Server: []         │    ┌─────────────────────┐
+                    │  Client: [] ✓ MATCH │    │   POST-HYDRATION    │
+                    │                     │    ├─────────────────────┤
+                    └─────────────────────┘    │                     │
+                                               │  Switches to        │
+                                               │  getSnapshot()      │
+                                               │                     │
+                                               │  Reads localStorage │
+                                               │  Updates UI         │
+                                               │  smoothly           │
+                                               │                     │
+                                               └─────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              THE KEY INSIGHT                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   getServerSnapshot() is called in TWO places:                              │
+│                                                                             │
+│   1. On the SERVER during SSR      ──►  Returns initial state []            │
+│   2. On the CLIENT during HYDRATION ──►  Returns initial state []           │
+│                                                                             │
+│   This guarantees the HTML matches! Only AFTER hydration completes          │
+│   does React switch to getSnapshot() which reads localStorage.              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Timeline Comparison
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ❌ WITHOUT useSyncExternalStore (BROKEN)                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  SERVER           HYDRATION              POST-HYDRATION                     │
+│    │                  │                        │                            │
+│    ▼                  ▼                        ▼                            │
+│  ┌────┐            ┌────┐                   ┌────┐                          │
+│  │ [] │  ═══════►  │[3] │  ══ MISMATCH ══►  │[3] │                          │
+│  └────┘            └────┘        💥         └────┘                          │
+│                                                                             │
+│  HTML: "Cart(0)"   Tries: "Cart(3)"        Shows: "Cart(3)"                 │
+│                    React crashes!                                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ✅ WITH useSyncExternalStore (WORKING)                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  SERVER           HYDRATION              POST-HYDRATION                     │
+│    │                  │                        │                            │
+│    ▼                  ▼                        ▼                            │
+│  ┌────┐            ┌────┐                   ┌────┐                          │
+│  │ [] │  ═══════►  │ [] │  ═══ MATCH ════►  │[3] │                          │
+│  └────┘            └────┘        ✓          └────┘                          │
+│                                                                             │
+│  HTML: "Cart(0)"   Hydrate: "Cart(0)"      Update: "Cart(3)"                │
+│                    Success!                 Smooth transition               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
 Let's trace through the timeline again:
 
 ```
