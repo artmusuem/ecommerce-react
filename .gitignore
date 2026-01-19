@@ -1,13 +1,15 @@
-node_modules/ 
-dist/ 
-.env.local 
-.env 
-.DS_Store 
-*.log 
-.vercel
-.env*.local
+node_modules/
+dist/
 build/
+.DS_Store
+*.log
+.vercel
 .react-router/
+
+# Environment files - ONLY .env.example is committed
+.env
+.env.*
+!.env.example
 
 # Internal documentation (not for public repo)
 .docs-internal/
