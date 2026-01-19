@@ -9,6 +9,77 @@ import type { ProductVariant } from "@/types";
 import FramePreview from "@/components/product/FramePreview";
 import FrameIcon from "@/components/product/FrameIcon";
 
+// Details section component
+function ProductDetails({
+  title,
+  artist,
+  description,
+  smithsonianUrl
+}: {
+  title: string
+  artist: string
+  description: string
+  smithsonianUrl?: string
+}) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <section className="border-t border-gray-200 mt-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+        {/* Collapsible header */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex items-center justify-between text-left group"
+          aria-expanded={isOpen}
+        >
+          <h2 className="text-sm font-semibold tracking-widest text-gray-900 uppercase">
+            Details
+          </h2>
+          <span className="text-gray-400 group-hover:text-gray-600 transition-colors">
+            {isOpen ? '−' : '+'}
+          </span>
+        </button>
+
+        {/* Collapsible content */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            isOpen ? 'max-h-[500px] opacity-100 mt-6' : 'max-h-0 opacity-0'
+          }`}
+        >
+          {/* Rich description */}
+          <p className="text-gray-700 leading-relaxed mb-4">
+            <em className="text-gray-900">{title}</em> by{' '}
+            <em className="text-gray-900">{artist}</em>
+            {description && `. ${description}`}
+          </p>
+
+          {/* Print quality info */}
+          <p className="text-gray-600 leading-relaxed mb-6">
+            Printed on museum-quality archival paper with a matte finish.
+            Each print is made to order using giclée printing technology,
+            ensuring exceptional color accuracy and longevity.
+          </p>
+
+          {/* Smithsonian link */}
+          {smithsonianUrl && (
+            <a
+              href={smithsonianUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-primary hover:underline text-sm font-medium"
+            >
+              View Original at Smithsonian
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // Server-side data loading
 export async function loader({ params }: Route.LoaderArgs) {
   const product = await fetchShopifyProduct(params.id || "");
@@ -52,6 +123,11 @@ export default function Product() {
 
   const price = selectedVariant ? parseFloat(selectedVariant.price) : 0;
   const previewSrc = getResizedImage(product.image, IMAGE_SIZES.preview);
+
+  // Construct Smithsonian URL from available data
+  const smithsonianUrl = product.api_url
+    || (product.smithsonian_id ? `https://www.si.edu/object/${product.smithsonian_id}` : undefined)
+    || (product.accession_number ? `https://www.si.edu/object/${product.accession_number}` : undefined);
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
@@ -169,6 +245,14 @@ export default function Product() {
           </div>
         </div>
       </div>
+
+      {/* Details Section */}
+      <ProductDetails
+        title={product.title}
+        artist={product.artist || 'Unknown Artist'}
+        description={product.description}
+        smithsonianUrl={smithsonianUrl}
+      />
     </main>
   );
 }
