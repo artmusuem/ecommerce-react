@@ -98,7 +98,7 @@ export default function Home() {
     <main className="bg-gray-50 min-h-screen">
       {/* Compact Toolbar */}
       <div className="border-b bg-white border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-4">
               <div>
@@ -136,9 +136,9 @@ export default function Home() {
       </div>
 
       {/* Product Grid - Server-rendered with products! */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {products.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6">
             {products.map((product: Product, index: number) => (
               <ProductCard
                 key={product.id}
@@ -157,8 +157,8 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t mt-8 bg-white border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <footer className="border-t mt-12 bg-white border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
