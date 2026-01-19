@@ -83,14 +83,14 @@ export default function Product() {
   return (
     <main className="bg-gray-50 min-h-screen">
       {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Link to="/" className="text-primary hover:underline text-sm">
           ← Back to Gallery
         </Link>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="grid lg:grid-cols-2 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Image */}
           <div className="relative">
             <div
@@ -111,15 +111,15 @@ export default function Product() {
           </div>
 
           {/* Details */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div>
-              <h1 className="text-3xl font-display font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-3">
                 {product.title}
               </h1>
               <p className="text-lg text-gray-600">{product.artist}</p>
             </div>
 
-            <p className="text-gray-700">{product.description}</p>
+            <p className="text-gray-700 leading-relaxed">{product.description}</p>
 
             {/* Size selector */}
             <div>
@@ -166,8 +166,8 @@ export default function Product() {
             </div>
 
             {/* Price and Add to Cart */}
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between mb-4">
+            <div className="pt-6 border-t">
+              <div className="flex items-center justify-between mb-6">
                 <span className="text-3xl font-bold text-gray-900">
                   ${price.toFixed(2)}
                 </span>
