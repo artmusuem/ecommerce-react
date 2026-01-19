@@ -71,11 +71,11 @@ export default function FramePreview({
           {/* Mat layer - white passepartout (hidden for unframed) */}
           <div className="frame-mat">
             {/* Artwork */}
-            <div className="frame-artwork aspect-square">
+            <div className="frame-artwork">
               <img
                 src={imageSrc}
                 alt={imageAlt}
-                className="w-full h-full object-contain"
+                className="w-full h-auto block"
               />
             </div>
           </div>
