@@ -40,31 +40,31 @@ describe('FramePreview', () => {
   describe('frame types', () => {
     it('should apply frame-unframed class for Unframed', () => {
       const { container } = renderFramePreview({ frameType: 'Unframed' })
-      const frameElement = container.querySelector('.frame-preview')
+      const frameElement = container.querySelector('.frame-outer')
       expect(frameElement).toHaveClass('frame-unframed')
     })
 
     it('should apply frame-black class for Black Frame', () => {
       const { container } = renderFramePreview({ frameType: 'Black Frame' })
-      const frameElement = container.querySelector('.frame-preview')
+      const frameElement = container.querySelector('.frame-outer')
       expect(frameElement).toHaveClass('frame-black')
     })
 
     it('should apply frame-white class for White Frame', () => {
       const { container } = renderFramePreview({ frameType: 'White Frame' })
-      const frameElement = container.querySelector('.frame-preview')
+      const frameElement = container.querySelector('.frame-outer')
       expect(frameElement).toHaveClass('frame-white')
     })
 
     it('should apply frame-natural class for Natural Wood', () => {
       const { container } = renderFramePreview({ frameType: 'Natural Wood' })
-      const frameElement = container.querySelector('.frame-preview')
+      const frameElement = container.querySelector('.frame-outer')
       expect(frameElement).toHaveClass('frame-natural')
     })
 
     it('should default to frame-unframed for unknown frame types', () => {
       const { container } = renderFramePreview({ frameType: 'Unknown Frame' })
-      const frameElement = container.querySelector('.frame-preview')
+      const frameElement = container.querySelector('.frame-outer')
       expect(frameElement).toHaveClass('frame-unframed')
     })
   })
@@ -88,7 +88,7 @@ describe('FramePreview', () => {
         frameType: 'Black Frame',
         size: '16×20',
       })
-      const frameElement = container.querySelector('.frame-preview')
+      const frameElement = container.querySelector('.frame-view-container')
       expect(frameElement).toHaveAttribute('role', 'img')
       expect(frameElement).toHaveAttribute(
         'aria-label',
@@ -101,7 +101,7 @@ describe('FramePreview', () => {
         imageAlt: 'Sunset Painting',
         frameType: 'Black Frame',
       })
-      const frameElement = container.querySelector('.frame-preview')
+      const frameElement = container.querySelector('.frame-view-container')
       expect(frameElement).toHaveAttribute(
         'aria-label',
         'Sunset Painting - Black Frame'
@@ -110,14 +110,19 @@ describe('FramePreview', () => {
   })
 
   describe('structure', () => {
-    it('should have mat layer', () => {
-      const { container } = renderFramePreview()
-      expect(container.querySelector('.frame-mat')).toBeInTheDocument()
+    it('should have mat layer for framed options', () => {
+      const { container } = renderFramePreview({ frameType: 'Black Frame' })
+      expect(container.querySelector('.frame-mat-layer')).toBeInTheDocument()
     })
 
-    it('should have artwork container', () => {
+    it('should not have mat layer for unframed', () => {
+      const { container } = renderFramePreview({ frameType: 'Unframed' })
+      expect(container.querySelector('.frame-mat-layer')).not.toBeInTheDocument()
+    })
+
+    it('should have artwork image', () => {
       const { container } = renderFramePreview()
-      expect(container.querySelector('.frame-artwork')).toBeInTheDocument()
+      expect(container.querySelector('.frame-artwork-img')).toBeInTheDocument()
     })
 
     it('should apply custom className', () => {
@@ -142,7 +147,7 @@ describe('FramePreview', () => {
 
     it('should start in frame view', () => {
       const { container } = renderFramePreview()
-      expect(container.querySelector('.frame-preview')).toBeInTheDocument()
+      expect(container.querySelector('.frame-view-container')).toBeInTheDocument()
       expect(container.querySelector('.room-mockup')).not.toBeInTheDocument()
     })
 

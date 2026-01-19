@@ -202,81 +202,87 @@ h1, h2, h3, .font-display {
   }
 }
 
-/* Base frame container - content-box so frame grows OUTWARD */
-.frame-preview {
+/* ============================================
+   FRAME VIEW
+   Artwork is anchor, frame/mat grow OUTWARD
+   ============================================ */
+
+.frame-view-container {
+  display: flex;
+  justify-content: center;
+  padding: calc(var(--frame-width) + var(--mat-width) + 8px);
+}
+
+/* Frame outer - positions the mat and frame */
+.frame-outer {
   position: relative;
-  transition: all 0.3s ease;
-  border-radius: 2px;
-  box-sizing: content-box;
+  display: inline-block;
 }
 
-/* Mat layer - content-box so padding grows OUTWARD */
-.frame-mat {
-  background: #fafafa;
-  padding: var(--mat-width);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: padding 0.3s ease;
-  box-sizing: content-box;
-}
-
-/* Artwork container */
-.frame-artwork {
-  position: relative;
-  overflow: hidden;
-}
-
-.frame-artwork img {
-  width: 100%;
-  height: auto;
+/* The artwork image - this is the anchor, never changes size */
+.frame-artwork-img {
   display: block;
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  position: relative;
+  z-index: 2;
 }
 
-/* Unframed - just print with subtle shadow */
-.frame-preview.frame-unframed {
-  border: none;
+/* Mat layer - absolutely positioned BEHIND artwork, extends outward */
+.frame-mat-layer {
+  position: absolute;
+  inset: calc(-1 * var(--mat-width));
+  background: #fafafa;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
+
+/* Unframed - just artwork with subtle shadow */
+.frame-outer.frame-unframed {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12),
               0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.frame-preview.frame-unframed .frame-mat {
-  padding: 0;
-  box-shadow: none;
-  background: transparent;
-}
-
-/* Black frame - 3D bevel (light top-left, dark bottom-right) */
-.frame-preview.frame-black {
+/* Framed styles - border on the mat layer */
+.frame-outer.frame-black .frame-mat-layer {
   border: var(--frame-width) solid;
   border-color: #3a3a3a #0a0a0a #0a0a0a #3a3a3a;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  inset: calc(-1 * var(--mat-width) - var(--frame-width));
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08),
+              0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
-/* White frame */
-.frame-preview.frame-white {
+.frame-outer.frame-white .frame-mat-layer {
   border: var(--frame-width) solid;
   border-color: #ffffff #e0e0e0 #d0d0d0 #f5f5f5;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  inset: calc(-1 * var(--mat-width) - var(--frame-width));
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08),
+              0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
-/* Natural oak frame */
-.frame-preview.frame-natural {
+.frame-outer.frame-natural .frame-mat-layer {
   border: var(--frame-width) solid;
   border-color: #d4b896 #9a7040 #8a6030 #c4a886;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  inset: calc(-1 * var(--mat-width) - var(--frame-width));
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08),
+              0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
-/* Walnut frame */
-.frame-preview.frame-walnut {
+.frame-outer.frame-walnut .frame-mat-layer {
   border: var(--frame-width) solid;
   border-color: #7a5a40 #3a2010 #2a1005 #6a4a30;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  inset: calc(-1 * var(--mat-width) - var(--frame-width));
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08),
+              0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
-/* Gold frame */
-.frame-preview.frame-gold {
+.frame-outer.frame-gold .frame-mat-layer {
   border: var(--frame-width) solid;
   border-color: #f0d875 #c0a030 #a08020 #e0c865;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  inset: calc(-1 * var(--mat-width) - var(--frame-width));
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08),
+              0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
 

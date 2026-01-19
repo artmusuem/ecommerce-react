@@ -62,22 +62,19 @@ export default function FramePreview({
       )}
 
       {viewMode === 'frame' ? (
-        /* Frame View */
+        /* Frame View - same structure as Room View: artwork anchored, frame grows outward */
         <div
-          className={`frame-preview ${frameClass} rounded-xl overflow-hidden`}
+          className="frame-view-container"
           role="img"
           aria-label={`${imageAlt} - ${frameType}${size ? `, ${size}` : ''}`}
         >
-          {/* Mat layer - white passepartout (hidden for unframed) */}
-          <div className="frame-mat">
-            {/* Artwork */}
-            <div className="frame-artwork">
-              <img
-                src={imageSrc}
-                alt={imageAlt}
-                className="w-full h-auto block"
-              />
-            </div>
+          <div className={`frame-outer ${frameClass}`}>
+            {isFramed && <div className="frame-mat-layer" />}
+            <img
+              src={imageSrc}
+              alt={imageAlt}
+              className="frame-artwork-img"
+            />
           </div>
         </div>
       ) : (
