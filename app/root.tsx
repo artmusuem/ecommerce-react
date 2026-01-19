@@ -14,6 +14,11 @@ import Cart from "@/components/cart/Cart";
 import "./app.css";
 
 export const links: LinksFunction = () => [
+  // Google Fonts - Playfair Display (headings) + Inter (body)
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+  { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" },
+  // CDN preconnects
   { rel: "preconnect", href: "https://res.cloudinary.com", crossOrigin: "anonymous" },
   { rel: "preconnect", href: "https://cdn.shopify.com", crossOrigin: "anonymous" },
 ];
