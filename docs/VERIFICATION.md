@@ -16,7 +16,7 @@
 | Hydration Errors | ✅ PASS | Zero React hydration errors |
 | Cart Persistence | ✅ PASS | localStorage sync working |
 | Cross-Tab Sync | ✅ PASS | StorageEvent listener active |
-| Lighthouse | ✅ PASS | 97/81/96/100 |
+| Lighthouse | ✅ PASS | 98/95/96/100 |
 
 ---
 
@@ -26,8 +26,8 @@
 
 | Category | Score | Status |
 |----------|-------|--------|
-| Performance | **97** | 🟢 |
-| Accessibility | **81** | 🟡 |
+| Performance | **98** | 🟢 |
+| Accessibility | **95** | 🟢 |
 | Best Practices | **96** | 🟢 |
 | SEO | **100** | 🟢 |
 
