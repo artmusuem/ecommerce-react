@@ -6,14 +6,7 @@ import { getResizedImage, IMAGE_SIZES } from "@/utils/images";
 import { useCartDispatch } from "@/context/CartContext";
 import { useState, useMemo } from "react";
 import type { ProductVariant } from "@/types";
-
-// Frame color mapping for preview
-const frameColors: Record<string, string> = {
-  'Unframed': '#f5f5f5',
-  'Black Frame': '#1a1a1a',
-  'White Frame': '#ffffff',
-  'Natural Wood': '#c4a574',
-};
+import FramePreview from "@/components/product/FramePreview";
 
 // Server-side data loading
 export async function loader({ params }: Route.LoaderArgs) {
@@ -91,24 +84,13 @@ export default function Product() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
-          {/* Image */}
-          <div className="relative">
-            <div
-              className="aspect-square rounded-xl overflow-hidden bg-white shadow-lg"
-              style={{
-                border: selectedFrame !== 'Unframed'
-                  ? `12px solid ${frameColors[selectedFrame]}`
-                  : undefined
-              }}
-            >
-              <img
-                src={previewSrc}
-                alt={product.title}
-                className="w-full h-full object-contain"
-                fetchPriority="high"
-              />
-            </div>
-          </div>
+          {/* Frame Preview */}
+          <FramePreview
+            imageSrc={previewSrc}
+            imageAlt={product.title}
+            frameType={selectedFrame}
+            size={selectedSize}
+          />
 
           {/* Details */}
           <div className="space-y-8">
