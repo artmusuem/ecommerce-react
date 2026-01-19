@@ -124,7 +124,7 @@ export default function Product() {
   const price = selectedVariant ? parseFloat(selectedVariant.price) : 0;
   const previewSrc = getResizedImage(product.image, IMAGE_SIZES.preview);
 
-  // Construct Smithsonian URL: https://americanart.si.edu/artwork/{title-slug}:{accession_number}
+  // Construct Smithsonian URL: https://www.si.edu/object/{title-slug}:{accession_number}
   const getSmithsonianSlug = (title: string): string => {
     return title.toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')  // Remove special characters
@@ -134,7 +134,7 @@ export default function Product() {
   };
 
   const smithsonianUrl = product.accession_number
-    ? `https://americanart.si.edu/artwork/${getSmithsonianSlug(product.title)}:${product.accession_number}`
+    ? `https://www.si.edu/object/${getSmithsonianSlug(product.title)}:${product.accession_number}`
     : undefined;
 
   const handleAddToCart = () => {
