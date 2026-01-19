@@ -99,14 +99,36 @@ Transform Gallery Store from "working demo" to "portfolio showpiece" with premiu
 
 ## Progress Log
 
-<!-- Claude Code updates this section as work progresses -->
-
 | Date | Phase | Changes Made | Tests Status |
 |------|-------|--------------|--------------|
-| | | | |
+| Jan 2026 | 1 | Typography & spacing enhancements | ✅ Passing |
+| Jan 2026 | 2 | Page animations, hover effects | ✅ Passing |
+| Jan 2026 | 3 | FramePreview component with Frame/Room view | ✅ Passing |
+| Jan 2026 | 3 | FrameIcon L-shaped corner icons | ✅ Passing |
+| Jan 18 | 3 | 3D bevel effects on frame icons | ✅ Passing |
+
+---
+
+## Current Status
+
+### Completed
+- [x] Phase 1: Typography & Spacing
+- [x] Phase 2: Animations & Micro-interactions
+- [x] Phase 3: FramePreview component (Frame View + Room View)
+- [x] Phase 3: FrameIcon visual selector icons
+
+### In Progress
+- [ ] Phase 3: Refine FrameIcon to match FramePreview styling exactly
+- [ ] Phase 4: Final polish and documentation
+
+### Key Decision Pending
+**FrameIcon styling approach:** Currently uses CSS gradients for 3D bevel. Alternative approach is to use the same `border-color` 4-value technique as FramePreview for visual consistency.
 
 ---
 
 ## Notes
 
-<!-- Add any discoveries, decisions, or blockers here -->
+- FramePreview uses `border-color: top right bottom left` for 3D bevel (e.g., `#3a3a3a #0a0a0a #0a0a0a #3a3a3a` for black)
+- FrameIcon uses linear gradients which look slightly different
+- Room mockup background: `public/images/background-room.png`
+- See `docs/SESSION-LOG.md` for detailed continuation notes
