@@ -45,10 +45,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     }
   }, [useFallback])
 
+  // Priority images: no fade (preserves LCP). Lazy images: smooth fade-in.
+  const imageClasses = priority
+    ? 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105'
+    : `w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 image-reveal ${isLoaded ? 'loaded' : ''}`
+
   const imgProps: ExtendedImgProps = {
     src: useFallback ? fallbackSrc : thumbnailSrc,
     alt: product.title,
-    className: 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105',
+    className: imageClasses,
     loading: priority ? "eager" : "lazy",
     fetchpriority: priority ? "high" : "auto",
     decoding: "async",
@@ -75,11 +80,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               <div className="absolute inset-0 skeleton-pulse" />
             )}
 
-            {/* Image - hidden until loaded, then shown instantly */}
+            {/* Image - priority images show instantly, lazy images fade in via CSS */}
             <img
               ref={imgRef}
               {...imgProps}
-              style={{ opacity: isLoaded ? 1 : 0 }}
             />
 
             {/* Quick view overlay */}
