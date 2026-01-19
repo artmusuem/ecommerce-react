@@ -39,8 +39,9 @@ export default function Cart() {
           <button
             onClick={() => dispatch({ type: 'TOGGLE_CART' })}
             className="p-2 rounded-lg transition-colors text-gray-500 hover:bg-gray-100"
+            aria-label="Close cart"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -124,7 +125,7 @@ export default function Cart() {
                           {item.artist}
                         </p>
                         {/* Display selected options */}
-                        <p className="text-xs mt-1 text-gray-400">
+                        <p className="text-xs mt-1 text-gray-500">
                           {item.sizeId} • {item.frameId}
                         </p>
                       </div>
@@ -144,10 +145,11 @@ export default function Cart() {
                             payload: { key: item.key, quantity: item.quantity - 1 }
                           })}
                           className="w-8 h-8 flex items-center justify-center text-sm hover:bg-gray-50 rounded-l-lg text-gray-600"
+                          aria-label={`Decrease quantity of ${item.title}`}
                         >
                           −
                         </button>
-                        <span className="w-8 text-center text-sm text-gray-800">
+                        <span className="w-8 text-center text-sm text-gray-800" aria-label={`Quantity: ${item.quantity}`}>
                           {item.quantity}
                         </span>
                         <button
@@ -156,6 +158,7 @@ export default function Cart() {
                             payload: { key: item.key, quantity: item.quantity + 1 }
                           })}
                           className="w-8 h-8 flex items-center justify-center text-sm hover:bg-gray-50 rounded-r-lg text-gray-600"
+                          aria-label={`Increase quantity of ${item.title}`}
                         >
                           +
                         </button>
@@ -164,7 +167,8 @@ export default function Cart() {
                       {/* Remove button */}
                       <button
                         onClick={() => dispatch({ type: 'REMOVE_ITEM', payload: item.key })}
-                        className="text-xs underline transition-colors text-gray-400 hover:text-gray-600"
+                        className="text-xs underline transition-colors text-gray-500 hover:text-gray-700"
+                        aria-label={`Remove ${item.title} from cart`}
                       >
                         Remove
                       </button>

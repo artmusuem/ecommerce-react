@@ -71,7 +71,7 @@ function ProductCard({ product, priority = false }: { product: Product; priority
           <span className="font-semibold text-primary">
             From ${price.toFixed(0)}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-500">
             {product.artist}
           </span>
         </div>
@@ -113,8 +113,9 @@ export default function Home() {
 
             {collections.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-500">Artist:</span>
+                <label htmlFor="artist-filter" className="text-sm font-medium text-gray-600">Artist:</label>
                 <select
+                  id="artist-filter"
                   value={selectedCollection || ""}
                   onChange={(e) => handleCollectionChange(e.target.value || null)}
                   className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
