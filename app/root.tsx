@@ -5,8 +5,8 @@ import {
   Scripts,
   ScrollRestoration,
   isRouteErrorResponse,
+  type LinksFunction,
 } from "react-router";
-import type { LinksFunction } from "react-router";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/layout/Header";
 import Cart from "@/components/cart/Cart";

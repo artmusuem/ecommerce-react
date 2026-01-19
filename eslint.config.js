@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'node_modules'] },
+  { ignores: ['dist', 'coverage', 'node_modules', '.react-router', 'build', 'api'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -22,9 +22,16 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       
       // React Refresh - for hot reloading
+      // allowExportNames: React Router 7 route exports + custom hooks from context files
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        {
+          allowConstantExport: true,
+          allowExportNames: [
+            'loader', 'action', 'meta', 'links', 'headers', 'handle', 'shouldRevalidate',
+            'useCart', 'useCartDispatch'  // Custom hooks from CartContext
+          ]
+        },
       ],
       
       // TypeScript strict rules
@@ -36,8 +43,8 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       
-      // Code quality
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // Code quality - allow info for server-side logging
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       'prefer-const': 'error',
       'no-var': 'error',
       'eqeqeq': ['error', 'always'],

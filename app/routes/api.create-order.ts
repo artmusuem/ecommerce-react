@@ -153,7 +153,7 @@ export async function action({ request }: { request: Request }) {
     }
 
     // Step 1: Create draft order
-    console.log('Creating draft order...')
+    console.info('Creating draft order...')
     const createResult = await shopifyAdminRequest(DRAFT_ORDER_CREATE, {
       input: draftOrderInput
     })
@@ -182,10 +182,10 @@ export async function action({ request }: { request: Request }) {
       })
     }
 
-    console.log('Draft order created:', draftOrderId)
+    console.info('Draft order created:', draftOrderId)
 
     // Step 2: Complete draft order (marks as paid)
-    console.log('Completing draft order...')
+    console.info('Completing draft order...')
     const completeResult = await shopifyAdminRequest(DRAFT_ORDER_COMPLETE, {
       id: draftOrderId
     })
@@ -214,7 +214,7 @@ export async function action({ request }: { request: Request }) {
       })
     }
 
-    console.log('Order created successfully:', order.name)
+    console.info('Order created successfully:', order.name)
 
     // Return success with order details
     return new Response(JSON.stringify({

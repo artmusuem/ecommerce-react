@@ -1,4 +1,5 @@
 import { useLoaderData, useSearchParams, Link } from "react-router";
+// @ts-expect-error - React Router 7 generates these types at build time
 import type { Route } from "./+types/home";
 import { fetchShopifyProducts, fetchCollections, fetchCollectionProducts } from "@/data/shopify-api";
 import { getResizedImage, IMAGE_SIZES } from "@/utils/images";
@@ -81,7 +82,7 @@ function ProductCard({ product, priority = false }: { product: Product; priority
 
 export default function Home() {
   const { products, collections, selectedCollection } = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
   const handleCollectionChange = (handle: string | null) => {
     if (handle) {

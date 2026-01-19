@@ -29,7 +29,7 @@ import {
   type ReactNode
 } from 'react'
 import { createPersistedStore } from '../lib/createPersistedStore'
-import type { CartItem, CartState, CartAction, CartContextValue } from '../types'
+import type { CartItem, CartAction, CartContextValue } from '../types'
 
 // ============================================================================
 // Store Setup
@@ -37,11 +37,8 @@ import type { CartItem, CartState, CartAction, CartContextValue } from '../types
 
 const CART_STORAGE_KEY = 'gallery-store-cart'
 
-// Initial state - used for SSR and as default
-const initialCartState: CartState = {
-  items: [],
-  isOpen: false
-}
+// Initial empty array - used for SSR and as default
+const INITIAL_CART_ITEMS: CartItem[] = []
 
 // Custom deserializer to handle legacy format migration
 // Old format: { items: [...] }
@@ -64,7 +61,7 @@ function deserializeCartItems(stored: string): CartItem[] {
 
 // Create the persisted store for cart items
 // Only items are persisted - isOpen is transient UI state
-const cartItemsStore = createPersistedStore<CartItem[]>(CART_STORAGE_KEY, [], {
+const cartItemsStore = createPersistedStore<CartItem[]>(CART_STORAGE_KEY, INITIAL_CART_ITEMS, {
   deserialize: deserializeCartItems
 })
 
