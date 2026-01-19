@@ -147,13 +147,23 @@ h1, h2, h3, .font-display {
   background-color: var(--color-gray-700);
 }
 
-/* Card hover */
+/* Card hover - premium gallery feel */
 .card-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
+}
+
+/* Image reveal - smooth fade-in for lazy-loaded images */
+.image-reveal {
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+.image-reveal.loaded {
+  opacity: 1;
 }
 
 /* Focus states */
@@ -292,4 +302,47 @@ h1, h2, h3, .font-display {
   background: #1e293b;
   border-color: #1e293b;
   color: white;
+}
+
+/* ============================================
+   PAGE TRANSITIONS
+   Smooth entry animation for route changes
+   ============================================ */
+
+.page-enter {
+  animation: pageEnter 0.35s ease-out forwards;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   Respect user accessibility preferences
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .card-lift:hover {
+    transform: none;
+  }
+
+  .btn-primary:hover {
+    transform: none;
+  }
 }
