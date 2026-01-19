@@ -523,7 +523,7 @@ h1, h2, h3, .font-display {
   position: relative;
   width: 52px;
   height: 52px;
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
