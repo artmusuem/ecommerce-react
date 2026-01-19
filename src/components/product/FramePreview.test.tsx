@@ -126,7 +126,6 @@ describe('FramePreview', () => {
     })
 
     it('should apply custom className', () => {
-      const { container } = renderFramePreview()
       render(<FramePreview {...defaultProps} className="custom-class" />)
       // Just verify it renders without error - className applied to wrapper
     })
