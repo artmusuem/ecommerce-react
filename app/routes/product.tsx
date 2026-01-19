@@ -7,6 +7,7 @@ import { useCartDispatch } from "@/context/CartContext";
 import { useState, useMemo } from "react";
 import type { ProductVariant } from "@/types";
 import FramePreview from "@/components/product/FramePreview";
+import FrameIcon from "@/components/product/FrameIcon";
 
 // Server-side data loading
 export async function loader({ params }: Route.LoaderArgs) {
@@ -125,24 +126,19 @@ export default function Product() {
               </div>
             </div>
 
-            {/* Frame selector */}
+            {/* Frame selector with visual icons */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Frame
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1">
                 {frames.map(frame => (
-                  <button
+                  <FrameIcon
                     key={frame}
+                    frameType={frame}
+                    selected={selectedFrame === frame}
                     onClick={() => setSelectedFrame(frame)}
-                    className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                      selectedFrame === frame
-                        ? 'border-primary bg-primary text-white'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {frame}
-                  </button>
+                  />
                 ))}
               </div>
             </div>
