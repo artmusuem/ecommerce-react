@@ -292,8 +292,7 @@ h1, h2, h3, .font-display {
   border-radius: 8px;
   overflow: hidden;
   margin: 0 auto;
-  /* Real room photo from Unsplash (free for commercial use) */
-  background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80');
+  background-image: url('/images/background-room.png');
   background-size: cover;
   background-position: center;
 }
