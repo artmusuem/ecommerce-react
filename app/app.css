@@ -315,17 +315,81 @@ h1, h2, h3, .font-display {
   z-index: 10;
 }
 
-/* Realistic wall shadow behind frame */
+/* Room frame - artwork is fixed size, frame/mat grow OUTWARD */
+.room-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The artwork image - ALWAYS the same size */
+.room-artwork-img {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
+/* Unframed - just artwork with subtle shadow */
+.room-frame.frame-unframed {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15),
+              0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Mat layer for framed options - positioned behind artwork */
+.room-mat {
+  position: absolute;
+  inset: -16px; /* Mat extends 16px beyond artwork on all sides */
+  background: #fafafa;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.06);
+  z-index: 1;
+}
+
+/* Framed styles - border on the mat layer */
+.room-frame.frame-black .room-mat {
+  border: 14px solid;
+  border-color: #3a3a3a #0a0a0a #0a0a0a #3a3a3a;
+  inset: -16px;
+}
+
+.room-frame.frame-white .room-mat {
+  border: 14px solid;
+  border-color: #ffffff #e0e0e0 #d0d0d0 #f5f5f5;
+  inset: -16px;
+}
+
+.room-frame.frame-natural .room-mat {
+  border: 14px solid;
+  border-color: #d4b896 #9a7040 #8a6030 #c4a886;
+  inset: -16px;
+}
+
+.room-frame.frame-walnut .room-mat {
+  border: 14px solid;
+  border-color: #7a5a40 #3a2010 #2a1005 #6a4a30;
+  inset: -16px;
+}
+
+.room-frame.frame-gold .room-mat {
+  border: 14px solid;
+  border-color: #f0d875 #c0a030 #a08020 #e0c865;
+  inset: -16px;
+}
+
+/* Wall shadow behind the entire framed piece */
 .room-art-container::after {
   content: '';
   position: absolute;
-  top: 4px;
-  left: 4px;
-  right: -4px;
-  bottom: -4px;
-  background: rgba(0,0,0,0.2);
-  filter: blur(6px);
-  z-index: -1;
+  top: 6px;
+  left: 6px;
+  right: -6px;
+  bottom: -6px;
+  background: rgba(0,0,0,0.18);
+  filter: blur(8px);
+  z-index: 0;
   border-radius: 2px;
 }
 

@@ -88,19 +88,14 @@ export default function FramePreview({
           aria-label={`${imageAlt} displayed in a living room setting`}
         >
           <div className="room-art-container">
-            <div
-              className={`frame-preview ${frameClass}`}
-              style={{ width: '180px', height: '180px' }}
-            >
-              <div className="frame-mat h-full">
-                <div className="frame-artwork h-full">
-                  <img
-                    src={imageSrc}
-                    alt={imageAlt}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              </div>
+            {/* Artwork size is fixed; frame/mat grow outward */}
+            <div className={`room-frame ${frameClass}`}>
+              {isFramed && <div className="room-mat" />}
+              <img
+                src={imageSrc}
+                alt={imageAlt}
+                className="room-artwork-img"
+              />
             </div>
           </div>
         </div>
