@@ -179,42 +179,103 @@ h1, h2, h3, .font-display {
 
 /* ============================================
    3D FRAME ENHANCEMENT
-   Adds realistic depth to frame preview
+   Realistic gallery-style frame preview
    ============================================ */
 
-/* Base frame container - adds 3D bevel effect */
+/* Frame dimensions - responsive */
+:root {
+  --frame-width: 12px;
+  --mat-width: 16px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --frame-width: 18px;
+    --mat-width: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --frame-width: 22px;
+    --mat-width: 28px;
+  }
+}
+
+/* Base frame container */
 .frame-preview {
+  position: relative;
   transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+/* Mat layer - white passepartout with inner shadow */
+.frame-mat {
+  background: #fafafa;
+  padding: var(--mat-width);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: padding 0.3s ease;
+}
+
+/* Artwork container */
+.frame-artwork {
+  position: relative;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.frame-artwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Unframed - just print with subtle shadow */
+.frame-preview.frame-unframed {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12),
+              0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.frame-preview.frame-unframed .frame-mat {
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 /* Black frame - 3D bevel (light top-left, dark bottom-right) */
 .frame-preview.frame-black {
-  border: 4px solid;
+  border: var(--frame-width) solid;
   border-color: #3a3a3a #0a0a0a #0a0a0a #3a3a3a;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
 /* White frame */
 .frame-preview.frame-white {
-  border: 4px solid;
-  border-color: #ffffff #d8d8d8 #d8d8d8 #ffffff;
+  border: var(--frame-width) solid;
+  border-color: #ffffff #e0e0e0 #d0d0d0 #f5f5f5;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
 /* Natural oak frame */
 .frame-preview.frame-natural {
-  border: 4px solid;
-  border-color: #d4b896 #9a7040 #9a7040 #d4b896;
+  border: var(--frame-width) solid;
+  border-color: #d4b896 #9a7040 #8a6030 #c4a886;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
 /* Walnut frame */
 .frame-preview.frame-walnut {
-  border: 4px solid;
-  border-color: #7a5a40 #3a2010 #3a2010 #7a5a40;
+  border: var(--frame-width) solid;
+  border-color: #7a5a40 #3a2010 #2a1005 #6a4a30;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
 /* Gold frame */
 .frame-preview.frame-gold {
-  border: 4px solid;
-  border-color: #f0d875 #a08020 #a08020 #f0d875;
+  border: var(--frame-width) solid;
+  border-color: #f0d875 #c0a030 #a08020 #e0c865;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
 
