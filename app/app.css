@@ -545,152 +545,78 @@ h1, h2, h3, .font-display {
   height: 100%;
 }
 
-/* ===== BLACK FRAME - 3D Bevel ===== */
-.frame-icon.frame-icon-black .frame-icon-h {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 22px;
-  background:
-    linear-gradient(180deg,
-      #4a4a4a 0%,      /* highlight top edge */
-      #2a2a2a 15%,     /* main surface */
-      #1a1a1a 50%,
-      #0a0a0a 85%,     /* shadow bottom edge */
-      #000000 100%
-    );
-  box-shadow:
-    inset 1px 1px 0 rgba(255,255,255,0.15),  /* top-left highlight */
-    inset -1px -1px 0 rgba(0,0,0,0.4),        /* bottom-right shadow */
-    inset 0 -2px 3px rgba(0,0,0,0.3);         /* inner depth shadow */
-}
+/* ===== FRAME ICON BARS - Using same border-color technique as FramePreview ===== */
 
+/* BLACK FRAME - matches .frame-outer.frame-black border-color: #3a3a3a #0a0a0a #0a0a0a #3a3a3a */
+.frame-icon.frame-icon-black .frame-icon-h,
 .frame-icon.frame-icon-black .frame-icon-v {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 22px;
-  bottom: 0;
-  background:
-    linear-gradient(90deg,
-      #4a4a4a 0%,
-      #2a2a2a 15%,
-      #1a1a1a 50%,
-      #0a0a0a 85%,
-      #000000 100%
-    );
-  box-shadow:
-    inset 1px 1px 0 rgba(255,255,255,0.15),
-    inset -1px -1px 0 rgba(0,0,0,0.4),
-    inset -2px 0 3px rgba(0,0,0,0.3);
+  background: #1a1a1a;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #3a3a3a #0a0a0a #0a0a0a #3a3a3a;
 }
-
-/* ===== WHITE FRAME - Subtle Depth ===== */
-.frame-icon.frame-icon-white .frame-icon-h {
-  position: absolute;
+.frame-icon.frame-icon-black .frame-icon-h {
   top: 0;
   left: 0;
   right: 0;
-  height: 22px;
-  background:
-    linear-gradient(180deg,
-      #ffffff 0%,      /* bright top edge */
-      #f8f8f8 10%,
-      #f0f0f0 50%,
-      #e8e8e8 90%,
-      #e0e0e0 100%     /* subtle shadow bottom */
-    );
-  box-shadow:
-    inset 1px 1px 0 rgba(255,255,255,0.9),   /* bright highlight */
-    inset -1px -1px 0 rgba(0,0,0,0.08),       /* subtle outer shadow */
-    inset 0 -2px 4px rgba(0,0,0,0.06),        /* inner depth */
-    0 0 0 1px rgba(0,0,0,0.05);               /* edge definition */
+  height: 20px;
+}
+.frame-icon.frame-icon-black .frame-icon-v {
+  top: 0;
+  left: 0;
+  width: 20px;
+  bottom: 0;
 }
 
+/* WHITE FRAME - matches .frame-outer.frame-white border-color: #ffffff #e0e0e0 #d0d0d0 #f5f5f5 */
+.frame-icon.frame-icon-white .frame-icon-h,
 .frame-icon.frame-icon-white .frame-icon-v {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 22px;
-  bottom: 0;
-  background:
-    linear-gradient(90deg,
-      #ffffff 0%,
-      #f8f8f8 10%,
-      #f0f0f0 50%,
-      #e8e8e8 90%,
-      #e0e0e0 100%
-    );
-  box-shadow:
-    inset 1px 1px 0 rgba(255,255,255,0.9),
-    inset -1px -1px 0 rgba(0,0,0,0.08),
-    inset -2px 0 4px rgba(0,0,0,0.06),
-    0 0 0 1px rgba(0,0,0,0.05);
+  background: #f0f0f0;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ffffff #e0e0e0 #d0d0d0 #f5f5f5;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
 }
-
-/* ===== NATURAL WOOD - Grain + 3D Bevel ===== */
-.frame-icon.frame-icon-natural .frame-icon-h {
-  position: absolute;
+.frame-icon.frame-icon-white .frame-icon-h {
   top: 0;
   left: 0;
   right: 0;
-  height: 22px;
-  background:
-    /* Wood grain texture overlay */
-    repeating-linear-gradient(
-      90deg,
-      transparent 0px,
-      rgba(139,90,43,0.1) 1px,
-      transparent 2px,
-      transparent 4px
-    ),
-    /* 3D bevel gradient */
-    linear-gradient(180deg,
-      #e8c9a0 0%,      /* warm highlight top */
-      #d4b080 15%,
-      #b8956a 50%,
-      #9a7040 85%,
-      #7a5530 100%     /* dark shadow bottom */
-    );
-  box-shadow:
-    inset 1px 1px 0 rgba(255,220,180,0.4),   /* warm highlight */
-    inset -1px -1px 0 rgba(80,50,20,0.3),     /* dark shadow */
-    inset 0 -2px 3px rgba(80,50,20,0.2);      /* inner depth */
+  height: 20px;
 }
-
-.frame-icon.frame-icon-natural .frame-icon-v {
-  position: absolute;
+.frame-icon.frame-icon-white .frame-icon-v {
   top: 0;
   left: 0;
-  width: 22px;
+  width: 20px;
   bottom: 0;
-  background:
-    /* Vertical wood grain */
-    repeating-linear-gradient(
-      180deg,
-      transparent 0px,
-      rgba(139,90,43,0.08) 1px,
-      transparent 2px,
-      transparent 5px
-    ),
-    /* 3D bevel gradient */
-    linear-gradient(90deg,
-      #e8c9a0 0%,
-      #d4b080 15%,
-      #b08a60 50%,
-      #8a6030 85%,
-      #6a4520 100%
-    );
-  box-shadow:
-    inset 1px 1px 0 rgba(255,220,180,0.4),
-    inset -1px -1px 0 rgba(80,50,20,0.3),
-    inset -2px 0 3px rgba(80,50,20,0.2);
 }
 
-/* ===== INNER SHADOW for frame profile depth (all framed types) ===== */
+/* NATURAL WOOD - matches .frame-outer.frame-natural border-color: #d4b896 #9a7040 #8a6030 #c4a886 */
+.frame-icon.frame-icon-natural .frame-icon-h,
+.frame-icon.frame-icon-natural .frame-icon-v {
+  position: absolute;
+  background: #b8956a;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #d4b896 #9a7040 #8a6030 #c4a886;
+}
+.frame-icon.frame-icon-natural .frame-icon-h {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+}
+.frame-icon.frame-icon-natural .frame-icon-v {
+  top: 0;
+  left: 0;
+  width: 20px;
+  bottom: 0;
+}
+
+/* Inner shadow on artwork area for depth (all framed types) */
 .frame-icon.frame-icon-black .frame-icon-artwork,
 .frame-icon.frame-icon-white .frame-icon-artwork,
 .frame-icon.frame-icon-natural .frame-icon-artwork {
-  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.15);
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.12);
 }
