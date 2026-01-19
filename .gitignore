@@ -14,3 +14,16 @@ build/
 # Internal documentation (not for public repo)
 .docs-internal/
 CLAUDE.md
+
+# Internal/local config
+.claude/settings.local.json
+.playwright-mcp/
+
+# Migration scripts and data (internal tools)
+migrate-*.cjs
+get-smithsonian-ids.cjs
+migration-*.json
+
+# Test/backup data files
+public/data/test-*.json
+public/data/*.default.json
