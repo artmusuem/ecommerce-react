@@ -1,4 +1,5 @@
 import { useLoaderData, useSearchParams, Link } from "react-router";
+import { useState, useEffect } from "react";
 // @ts-expect-error - React Router 7 generates these types at build time
 import type { Route } from "./+types/home";
 import { fetchShopifyProducts, fetchCollections, fetchCollectionProducts } from "@/data/shopify-api";
@@ -84,7 +85,16 @@ export default function Home() {
   const { products, collections, selectedCollection } = useLoaderData<typeof loader>();
   const [, setSearchParams] = useSearchParams();
 
-  const handleCollectionChange = (handle: string | null) => {
+  // Local state for immediate UI feedback (no flicker)
+  const [localSelection, setLocalSelection] = useState(selectedCollection || "");
+
+  // Sync local state when URL/loader data changes
+  useEffect(() => {
+    setLocalSelection(selectedCollection || "");
+  }, [selectedCollection]);
+
+  const handleCollectionChange = (handle: string) => {
+    setLocalSelection(handle); // Immediate UI update
     if (handle) {
       setSearchParams({ collection: handle });
     } else {
@@ -116,8 +126,8 @@ export default function Home() {
                 <label htmlFor="artist-filter" className="text-sm font-medium text-gray-600">Artist:</label>
                 <select
                   id="artist-filter"
-                  value={selectedCollection || ""}
-                  onChange={(e) => handleCollectionChange(e.target.value || null)}
+                  value={localSelection}
+                  onChange={(e) => handleCollectionChange(e.target.value)}
                   className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
                 >
                   <option value="">All Artists</option>
