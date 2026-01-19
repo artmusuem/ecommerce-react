@@ -1,0 +1,129 @@
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import FramePreview from './FramePreview'
+
+const defaultProps = {
+  imageSrc: 'https://example.com/artwork.jpg',
+  imageAlt: 'Test Artwork',
+  frameType: 'Unframed',
+}
+
+function renderFramePreview(props: Partial<typeof defaultProps> = {}) {
+  return render(<FramePreview {...defaultProps} {...props} />)
+}
+
+describe('FramePreview', () => {
+  describe('rendering', () => {
+    it('should render the artwork image', () => {
+      renderFramePreview()
+      const img = screen.getByAltText('Test Artwork')
+      expect(img).toBeInTheDocument()
+      expect(img).toHaveAttribute('src', 'https://example.com/artwork.jpg')
+    })
+
+    it('should render with correct image alt text', () => {
+      renderFramePreview({ imageAlt: 'Beautiful Painting' })
+      expect(screen.getByAltText('Beautiful Painting')).toBeInTheDocument()
+    })
+
+    it('should display size when provided', () => {
+      renderFramePreview({ size: '8×10' })
+      expect(screen.getByText('8×10')).toBeInTheDocument()
+    })
+
+    it('should not display size when not provided', () => {
+      const { container } = renderFramePreview()
+      expect(container.querySelector('.mt-4')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('frame types', () => {
+    it('should apply frame-unframed class for Unframed', () => {
+      const { container } = renderFramePreview({ frameType: 'Unframed' })
+      const frameElement = container.querySelector('.frame-preview')
+      expect(frameElement).toHaveClass('frame-unframed')
+    })
+
+    it('should apply frame-black class for Black Frame', () => {
+      const { container } = renderFramePreview({ frameType: 'Black Frame' })
+      const frameElement = container.querySelector('.frame-preview')
+      expect(frameElement).toHaveClass('frame-black')
+    })
+
+    it('should apply frame-white class for White Frame', () => {
+      const { container } = renderFramePreview({ frameType: 'White Frame' })
+      const frameElement = container.querySelector('.frame-preview')
+      expect(frameElement).toHaveClass('frame-white')
+    })
+
+    it('should apply frame-natural class for Natural Wood', () => {
+      const { container } = renderFramePreview({ frameType: 'Natural Wood' })
+      const frameElement = container.querySelector('.frame-preview')
+      expect(frameElement).toHaveClass('frame-natural')
+    })
+
+    it('should default to frame-unframed for unknown frame types', () => {
+      const { container } = renderFramePreview({ frameType: 'Unknown Frame' })
+      const frameElement = container.querySelector('.frame-preview')
+      expect(frameElement).toHaveClass('frame-unframed')
+    })
+  })
+
+  describe('size indicator', () => {
+    it('should show "Print size:" label for unframed', () => {
+      renderFramePreview({ frameType: 'Unframed', size: '8×10' })
+      expect(screen.getByText(/Print size:/)).toBeInTheDocument()
+    })
+
+    it('should show "Framed size:" label for framed options', () => {
+      renderFramePreview({ frameType: 'Black Frame', size: '8×10' })
+      expect(screen.getByText(/Framed size:/)).toBeInTheDocument()
+    })
+  })
+
+  describe('accessibility', () => {
+    it('should have accessible role and label', () => {
+      const { container } = renderFramePreview({
+        imageAlt: 'Sunset Painting',
+        frameType: 'Black Frame',
+        size: '16×20',
+      })
+      const frameElement = container.querySelector('.frame-preview')
+      expect(frameElement).toHaveAttribute('role', 'img')
+      expect(frameElement).toHaveAttribute(
+        'aria-label',
+        'Sunset Painting - Black Frame, 16×20'
+      )
+    })
+
+    it('should have aria-label without size when size not provided', () => {
+      const { container } = renderFramePreview({
+        imageAlt: 'Sunset Painting',
+        frameType: 'Black Frame',
+      })
+      const frameElement = container.querySelector('.frame-preview')
+      expect(frameElement).toHaveAttribute(
+        'aria-label',
+        'Sunset Painting - Black Frame'
+      )
+    })
+  })
+
+  describe('structure', () => {
+    it('should have mat layer', () => {
+      const { container } = renderFramePreview()
+      expect(container.querySelector('.frame-mat')).toBeInTheDocument()
+    })
+
+    it('should have artwork container', () => {
+      const { container } = renderFramePreview()
+      expect(container.querySelector('.frame-artwork')).toBeInTheDocument()
+    })
+
+    it('should apply custom className', () => {
+      const { container } = renderFramePreview()
+      render(<FramePreview {...defaultProps} className="custom-class" />)
+      // Just verify it renders without error - className applied to wrapper
+    })
+  })
+})

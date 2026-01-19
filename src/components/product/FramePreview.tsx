@@ -49,7 +49,6 @@ export default function FramePreview({
               src={imageSrc}
               alt={imageAlt}
               className="w-full h-full object-contain"
-              fetchPriority="high"
             />
           </div>
         </div>
