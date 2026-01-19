@@ -94,20 +94,46 @@ export default function Product() {
           />
 
           {/* Details */}
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-3">
-                {product.title}
-              </h1>
-              <p className="text-lg text-gray-600">{product.artist}</p>
+          <div className="space-y-6">
+            {/* Title */}
+            <h1 className="text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {product.title}
+            </h1>
+
+            {/* Subtitle (Artist) */}
+            <p className="text-lg text-gray-600">{product.artist}</p>
+
+            {/* Price */}
+            <div className="flex items-center gap-3">
+              <span className="text-3xl font-bold text-gray-900">
+                ${price.toFixed(2)}
+              </span>
+              {selectedVariant?.availableForSale === false && (
+                <span className="text-red-500 text-sm">Out of stock</span>
+              )}
             </div>
 
-            <p className="text-gray-700 leading-relaxed">{product.description}</p>
+            {/* Frame selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Frame
+              </label>
+              <div className="flex flex-wrap gap-1">
+                {frames.map(frame => (
+                  <FrameIcon
+                    key={frame}
+                    frameType={frame}
+                    selected={selectedFrame === frame}
+                    onClick={() => setSelectedFrame(frame)}
+                  />
+                ))}
+              </div>
+            </div>
 
-            {/* Size selector */}
+            {/* Size/Dimensions selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Size
+                Dimensions
               </label>
               <div className="flex flex-wrap gap-2">
                 {sizes.map(size => (
@@ -126,34 +152,8 @@ export default function Product() {
               </div>
             </div>
 
-            {/* Frame selector with visual icons */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Frame
-              </label>
-              <div className="flex flex-wrap gap-1">
-                {frames.map(frame => (
-                  <FrameIcon
-                    key={frame}
-                    frameType={frame}
-                    selected={selectedFrame === frame}
-                    onClick={() => setSelectedFrame(frame)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Price and Add to Cart */}
-            <div className="pt-6 border-t">
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-3xl font-bold text-gray-900">
-                  ${price.toFixed(2)}
-                </span>
-                {selectedVariant?.availableForSale === false && (
-                  <span className="text-red-500 text-sm">Out of stock</span>
-                )}
-              </div>
-
+            {/* Add to Cart */}
+            <div className="pt-4">
               <button
                 onClick={handleAddToCart}
                 disabled={!selectedVariant || selectedVariant.availableForSale === false}
