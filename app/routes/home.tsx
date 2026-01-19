@@ -95,7 +95,7 @@ export default function Home() {
   const currentCollection = collections.find((c: Collection) => c.handle === selectedCollection);
 
   return (
-    <main className="bg-gray-50 min-h-screen page-enter">
+    <main className="bg-gray-50 min-h-screen">
       {/* Compact Toolbar */}
       <div className="border-b bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
