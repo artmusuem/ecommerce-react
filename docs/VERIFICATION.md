@@ -16,6 +16,27 @@
 | Hydration Errors | ✅ PASS | Zero React hydration errors |
 | Cart Persistence | ✅ PASS | localStorage sync working |
 | Cross-Tab Sync | ✅ PASS | StorageEvent listener active |
+| Lighthouse | ✅ PASS | 97/81/96/100 |
+
+---
+
+## Lighthouse Audit
+
+**Full Report:** [lighthouse-report.html](./screenshots/lighthouse-report.html)
+
+| Category | Score | Status |
+|----------|-------|--------|
+| Performance | **97** | 🟢 |
+| Accessibility | **81** | 🟡 |
+| Best Practices | **96** | 🟢 |
+| SEO | **100** | 🟢 |
+
+### Performance Breakdown
+- First Contentful Paint: Fast
+- Largest Contentful Paint: Fast
+- Total Blocking Time: Minimal
+- Cumulative Layout Shift: Low
+- Server-Side Rendering: Enabled
 
 ---
 
