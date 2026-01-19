@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* Chase Blue Primary Palette */
-  --color-primary: #0A5EB8;
-  --color-primary-dark: #084A91;
-  --color-primary-light: #1E7BE0;
+  /* Warm Charcoal Primary Palette - sophisticated gallery aesthetic */
+  --color-primary: #2d3436;
+  --color-primary-dark: #1e2425;
+  --color-primary-light: #4a5568;
   
   /* Neutrals - override Tailwind defaults */
   --color-white: #FFFFFF;
@@ -30,9 +30,9 @@
 
 :root {
   /* Keep CSS variables for backward compatibility with existing inline styles */
-  --color-primary: #0A5EB8;
-  --color-primary-dark: #084A91;
-  --color-primary-light: #1E7BE0;
+  --color-primary: #2d3436;
+  --color-primary-dark: #1e2425;
+  --color-primary-light: #4a5568;
   
   --color-white: #FFFFFF;
   --color-gray-50: #F8FAFC;
@@ -132,7 +132,7 @@ h1, h2, h3, .font-display {
 .btn-primary:hover {
   background-color: var(--color-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(10, 94, 184, 0.25);
+  box-shadow: 0 4px 12px rgba(45, 52, 54, 0.3);
 }
 
 .btn-secondary {
