@@ -2,7 +2,7 @@
 
 ## A Senior Developer's Guide to Production-Grade Image Delivery
 
-**Repository:** [github.com/artmusuem/ecommerce-react](https://github.com/artmusuem/ecommerce-react)  
+**Repository:** [github.com/nathanmcmullendev/ecommerce-react](https://github.com/nathanmcmullendev/ecommerce-react)  
 **Project:** Gallery Store - Smithsonian Art Print Marketplace  
 **Stack:** React 18 + Vite 5 + Tailwind CSS 4 + Stripe  
 **CDN:** Cloudinary (Free Tier)

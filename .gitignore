@@ -8,3 +8,7 @@ dist/
 .env*.local
 build/
 .react-router/
+
+# Internal documentation (not for public repo)
+.docs-internal/
+CLAUDE.md
