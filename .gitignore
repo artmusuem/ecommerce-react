@@ -22,6 +22,7 @@ CLAUDE.md
 # Migration scripts and data (internal tools)
 migrate-*.cjs
 get-smithsonian-ids.cjs
+update-*.cjs
 migration-*.json
 
 # Test/backup data files
