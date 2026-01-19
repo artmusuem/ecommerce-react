@@ -3,7 +3,10 @@
  *
  * Displays artwork with a 3D beveled frame and white mat (passepartout).
  * Supports multiple frame styles with smooth transitions.
+ * Optional room view shows artwork in a living room context.
  */
+
+import { useState } from 'react'
 
 interface FramePreviewProps {
   imageSrc: string
@@ -11,6 +14,7 @@ interface FramePreviewProps {
   frameType: string  // 'Unframed' | 'Black Frame' | 'White Frame' | 'Natural Wood'
   size?: string      // e.g., "8×10" - displayed below preview
   className?: string
+  showRoomToggle?: boolean  // Show frame/room view toggle
 }
 
 // Map Shopify variant names to CSS class names
@@ -29,30 +33,78 @@ export default function FramePreview({
   frameType,
   size,
   className = '',
+  showRoomToggle = true,
 }: FramePreviewProps) {
+  const [viewMode, setViewMode] = useState<'frame' | 'room'>('frame')
   const frameClass = frameClassMap[frameType] || 'frame-unframed'
   const isFramed = frameType !== 'Unframed'
 
   return (
     <div className={className}>
-      {/* Frame container with 3D bevel effect */}
-      <div
-        className={`frame-preview ${frameClass} rounded-xl overflow-hidden`}
-        role="img"
-        aria-label={`${imageAlt} - ${frameType}${size ? `, ${size}` : ''}`}
-      >
-        {/* Mat layer - white passepartout (hidden for unframed) */}
-        <div className="frame-mat">
-          {/* Artwork */}
-          <div className="frame-artwork aspect-square">
-            <img
-              src={imageSrc}
-              alt={imageAlt}
-              className="w-full h-full object-contain"
-            />
+      {/* View toggle */}
+      {showRoomToggle && (
+        <div className="view-toggle mb-4">
+          <button
+            onClick={() => setViewMode('frame')}
+            className={`view-toggle-btn ${viewMode === 'frame' ? 'active' : ''}`}
+            aria-pressed={viewMode === 'frame'}
+          >
+            Frame View
+          </button>
+          <button
+            onClick={() => setViewMode('room')}
+            className={`view-toggle-btn ${viewMode === 'room' ? 'active' : ''}`}
+            aria-pressed={viewMode === 'room'}
+          >
+            Room View
+          </button>
+        </div>
+      )}
+
+      {viewMode === 'frame' ? (
+        /* Frame View */
+        <div
+          className={`frame-preview ${frameClass} rounded-xl overflow-hidden`}
+          role="img"
+          aria-label={`${imageAlt} - ${frameType}${size ? `, ${size}` : ''}`}
+        >
+          {/* Mat layer - white passepartout (hidden for unframed) */}
+          <div className="frame-mat">
+            {/* Artwork */}
+            <div className="frame-artwork aspect-square">
+              <img
+                src={imageSrc}
+                alt={imageAlt}
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* Room View */
+        <div
+          className="room-mockup"
+          role="img"
+          aria-label={`${imageAlt} displayed in a living room setting`}
+        >
+          <div className="room-art-container">
+            <div
+              className={`frame-preview ${frameClass}`}
+              style={{ width: '180px', height: '180px' }}
+            >
+              <div className="frame-mat h-full">
+                <div className="frame-artwork h-full">
+                  <img
+                    src={imageSrc}
+                    alt={imageAlt}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Size indicator */}
       {size && (

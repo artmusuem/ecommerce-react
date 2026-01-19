@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import FramePreview from './FramePreview'
 
 const defaultProps = {
@@ -124,6 +124,47 @@ describe('FramePreview', () => {
       const { container } = renderFramePreview()
       render(<FramePreview {...defaultProps} className="custom-class" />)
       // Just verify it renders without error - className applied to wrapper
+    })
+  })
+
+  describe('room view toggle', () => {
+    it('should show toggle buttons by default', () => {
+      renderFramePreview()
+      expect(screen.getByText('Frame View')).toBeInTheDocument()
+      expect(screen.getByText('Room View')).toBeInTheDocument()
+    })
+
+    it('should hide toggle when showRoomToggle is false', () => {
+      render(<FramePreview {...defaultProps} showRoomToggle={false} />)
+      expect(screen.queryByText('Frame View')).not.toBeInTheDocument()
+      expect(screen.queryByText('Room View')).not.toBeInTheDocument()
+    })
+
+    it('should start in frame view', () => {
+      const { container } = renderFramePreview()
+      expect(container.querySelector('.frame-preview')).toBeInTheDocument()
+      expect(container.querySelector('.room-mockup')).not.toBeInTheDocument()
+    })
+
+    it('should switch to room view when Room View button is clicked', async () => {
+      const { container } = renderFramePreview()
+
+      const roomButton = screen.getByText('Room View')
+      roomButton.click()
+
+      await waitFor(() => {
+        expect(container.querySelector('.room-mockup')).toBeInTheDocument()
+      })
+    })
+
+    it('should have correct aria-pressed state on toggle buttons', () => {
+      renderFramePreview()
+
+      const frameButton = screen.getByText('Frame View')
+      const roomButton = screen.getByText('Room View')
+
+      expect(frameButton).toHaveAttribute('aria-pressed', 'true')
+      expect(roomButton).toHaveAttribute('aria-pressed', 'false')
     })
   })
 })
