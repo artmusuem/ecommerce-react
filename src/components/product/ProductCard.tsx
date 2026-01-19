@@ -93,15 +93,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       </div>
 
       {/* Info */}
-      <div className="p-3">
-        <h2 className="font-medium text-sm leading-snug line-clamp-2 mb-1 text-gray-800">
+      <div className="p-4">
+        <h2 className="font-medium text-sm leading-snug line-clamp-2 mb-2 text-gray-800">
           {product.title}
         </h2>
         <div className="flex items-center justify-between">
           <span className="font-semibold text-primary">
             From ${price.toFixed(0)}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-500">
             {product.artist}
           </span>
         </div>

@@ -63,8 +63,8 @@ function ProductCard({ product, priority = false }: { product: Product; priority
           </span>
         </div>
       </div>
-      <div className="p-3">
-        <h2 className="font-medium text-sm leading-snug line-clamp-2 mb-1 text-gray-800">
+      <div className="p-4">
+        <h2 className="font-medium text-sm leading-snug line-clamp-2 mb-2 text-gray-800">
           {product.title}
         </h2>
         <div className="flex items-center justify-between">
