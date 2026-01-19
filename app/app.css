@@ -202,19 +202,21 @@ h1, h2, h3, .font-display {
   }
 }
 
-/* Base frame container */
+/* Base frame container - content-box so frame grows OUTWARD */
 .frame-preview {
   position: relative;
   transition: all 0.3s ease;
   border-radius: 2px;
+  box-sizing: content-box;
 }
 
-/* Mat layer - white passepartout with inner shadow */
+/* Mat layer - content-box so padding grows OUTWARD */
 .frame-mat {
   background: #fafafa;
   padding: var(--mat-width);
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: padding 0.3s ease;
+  box-sizing: content-box;
 }
 
 /* Artwork container */
@@ -308,7 +310,7 @@ h1, h2, h3, .font-display {
 /* Art container positioned on wall */
 .room-art-container {
   position: absolute;
-  top: 10%;
+  top: 6%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
