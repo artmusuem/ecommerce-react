@@ -8,9 +8,10 @@ on:
 
 env:
   # Required for Shopify API in tests (public storefront token - read-only)
-  VITE_SHOPIFY_STORE: dev-store-749237498237498787.myshopify.com
-  VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.SHOPIFY_STOREFRONT_TOKEN }}
-  VITE_DATA_SOURCE: shopify
+  VITE_SHOPIFY_STORE: ${{ secrets.VITE_SHOPIFY_STORE }}
+  VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.VITE_SHOPIFY_STOREFRONT_TOKEN }}
+  VITE_DATA_SOURCE: ${{ secrets.VITE_DATA_SOURCE }}
+  VITE_CLOUDINARY_CLOUD: ${{ secrets.VITE_CLOUDINARY_CLOUD }}
 
 jobs:
   lint-and-typecheck:
