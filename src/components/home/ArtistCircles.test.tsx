@@ -34,19 +34,6 @@ describe('ArtistCircles', () => {
     expect(screen.getByText('Thomas Cole')).toBeInTheDocument()
   })
 
-  it('should render All Artists option', () => {
-    const handleSelect = vi.fn()
-    render(
-      <ArtistCircles
-        artists={mockArtists}
-        selectedArtist={null}
-        onSelect={handleSelect}
-      />
-    )
-
-    expect(screen.getByText('All Artists')).toBeInTheDocument()
-  })
-
   it('should render nothing when no artists provided', () => {
     const handleSelect = vi.fn()
     const { container } = render(
@@ -89,7 +76,7 @@ describe('ArtistCircles', () => {
     expect(handleSelect).toHaveBeenCalledWith('winslow-homer')
   })
 
-  it('should call onSelect with empty string when All Artists clicked', async () => {
+  it('should toggle selection when clicking selected artist (deselect)', async () => {
     const user = userEvent.setup()
     const handleSelect = vi.fn()
     render(
@@ -100,8 +87,35 @@ describe('ArtistCircles', () => {
       />
     )
 
-    await user.click(screen.getByText('All Artists'))
+    // Clicking the selected artist should deselect (call with empty string)
+    await user.click(screen.getByText('Winslow Homer'))
     expect(handleSelect).toHaveBeenCalledWith('')
+  })
+
+  it('should show hint text when artist is selected', () => {
+    const handleSelect = vi.fn()
+    render(
+      <ArtistCircles
+        artists={mockArtists}
+        selectedArtist="winslow-homer"
+        onSelect={handleSelect}
+      />
+    )
+
+    expect(screen.getByText('Click artist again to show all')).toBeInTheDocument()
+  })
+
+  it('should not show hint text when no artist is selected', () => {
+    const handleSelect = vi.fn()
+    render(
+      <ArtistCircles
+        artists={mockArtists}
+        selectedArtist={null}
+        onSelect={handleSelect}
+      />
+    )
+
+    expect(screen.queryByText('Click artist again to show all')).not.toBeInTheDocument()
   })
 
   it('should visually highlight selected artist', () => {

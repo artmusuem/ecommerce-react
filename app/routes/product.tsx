@@ -1,4 +1,4 @@
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData } from "react-router";
 // @ts-expect-error - React Router 7 generates these types at build time
 import type { Route } from "./+types/product";
 import { fetchShopifyProduct } from "@/data/shopify-api";
@@ -198,14 +198,7 @@ export default function Product() {
   };
 
   return (
-    <main className="bg-gray-50 min-h-screen page-enter">
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <Link to="/" className="text-primary hover:underline text-sm">
-          ← Back to Gallery
-        </Link>
-      </div>
-
+    <main className="bg-gray-50 min-h-screen page-enter pt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Frame Preview */}

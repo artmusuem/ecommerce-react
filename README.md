@@ -4,7 +4,7 @@
 [![React](https://img.shields.io/badge/React-18.2-61dafb)](https://react.dev/)
 [![React Router](https://img.shields.io/badge/React_Router-7.1-ca4245)](https://reactrouter.com/)
 [![Lighthouse](https://img.shields.io/badge/Lighthouse-98%2F95%2F96%2F100-brightgreen)](https://pagespeed.web.dev/)
-[![Tests](https://img.shields.io/badge/Tests-318%20passing-success)](/)
+[![Tests](https://img.shields.io/badge/Tests-331%20passing-success)](/)
 [![Coverage](https://img.shields.io/badge/Coverage-89%25-green)](/)
 
 A **production-ready starter kit** for building headless Shopify storefronts with React Router 7 SSR. Fork this repo and deploy your own art print store in under an hour.
@@ -30,9 +30,9 @@ A **production-ready starter kit** for building headless Shopify storefronts wit
 - [x] **SEO score: 100** - Lighthouse verified
 
 ### Conversion Optimization
-- [x] **Free shipping banner** - Progress indicator toward threshold
-- [x] **Newsletter signup** - With Mailchimp/Klaviyo integration ready
+- [x] **Newsletter signup** - With Mailchimp/Klaviyo integration ready (demo mode indicator)
 - [x] **Customer reviews display** - Star ratings and review lists
+- [x] **Artist circles navigation** - Visual artist filtering with thumbnails
 
 ### Premium UX
 - [x] **Frame preview** - Visual frame color selection
@@ -41,7 +41,7 @@ A **production-ready starter kit** for building headless Shopify storefronts wit
 
 ### Developer Experience
 - [x] **TypeScript strict mode** - Zero `any` types
-- [x] **318 passing tests** - Unit, component, integration
+- [x] **331 passing tests** - Unit, component, integration
 - [x] **89% test coverage** - CI enforced thresholds
 - [x] **Zero ESLint warnings** - Clean codebase
 - [x] **Comprehensive docs** - Architecture, guides, API reference
@@ -176,7 +176,7 @@ The `@shopify/hydrogen-react` library is used for Shopify components (Money, Ima
 
 | Metric | Value | Details |
 |--------|-------|---------|
-| **Test Coverage** | 184 tests | Unit, component, and integration tests |
+| **Test Coverage** | 331 tests | Unit, component, and integration tests |
 | **TypeScript** | 100% strict | Zero `any` types, full type safety |
 | **Bundle Size** | 88KB gzipped | Code-split with lazy loading |
 | **Image Optimization** | ~70% reduction | Cloudinary CDN with auto-format |
@@ -345,8 +345,9 @@ export function getResizedImage(url: string, maxSize: number): string {
  ✓ src/context/CartContext.test.tsx (14 tests)
  ✓ src/components/cart/Cart.test.tsx (21 tests)
  ✓ src/components/product/ProductCard.test.tsx (17 tests)
- ✓ src/components/layout/Header.test.tsx (9 tests)
- ✓ src/components/layout/ShippingBanner.test.tsx (12 tests)
+ ✓ src/components/layout/Header.test.tsx (16 tests)
+ ✓ src/components/layout/ShippingBanner.test.tsx (8 tests)
+ ✓ src/components/home/ArtistCircles.test.tsx (10 tests)
  ✓ src/components/newsletter/NewsletterForm.test.tsx (15 tests)
  ✓ src/components/reviews/StarRating.test.tsx (13 tests)
  ✓ src/components/seo/MetaTags.test.tsx (16 tests)
@@ -355,8 +356,8 @@ export function getResizedImage(url: string, maxSize: number): string {
  ✓ src/pages/Checkout.test.tsx (17 tests)
  ✓ src/test/integration.test.tsx (7 tests)
 
- Test Files  18 passed (18)
-      Tests  318 passed (318)
+ Test Files  19 passed (19)
+      Tests  331 passed (331)
 ```
 
 ### Test Categories
@@ -364,8 +365,8 @@ export function getResizedImage(url: string, maxSize: number): string {
 | Category | Tests | Coverage |
 |----------|-------|----------|
 | **Unit Tests** | 70 | Analytics, data transforms, image utils, pricing |
-| **Component Tests** | 145 | Cart, ProductCard, Header, Newsletter, Reviews |
-| **Integration Tests** | 103 | Cart flow, Shopify API mocks, SEO tags |
+| **Component Tests** | 154 | Cart, ProductCard, Header, ArtistCircles, Newsletter, Reviews |
+| **Integration Tests** | 107 | Cart flow, Shopify API mocks, SEO tags |
 
 ### Running Tests
 

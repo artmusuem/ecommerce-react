@@ -24,6 +24,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 interface SubscriptionResult {
   success: boolean
   message?: string
+  mode?: 'demo' | 'production'
 }
 
 /**
@@ -55,12 +56,12 @@ async function subscribeToMailchimp(email: string): Promise<SubscriptionResult> 
   })
 
   if (response.ok) {
-    return { success: true }
+    return { success: true, mode: 'production' }
   }
 
   const data = await response.json()
   if (data.title === 'Member Exists') {
-    return { success: true, message: 'already_subscribed' }
+    return { success: true, message: 'already_subscribed', mode: 'production' }
   }
 
   console.error('Mailchimp error:', data)
@@ -93,7 +94,7 @@ async function subscribeToKlaviyo(email: string): Promise<SubscriptionResult> {
   })
 
   if (response.ok) {
-    return { success: true }
+    return { success: true, mode: 'production' }
   }
 
   console.error('Klaviyo error:', await response.text())
@@ -112,7 +113,7 @@ async function logSubscription(email: string): Promise<SubscriptionResult> {
   console.info(`[Newsletter] New subscription: ${email}`)
   console.info('[Newsletter] No email provider configured. Set MAILCHIMP_API_KEY or KLAVIYO_API_KEY')
 
-  return { success: true, message: 'logged_for_setup' }
+  return { success: true, message: 'logged_for_setup', mode: 'demo' }
 }
 
 /**
@@ -162,6 +163,7 @@ export async function action({ request }: Route.ActionArgs) {
       return new Response(JSON.stringify({
         success: true,
         message: result.message || 'subscribed',
+        mode: result.mode || 'production',
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

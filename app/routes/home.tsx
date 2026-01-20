@@ -55,7 +55,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     });
 
     // Convert to sorted array (by product count descending)
+    // Only include artists with 3+ prints for cleaner navigation
     const artists: Artist[] = Array.from(artistData.entries())
+      .filter(([, data]) => data.count >= 3)
       .map(([name, data]) => ({
         name,
         handle: toHandle(name),
@@ -190,25 +192,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Mobile dropdown fallback */}
-            {artists.length > 0 && (
-              <div className="flex items-center gap-2 sm:hidden">
-                <label htmlFor="artist-filter" className="text-sm font-medium text-ink-600">Artist:</label>
-                <select
-                  id="artist-filter"
-                  value={localSelection}
-                  onChange={(e) => handleArtistChange(e.target.value)}
-                  className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[160px] border-gray-200 bg-white text-ink-800 focus:border-ink-900 focus:outline-none"
-                >
-                  <option value="">All Artists</option>
-                  {artists.map((artist: Artist) => (
-                    <option key={artist.handle} value={artist.handle}>
-                      {artist.name} ({artist.productCount})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </div>
         </div>
       </div>

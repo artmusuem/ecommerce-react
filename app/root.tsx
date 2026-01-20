@@ -11,7 +11,6 @@ import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/layout/Header";
 import Cart from "@/components/cart/Cart";
-import { ShippingBanner } from "@/components/layout/ShippingBanner";
 import { GA_TRACKING_ID } from "@/utils/analytics";
 
 import "./app.css";
@@ -160,7 +159,6 @@ export default function App() {
       }}
     >
       <CartProvider>
-        <ShippingBanner />
         <Header />
         <Cart />
         <Outlet />

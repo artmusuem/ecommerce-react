@@ -350,8 +350,8 @@ Layout:
 - `tailwind.config.ts` - Color palette, typography
 - `app/app.css` - CSS variables, font imports
 - `app/routes/home.tsx` - Integrate new components
-- `src/components/layout/Header.tsx` - Refinement
-- `src/components/layout/ShippingBanner.tsx` - Already done!
+- `src/components/layout/Header.tsx` - Nav menu with Collection/About links + mobile hamburger
+- `app/routes/about.tsx` - New About page
 
 ---
 
@@ -364,7 +364,7 @@ Layout:
 - [x] Premium footer with multi-column layout (dark footer with ink-900)
 - [x] Refined product cards (premium styling with ink colors)
 - [x] Maintains 90+ Lighthouse score
-- [x] All existing tests pass (323 tests)
+- [x] All existing tests pass (331 tests)
 - [x] Mobile responsive throughout
 
 ---
