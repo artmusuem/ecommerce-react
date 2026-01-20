@@ -154,10 +154,12 @@ describe('ProductCard', () => {
       expect(container.querySelector('.skeleton-pulse')).toBeInTheDocument()
     })
 
-    it('should hide image until loaded', () => {
+    it('should have image-reveal class without loaded state initially', () => {
       renderProductCard({ priority: false })
       const img = screen.getByAltText('The Gulf Stream')
-      expect(img).toHaveStyle({ opacity: '0' })
+      // Non-priority images use CSS classes for fade-in effect
+      expect(img).toHaveClass('image-reveal')
+      expect(img).not.toHaveClass('loaded')
     })
   })
 

@@ -254,3 +254,18 @@ export function useCartDispatch(): CartDispatch {
   }
   return dispatch
 }
+
+// ============================================================================
+// Test Utilities
+// ============================================================================
+
+/**
+ * Reset cart state to initial values (for testing only)
+ * This resets both the persisted items store and the transient isOpen state
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function _resetCartForTesting(): void {
+  cartItemsStore._reset()
+  cartIsOpen = false
+  isOpenListeners.forEach(listener => listener())
+}

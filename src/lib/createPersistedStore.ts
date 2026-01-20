@@ -23,6 +23,8 @@ export interface PersistedStore<T> {
   getServerSnapshot: () => T
   subscribe: (listener: Listener) => () => void
   setState: (value: T | ((prev: T) => T)) => void
+  /** Reset store to initial state (for testing) */
+  _reset: () => void
 }
 
 export function createPersistedStore<T>(
@@ -125,10 +127,18 @@ export function createPersistedStore<T>(
     emitChange()
   }
 
+  // Reset store to initial state (for testing)
+  function _reset(): void {
+    cachedValue = initialValue
+    isInitialized = false
+    emitChange()
+  }
+
   return {
     getSnapshot,
     getServerSnapshot,
     subscribe,
-    setState
+    setState,
+    _reset
   }
 }

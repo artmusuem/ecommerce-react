@@ -8,23 +8,39 @@ if (typeof HTMLCanvasElement !== 'undefined') {
 
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
-import { afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, vi } from 'vitest'
+import { _resetCartForTesting } from '../context/CartContext'
+
+// Create a proper localStorage mock that actually stores values
+function createLocalStorageMock() {
+  let store: Record<string, string> = {}
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => { store[key] = value }),
+    removeItem: vi.fn((key: string) => { delete store[key] }),
+    clear: vi.fn(() => { store = {} }),
+    get length() { return Object.keys(store).length },
+    key: vi.fn((index: number) => Object.keys(store)[index] ?? null),
+    // Expose store for debugging
+    _getStore: () => store
+  }
+}
+
+const localStorageMock = createLocalStorageMock()
+Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+
+// Reset modules and localStorage before each test to ensure clean state
+beforeEach(() => {
+  localStorageMock.clear()
+  vi.clearAllMocks()
+  // Reset cart state to ensure test isolation
+  _resetCartForTesting()
+})
 
 // Cleanup after each test
 afterEach(() => {
   cleanup()
 })
-
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-  length: 0,
-  key: vi.fn()
-}
-Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 
 // Mock window.scrollTo
 window.scrollTo = vi.fn()
