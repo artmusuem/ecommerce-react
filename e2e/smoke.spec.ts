@@ -95,8 +95,8 @@ test.describe('Gallery Store E2E', () => {
       // Wait for product page to load
       await expect(page.getByRole('button', { name: 'Add to Cart' })).toBeVisible()
 
-      // Get initial price text from somewhere on the page
-      const priceText = await page.locator('text=/$\\d+/').first().textContent()
+      // Verify price is visible on the page
+      await expect(page.locator('text=/$\\d+/').first()).toBeVisible()
 
       // Change size using the first select element
       const sizeSelect = page.locator('select').first()
