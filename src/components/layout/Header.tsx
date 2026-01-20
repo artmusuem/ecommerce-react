@@ -1,6 +1,23 @@
 import { Link } from 'react-router'
 import { useCart, useCartDispatch } from '../../context/CartContext'
 
+/**
+ * Header Component
+ *
+ * Main navigation header with logo, shipping badge, and cart button.
+ *
+ * Features:
+ * - Sticky positioning for always-visible navigation
+ * - Cart button with item count badge
+ * - Free shipping promotion badge (hidden on mobile)
+ * - Opens cart drawer on cart button click
+ *
+ * @example
+ * ```tsx
+ * // In app/root.tsx
+ * <Header />
+ * ```
+ */
 export default function Header() {
   const { itemCount } = useCart()
   const dispatch = useCartDispatch()

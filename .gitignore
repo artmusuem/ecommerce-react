@@ -18,6 +18,7 @@ CLAUDE.md
 # Internal/local config
 .claude/settings.local.json
 .playwright-mcp/
+.exam/
 
 # Migration scripts and data (internal tools)
 migrate-*.cjs

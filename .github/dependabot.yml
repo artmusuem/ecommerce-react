@@ -1,0 +1,87 @@
+# Dependabot configuration
+# Automatically creates PRs for dependency updates
+
+version: 2
+
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Group React ecosystem updates
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router"
+          - "@react-router/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group Shopify packages
+      shopify:
+        patterns:
+          - "@shopify/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group testing packages
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@testing-library/*"
+          - "@playwright/*"
+          - "playwright"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group TypeScript/linting
+      typescript-eslint:
+        patterns:
+          - "typescript"
+          - "typescript-eslint"
+          - "@typescript-eslint/*"
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group build tools
+      build:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # Avoid major version updates automatically
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"

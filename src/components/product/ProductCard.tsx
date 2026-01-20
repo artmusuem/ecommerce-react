@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, ImgHTMLAttributes } from 'react'
+import { useState, useEffect, useRef, ImgHTMLAttributes, memo } from 'react'
 import { Link } from 'react-router'
-import { getResizedImage, IMAGE_SIZES } from '../../utils/images'
+import { getResizedImage, getSrcSet, getSizes, IMAGE_SIZES } from '../../utils/images'
 import type { Product } from '../../types'
 
 // Extend img attributes to include fetchpriority
@@ -8,12 +8,34 @@ interface ExtendedImgProps extends ImgHTMLAttributes<HTMLImageElement> {
   fetchpriority?: 'high' | 'low' | 'auto'
 }
 
+/**
+ * ProductCard props
+ * @property product - The product data to display
+ * @property priority - Whether to load the image eagerly (for above-fold content)
+ */
 interface ProductCardProps {
   product: Product
   priority?: boolean // High priority = eager load (above fold)
 }
 
-export default function ProductCard({ product, priority = false }: ProductCardProps) {
+/**
+ * ProductCard Component
+ *
+ * Displays a product in the grid with optimized image loading.
+ *
+ * Features:
+ * - Responsive images with srcset for proper resolution
+ * - Lazy loading for below-fold images
+ * - Skeleton placeholder during load
+ * - Cloudinary CDN optimization with fallback
+ * - Memoized to prevent unnecessary re-renders
+ *
+ * @example
+ * ```tsx
+ * <ProductCard product={product} priority={index < 4} />
+ * ```
+ */
+function ProductCardComponent({ product, priority = false }: ProductCardProps) {
   const imgRef = useRef<HTMLImageElement>(null)
   // Priority images start visible (no opacity transition = faster LCP)
   const [isLoaded, setIsLoaded] = useState(priority)
@@ -29,6 +51,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const fallbackSrc = product.image.includes('ids.si.edu')
     ? `${product.image}${product.image.includes('?') ? '&' : '?'}max=${IMAGE_SIZES.thumbnail}`
     : product.image
+
+  // Generate srcset for responsive images
+  const imageSrcSet = !useFallback ? getSrcSet(product.image, [200, 400, 600, 800]) : undefined
+  const imageSizes = !useFallback ? getSizes({
+    '(max-width: 640px)': '50vw',
+    '(max-width: 1024px)': '33vw',
+    'default': '25vw'
+  }) : undefined
 
   const handleImageError = () => {
     if (!useFallback) {
@@ -52,6 +82,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   const imgProps: ExtendedImgProps = {
     src: useFallback ? fallbackSrc : thumbnailSrc,
+    srcSet: imageSrcSet,
+    sizes: imageSizes,
     alt: product.title,
     className: imageClasses,
     loading: priority ? "eager" : "lazy",
@@ -66,6 +98,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       to={`/product/${encodeURIComponent(product.id)}`}
       state={{ product }}
       className="group block rounded-xl overflow-hidden card-lift bg-white"
+      data-testid="product-card"
     >
       {/* Image Container */}
       <div className="aspect-square overflow-hidden relative bg-gray-100">
@@ -84,6 +117,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             <img
               ref={imgRef}
               {...imgProps}
+              data-testid="product-image"
             />
 
             {/* Quick view overlay */}
@@ -98,14 +132,17 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
       {/* Info */}
       <div className="p-4">
-        <h2 className="font-medium text-sm leading-snug line-clamp-2 mb-2 text-gray-800">
+        <h2
+          className="font-medium text-sm leading-snug line-clamp-2 mb-2 text-gray-800"
+          data-testid="product-title"
+        >
           {product.title}
         </h2>
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-primary">
+          <span className="font-semibold text-primary" data-testid="product-price">
             From ${price.toFixed(0)}
           </span>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500" data-testid="product-artist">
             {product.artist}
           </span>
         </div>
@@ -113,3 +150,21 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     </Link>
   )
 }
+
+/**
+ * Memoized ProductCard
+ *
+ * Uses shallow comparison on product.id to prevent re-renders
+ * when parent component updates but product data hasn't changed.
+ */
+const ProductCard = memo(ProductCardComponent, (prevProps, nextProps) => {
+  // Only re-render if product ID or priority changes
+  return (
+    prevProps.product.id === nextProps.product.id &&
+    prevProps.priority === nextProps.priority
+  )
+})
+
+ProductCard.displayName = 'ProductCard'
+
+export default ProductCard

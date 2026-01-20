@@ -1,4 +1,16 @@
 import type { Product, Collection } from '../types'
+import {
+  ShopifyProductsResponseSchema,
+  ShopifySingleProductResponseSchema,
+  ShopifyCollectionsResponseSchema,
+  ShopifyCollectionProductsResponseSchema,
+  validateResponse,
+  type ShopifyProduct,
+  type ShopifyProductsResponse,
+  type ShopifySingleProductResponse,
+  type ShopifyCollectionsResponse,
+  type ShopifyCollectionProductsResponse
+} from '../schemas/shopify'
 
 // Shopify Storefront API configuration
 // Works in both client (Vite) and server (Node.js) contexts
@@ -14,87 +26,125 @@ const SHOPIFY_TOKEN =
 
 const API_VERSION = '2025-01'
 
-interface ShopifyVariant {
-  id: string
-  title: string
-  price: {
-    amount: string
-    currencyCode: string
+// Fetch configuration
+const FETCH_TIMEOUT_MS = 10000 // 10 seconds
+const MAX_RETRIES = 3
+const INITIAL_RETRY_DELAY_MS = 1000
+
+/**
+ * Custom error class for Shopify API errors
+ */
+export class ShopifyApiError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode?: number,
+    public readonly retryable: boolean = false
+  ) {
+    super(message)
+    this.name = 'ShopifyApiError'
   }
-  availableForSale: boolean
-  selectedOptions: Array<{
-    name: string
-    value: string
-  }>
 }
 
-interface ShopifyOption {
-  name: string
-  values: string[]
+/**
+ * Sleep utility for retry delays
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-interface ShopifyProduct {
-  id: string
-  title: string
-  handle: string
-  description: string
-  vendor: string
-  productType: string
-  tags: string[]
-  options: ShopifyOption[]
-  priceRange: {
-    minVariantPrice: {
-      amount: string
-      currencyCode: string
-    }
-    maxVariantPrice: {
-      amount: string
-      currencyCode: string
-    }
-  }
-  variants: {
-    edges: Array<{
-      node: ShopifyVariant
-    }>
-  }
-  featuredImage: {
-    url: string
-    altText: string | null
-  } | null
-  images: {
-    edges: Array<{
-      node: {
-        url: string
-        altText: string | null
+/**
+ * Create an AbortController with timeout
+ */
+function createTimeoutController(timeoutMs: number): AbortController {
+  const controller = new AbortController()
+  setTimeout(() => controller.abort(), timeoutMs)
+  return controller
+}
+
+/**
+ * Fetch with timeout and retry logic
+ *
+ * Features:
+ * - Configurable timeout (default 10s)
+ * - Exponential backoff retry (3 attempts)
+ * - Only retries on transient failures (5xx, network errors)
+ */
+async function shopifyFetch<T>(
+  query: string,
+  variables?: Record<string, unknown>,
+  options: { timeout?: number; maxRetries?: number } = {}
+): Promise<T> {
+  const { timeout = FETCH_TIMEOUT_MS, maxRetries = MAX_RETRIES } = options
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const controller = createTimeoutController(timeout)
+
+    try {
+      const res = await fetch(
+        `https://${SHOPIFY_STORE}/api/${API_VERSION}/graphql.json`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Storefront-Access-Token': SHOPIFY_TOKEN,
+          },
+          body: JSON.stringify({ query, variables }),
+          signal: controller.signal,
+        }
+      )
+
+      // Don't retry client errors (4xx)
+      if (res.status >= 400 && res.status < 500) {
+        throw new ShopifyApiError(
+          `Shopify API client error: ${res.status}`,
+          res.status,
+          false
+        )
       }
-    }>
-  }
-  accessionNumber?: {
-    value: string
-  } | null
-  smithsonianId?: {
-    value: string
-  } | null
-}
 
-interface ShopifyResponse {
-  data: {
-    products: {
-      edges: Array<{
-        node: ShopifyProduct
-      }>
-      pageInfo: {
-        hasNextPage: boolean
-        endCursor: string
+      // Retry server errors (5xx)
+      if (!res.ok) {
+        throw new ShopifyApiError(
+          `Shopify API error: ${res.status}`,
+          res.status,
+          true
+        )
       }
+
+      return res.json()
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+
+      // Handle timeout/abort
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        lastError = new ShopifyApiError(
+          `Request timeout after ${timeout}ms`,
+          undefined,
+          true
+        )
+      }
+
+      // Check if error is retryable
+      const isRetryable =
+        error instanceof ShopifyApiError ? error.retryable :
+        error instanceof TypeError // Network error
+
+      if (!isRetryable || attempt >= maxRetries - 1) {
+        throw lastError
+      }
+
+      // Exponential backoff: 1s, 2s, 4s...
+      const delay = INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt)
+      console.warn(
+        `Shopify API request failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms...`
+      )
+      await sleep(delay)
     }
   }
-}
 
-interface SingleProductResponse {
-  data: {
-    product: ShopifyProduct | null
-  }
+  // Should never reach here, but TypeScript needs this
+  throw lastError || new Error('Unknown error')
 }
 
 const PRODUCTS_QUERY = `
@@ -168,26 +218,6 @@ const PRODUCTS_QUERY = `
   }
 `
 
-async function shopifyFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const res = await fetch(
-    `https://${SHOPIFY_STORE}/api/${API_VERSION}/graphql.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_TOKEN,
-      },
-      body: JSON.stringify({ query, variables }),
-    }
-  )
-
-  if (!res.ok) {
-    throw new Error(`Shopify API error: ${res.status}`)
-  }
-
-  return res.json()
-}
-
 function transformShopifyProduct(shopifyProduct: ShopifyProduct): Product {
   // Transform variants
   const variants = shopifyProduct.variants?.edges.map(({ node }) => ({
@@ -234,17 +264,24 @@ export async function fetchShopifyProducts(): Promise<Product[]> {
   let cursor: string | null = null
 
   while (hasNextPage) {
-    const res: ShopifyResponse = await shopifyFetch<ShopifyResponse>(PRODUCTS_QUERY, {
+    const rawResponse = await shopifyFetch<unknown>(PRODUCTS_QUERY, {
       first: 50,
       after: cursor,
     })
 
-    const products = res.data.products.edges.map((edge: { node: ShopifyProduct }) => 
+    // Validate response structure
+    const res: ShopifyProductsResponse = validateResponse(
+      ShopifyProductsResponseSchema,
+      rawResponse,
+      'fetchShopifyProducts'
+    )
+
+    const products = res.data.products.edges.map((edge) =>
       transformShopifyProduct(edge.node)
     )
-    
+
     allProducts.push(...products)
-    
+
     hasNextPage = res.data.products.pageInfo.hasNextPage
     cursor = res.data.products.pageInfo.endCursor
   }
@@ -316,7 +353,14 @@ export async function fetchShopifyProduct(handle: string): Promise<Product | nul
     }
   `
 
-  const res: SingleProductResponse = await shopifyFetch<SingleProductResponse>(query, { handle })
+  const rawResponse = await shopifyFetch<unknown>(query, { handle })
+
+  // Validate response structure
+  const res: ShopifySingleProductResponse = validateResponse(
+    ShopifySingleProductResponseSchema,
+    rawResponse,
+    'fetchShopifyProduct'
+  )
 
   if (!res.data.product) {
     return null
@@ -352,28 +396,16 @@ export async function fetchCollections(): Promise<Collection[]> {
     }
   `
 
-  interface CollectionsResponse {
-    data: {
-      collections: {
-        edges: Array<{
-          node: {
-            id: string
-            handle: string
-            title: string
-            description: string
-            image: { url: string } | null
-            products: {
-              edges: Array<{ node: { id: string } }>
-            }
-          }
-        }>
-      }
-    }
-  }
+  const rawResponse = await shopifyFetch<unknown>(query)
 
-  const res = await shopifyFetch<CollectionsResponse>(query)
+  // Validate response structure
+  const res: ShopifyCollectionsResponse = validateResponse(
+    ShopifyCollectionsResponseSchema,
+    rawResponse,
+    'fetchCollections'
+  )
 
-  // Defensive check for response structure
+  // Defensive check for response structure (additional safety)
   if (!res?.data?.collections?.edges) {
     console.warn('No collections found in response:', res)
     return []
@@ -459,17 +491,14 @@ export async function fetchCollectionProducts(handle: string): Promise<Product[]
     }
   `
 
-  interface CollectionProductsResponse {
-    data: {
-      collection: {
-        products: {
-          edges: Array<{ node: ShopifyProduct }>
-        }
-      } | null
-    }
-  }
+  const rawResponse = await shopifyFetch<unknown>(query, { handle })
 
-  const res = await shopifyFetch<CollectionProductsResponse>(query, { handle })
+  // Validate response structure
+  const res: ShopifyCollectionProductsResponse = validateResponse(
+    ShopifyCollectionProductsResponseSchema,
+    rawResponse,
+    'fetchCollectionProducts'
+  )
 
   if (!res.data.collection) {
     return []

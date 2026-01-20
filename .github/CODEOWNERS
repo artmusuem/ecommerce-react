@@ -1,0 +1,33 @@
+# CODEOWNERS - Define code ownership for automatic review requests
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @nathanmcmullendev
+
+# Frontend (React components, pages, styles)
+/src/components/ @nathanmcmullendev
+/src/pages/ @nathanmcmullendev
+/app/ @nathanmcmullendev
+*.css @nathanmcmullendev
+*.tsx @nathanmcmullendev
+
+# Data layer and API
+/src/data/ @nathanmcmullendev
+/src/schemas/ @nathanmcmullendev
+/api/ @nathanmcmullendev
+
+# Testing
+/src/**/*.test.* @nathanmcmullendev
+/e2e/ @nathanmcmullendev
+vitest.config.ts @nathanmcmullendev
+playwright.config.ts @nathanmcmullendev
+
+# Configuration and DevOps
+/.github/ @nathanmcmullendev
+package.json @nathanmcmullendev
+tsconfig.json @nathanmcmullendev
+vite.config.ts @nathanmcmullendev
+
+# Documentation
+*.md @nathanmcmullendev
+/docs/ @nathanmcmullendev

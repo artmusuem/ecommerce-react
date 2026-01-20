@@ -3,7 +3,27 @@ import { useCart, useCartDispatch } from '../../context/CartContext'
 import { getResizedImage } from '../../utils/images'
 import type { ProductRouterState } from '../../types'
 
-// Frame colors for display
+/**
+ * Cart Component
+ *
+ * Slide-out cart drawer showing cart items and checkout link.
+ *
+ * Features:
+ * - Slides in from right with backdrop overlay
+ * - Shows cart items with thumbnails and frame color borders
+ * - Quantity controls (increase/decrease/remove)
+ * - Subtotal calculation
+ * - Links to product pages with selected options preserved
+ * - Empty state with helpful message
+ *
+ * @example
+ * ```tsx
+ * // In app/root.tsx (must be within CartProvider)
+ * <Cart />
+ * ```
+ */
+
+/** Frame border colors for visual display */
 const frameColors: Record<string, string> = {
   'Unframed': '#f5f5f5',
   'Black Frame': '#1a1a1a',

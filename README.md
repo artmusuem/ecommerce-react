@@ -120,6 +120,24 @@ The `@shopify/hydrogen-react` library is used for Shopify components (Money, Ima
 
 ---
 
+## Repository Tour
+
+Key files that demonstrate the architecture and patterns used:
+
+| File | Purpose |
+|------|---------|
+| [`src/lib/createPersistedStore.ts`](src/lib/createPersistedStore.ts) | SSR-safe localStorage using `useSyncExternalStore` |
+| [`src/context/CartContext.tsx`](src/context/CartContext.tsx) | Cart state with hydration-safe persistence |
+| [`src/utils/images.ts`](src/utils/images.ts) | Cloudinary CDN with WebP/AVIF auto-detection |
+| [`src/data/shopify-api.ts`](src/data/shopify-api.ts) | Shopify Storefront API client with retry logic |
+| [`app/routes/home.tsx`](app/routes/home.tsx) | SSR data loading with React Router 7 |
+| [`app/routes/api.create-payment-intent.ts`](app/routes/api.create-payment-intent.ts) | Stripe integration (server-side) |
+| [`app/routes/api.create-order.ts`](app/routes/api.create-order.ts) | Shopify order creation via Admin API |
+| [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) | System design decisions |
+| [`docs/guides/SSR-PERSISTENCE-GUIDE.md`](docs/guides/SSR-PERSISTENCE-GUIDE.md) | Hydration error solution tutorial |
+
+---
+
 ## Tech Stack
 
 | Layer | Technology | Purpose |
