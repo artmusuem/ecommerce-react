@@ -6,10 +6,9 @@ if (typeof HTMLCanvasElement !== 'undefined') {
   }
 }
 
-import '@testing-library/jest-dom'
-import { cleanup } from '@testing-library/react'
-import { afterEach, beforeEach, vi } from 'vitest'
-import { _resetCartForTesting } from '../context/CartContext'
+// IMPORTANT: Set up localStorage mock BEFORE any imports that use it
+// CartContext creates a persisted store during module initialization
+import { vi, afterEach, beforeEach } from 'vitest'
 
 // Create a proper localStorage mock that actually stores values
 function createLocalStorageMock() {
@@ -29,21 +28,8 @@ function createLocalStorageMock() {
 const localStorageMock = createLocalStorageMock()
 Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 
-// Reset modules and localStorage before each test to ensure clean state
-beforeEach(() => {
-  localStorageMock.clear()
-  vi.clearAllMocks()
-  // Reset cart state to ensure test isolation
-  _resetCartForTesting()
-})
-
-// Cleanup after each test
-afterEach(() => {
-  cleanup()
-})
-
 // Mock window.scrollTo
-window.scrollTo = vi.fn()
+window.scrollTo = vi.fn() as typeof window.scrollTo
 
 // Mock IntersectionObserver
 class IntersectionObserverMock {
@@ -60,7 +46,7 @@ class ImageMock {
   onload: (() => void) | null = null
   onerror: (() => void) | null = null
   src = ''
-  
+
   constructor() {
     setTimeout(() => {
       if (this.onload) this.onload()
@@ -72,6 +58,24 @@ Object.defineProperty(window, 'Image', { value: ImageMock })
 // Mock import.meta.env
 vi.stubEnv('VITE_CLOUDINARY_CLOUD', 'test-cloud')
 vi.stubEnv('VITE_STRIPE_PUBLIC_KEY', 'pk_test_mock')
+
+// NOW import modules that depend on localStorage
+import '@testing-library/jest-dom'
+import { cleanup } from '@testing-library/react'
+import { _resetCartForTesting } from '../context/CartContext'
+
+// Reset modules and localStorage before each test to ensure clean state
+beforeEach(() => {
+  localStorageMock.clear()
+  vi.clearAllMocks()
+  // Reset cart state to ensure test isolation
+  _resetCartForTesting()
+})
+
+// Cleanup after each test
+afterEach(() => {
+  cleanup()
+})
 
 // Suppress console errors for expected test failures
 const originalError = console.error
