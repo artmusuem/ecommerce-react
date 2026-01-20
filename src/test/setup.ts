@@ -62,14 +62,22 @@ vi.stubEnv('VITE_STRIPE_PUBLIC_KEY', 'pk_test_mock')
 // NOW import modules that depend on localStorage
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
-import { _resetCartForTesting } from '../context/CartContext'
+
+// Cache the reset function after first dynamic import
+let resetCartFn: (() => void) | null = null
 
 // Reset modules and localStorage before each test to ensure clean state
-beforeEach(() => {
+beforeEach(async () => {
   localStorageMock.clear()
   vi.clearAllMocks()
-  // Reset cart state to ensure test isolation
-  _resetCartForTesting()
+
+  // Dynamic import to ensure localStorage mock is set up first
+  // This avoids the hoisting issue with static imports
+  if (!resetCartFn) {
+    const { _resetCartForTesting } = await import('../context/CartContext')
+    resetCartFn = _resetCartForTesting
+  }
+  resetCartFn()
 })
 
 // Cleanup after each test
