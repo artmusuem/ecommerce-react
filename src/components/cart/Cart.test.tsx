@@ -259,11 +259,12 @@ describe('Cart', () => {
       })
     })
 
-    it('should show shipping message', async () => {
+    it('should show free shipping progress', async () => {
       renderCart({ withItem: true })
-      
+
       await waitFor(() => {
-        expect(screen.getByText('Shipping calculated at checkout')).toBeInTheDocument()
+        // ShippingProgress component shows progress toward free shipping
+        expect(screen.getByText(/more for free shipping/)).toBeInTheDocument()
       })
     })
 

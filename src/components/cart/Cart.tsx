@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { useCart, useCartDispatch } from '../../context/CartContext'
 import { getResizedImage } from '../../utils/images'
 import type { ProductRouterState } from '../../types'
+import { ShippingProgress } from '../layout/ShippingBanner'
 
 /**
  * Cart Component
@@ -203,17 +204,16 @@ export default function Cart() {
         {/* Footer */}
         {items.length > 0 && (
           <div className="px-5 py-4 border-t border-gray-200">
+            {/* Free shipping progress indicator */}
+            <ShippingProgress currentTotal={total} />
+
             <div className="flex items-center justify-between mb-3">
               <span className="text-gray-600">Subtotal</span>
               <span className="text-xl font-semibold text-gray-900">
                 ${total.toFixed(0)}
               </span>
             </div>
-            
-            <p className="text-xs mb-4 text-gray-500">
-              Shipping calculated at checkout
-            </p>
-            
+
             <Link
               to="/checkout"
               onClick={() => dispatch({ type: 'TOGGLE_CART' })}

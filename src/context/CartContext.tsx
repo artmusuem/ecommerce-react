@@ -30,6 +30,7 @@ import {
 } from 'react'
 import { createPersistedStore } from '../lib/createPersistedStore'
 import type { CartItem, CartAction, CartContextValue } from '../types'
+import { trackAddToCart, trackRemoveFromCart, trackViewCart } from '../utils/analytics'
 
 // ============================================================================
 // Store Setup
@@ -183,6 +184,21 @@ export function CartProvider({ children }: CartProviderProps) {
     switch (action.type) {
       case 'TOGGLE_CART':
         setIsOpen(!cartIsOpen)
+        // Track view_cart when opening the cart
+        if (!cartIsOpen) {
+          const currentItems = cartItemsStore.getSnapshot()
+          const currentTotal = currentItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+          trackViewCart(
+            currentItems.map(item => ({
+              id: item.productId,
+              name: item.title,
+              price: item.price,
+              quantity: item.quantity,
+              variant: `${item.sizeId} / ${item.frameId}`,
+            })),
+            currentTotal
+          )
+        }
         break
 
       case 'CLOSE_CART':
@@ -192,7 +208,32 @@ export function CartProvider({ children }: CartProviderProps) {
       case 'ADD_ITEM':
         cartItemsStore.setState(prev => reduceCartItems(prev, action))
         setIsOpen(true) // Open cart when adding item
+        // Track add_to_cart analytics event
+        trackAddToCart({
+          id: action.payload.productId,
+          name: action.payload.title,
+          price: action.payload.price,
+          variant: `${action.payload.sizeId} / ${action.payload.frameId}`,
+        })
         break
+
+      case 'REMOVE_ITEM': {
+        // Find the item before removing for analytics
+        const currentItems = cartItemsStore.getSnapshot()
+        const removedItem = currentItems.find(item => item.key === action.payload)
+        cartItemsStore.setState(prev => reduceCartItems(prev, action))
+        // Track remove_from_cart analytics event
+        if (removedItem) {
+          trackRemoveFromCart({
+            id: removedItem.productId,
+            name: removedItem.title,
+            price: removedItem.price,
+            quantity: removedItem.quantity,
+            variant: `${removedItem.sizeId} / ${removedItem.frameId}`,
+          })
+        }
+        break
+      }
 
       default:
         cartItemsStore.setState(prev => reduceCartItems(prev, action))

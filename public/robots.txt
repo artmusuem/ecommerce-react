@@ -1,0 +1,13 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://ecommerce-react-shopify.vercel.app/sitemap.xml
+
+# Disallow internal/API routes
+Disallow: /api/
+Disallow: /test
+
+# Disallow checkout for crawlers
+Disallow: /checkout

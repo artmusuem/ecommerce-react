@@ -4,10 +4,15 @@ import type { Route } from "./+types/product";
 import { fetchShopifyProduct } from "@/data/shopify-api";
 import { getResizedImage, IMAGE_SIZES } from "@/utils/images";
 import { useCartDispatch } from "@/context/CartContext";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import type { ProductVariant } from "@/types";
 import FramePreview from "@/components/product/FramePreview";
 import FrameIcon from "@/components/product/FrameIcon";
+import { getProductMetaTags } from "@/components/seo/MetaTags";
+import { trackViewItem } from "@/utils/analytics";
+import { ReviewList } from "@/components/reviews/ReviewList";
+import { StarRating } from "@/components/reviews/StarRating";
+import { MOCK_SUMMARY } from "@/types/review";
 
 // Details section component
 function ProductDetails({
@@ -92,10 +97,26 @@ export async function loader({ params }: Route.LoaderArgs) {
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  return [
-    { title: data?.product ? `${data.product.title} - Gallery Store` : "Product - Gallery Store" },
-    { name: "description", content: data?.product?.description || "Art print from the Smithsonian" },
-  ];
+  if (!data?.product) {
+    return [
+      { title: "Product - Gallery Store" },
+      { name: "description", content: "Art print from the Smithsonian" },
+    ];
+  }
+
+  const price = data.product.priceRange?.minPrice
+    ? parseFloat(data.product.priceRange.minPrice).toFixed(2)
+    : undefined;
+
+  return getProductMetaTags({
+    title: data.product.title,
+    description: data.product.description,
+    image: data.product.image,
+    artist: data.product.artist,
+    price,
+    id: data.product.id,
+    availableForSale: data.product.variants?.[0]?.availableForSale,
+  });
 }
 
 export default function Product() {
@@ -111,6 +132,24 @@ export default function Product() {
   const [selectedSize, setSelectedSize] = useState(sizes[0]);
   const [selectedFrame, setSelectedFrame] = useState(frames[0]);
   const [added, setAdded] = useState(false);
+
+  // Track view_item analytics event on page load
+  const hasTrackedView = useRef(false);
+  useEffect(() => {
+    if (hasTrackedView.current || !product) return;
+    hasTrackedView.current = true;
+
+    const price = product.priceRange?.minPrice
+      ? parseFloat(product.priceRange.minPrice)
+      : 0;
+
+    trackViewItem({
+      id: product.id,
+      name: product.title,
+      price,
+      category: 'Art Prints',
+    });
+  }, [product]);
 
   // Find selected variant
   const selectedVariant = useMemo((): ProductVariant | undefined => {
@@ -187,6 +226,17 @@ export default function Product() {
             {/* Subtitle (Artist) */}
             <p className="text-lg text-gray-600">{product.artist}</p>
 
+            {/* Rating */}
+            <div className="flex items-center gap-2">
+              <StarRating rating={MOCK_SUMMARY.averageRating} size="md" showValue />
+              <a
+                href="#reviews"
+                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
+              >
+                ({MOCK_SUMMARY.totalReviews} reviews)
+              </a>
+            </div>
+
             {/* Price */}
             <div className="flex items-center gap-3">
               <span className="text-3xl font-bold text-gray-900">
@@ -261,6 +311,16 @@ export default function Product() {
         description={product.description}
         smithsonianUrl={smithsonianUrl}
       />
+
+      {/* Reviews Section */}
+      <section id="reviews" className="border-t border-gray-200">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+          <h2 className="text-2xl font-display font-semibold text-gray-900 mb-8">
+            Customer Reviews
+          </h2>
+          <ReviewList showSummary />
+        </div>
+      </section>
     </main>
   );
 }

@@ -5,6 +5,8 @@ import type { Route } from "./+types/home";
 import { fetchShopifyProducts, fetchCollections, fetchCollectionProducts } from "@/data/shopify-api";
 import { getResizedImage, IMAGE_SIZES } from "@/utils/images";
 import type { Product, Collection } from "@/types";
+import { getDefaultMetaTags, getCollectionMetaTags } from "@/components/seo/MetaTags";
+import { NewsletterForm } from "@/components/newsletter/NewsletterForm";
 
 // Server-side data loading - this runs on the server BEFORE HTML is sent
 export async function loader({ request }: Route.LoaderArgs) {
@@ -28,12 +30,24 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 }
 
-// Meta tags for SEO
-export function meta() {
-  return [
-    { title: "Gallery Store - Smithsonian Art Prints" },
-    { name: "description", content: "Museum-quality art prints from the Smithsonian American Art Museum." },
-  ];
+// Meta tags for SEO with Open Graph support
+export function meta({ data }: Route.MetaArgs) {
+  // If a collection is selected, use collection-specific meta
+  if (data?.selectedCollection) {
+    const collection = data.collections?.find(
+      (c: Collection) => c.handle === data.selectedCollection
+    );
+    if (collection) {
+      return getCollectionMetaTags({
+        title: collection.title,
+        description: collection.description,
+        handle: collection.handle,
+      });
+    }
+  }
+
+  // Default home page meta with OG tags
+  return getDefaultMetaTags();
 }
 
 // Product Card Component - rendered server-side with products
@@ -169,6 +183,45 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t mt-12 bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          {/* Newsletter Section */}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-10 pb-10 border-b border-gray-200">
+            <div className="max-w-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Stay Updated
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Subscribe to get notified about new artwork and exclusive offers.
+              </p>
+              <NewsletterForm variant="default" />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-8 sm:gap-16">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">Shop</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li><a href="/" className="hover:text-gray-900">All Prints</a></li>
+                  <li><a href="/checkout" className="hover:text-gray-900">Cart</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">About</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>
+                    <a
+                      href="https://www.si.edu/openaccess"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-gray-900"
+                    >
+                      Smithsonian Open Access
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Footer */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
@@ -183,18 +236,9 @@ export default function Home() {
                 <p className="text-xs text-gray-500">Museum-quality prints from the Smithsonian</p>
               </div>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-500">
-              <a
-                href="https://www.si.edu/openaccess"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline text-gray-600"
-              >
-                Smithsonian Open Access
-              </a>
-              <span>•</span>
-              <span>Free shipping on orders $100+</span>
-            </div>
+            <p className="text-sm text-gray-500">
+              Free shipping on orders over $75
+            </p>
           </div>
         </div>
       </footer>

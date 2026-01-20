@@ -11,6 +11,8 @@ import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/layout/Header";
 import Cart from "@/components/cart/Cart";
+import { ShippingBanner } from "@/components/layout/ShippingBanner";
+import { GA_TRACKING_ID } from "@/utils/analytics";
 
 import "./app.css";
 
@@ -112,6 +114,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        {/* Google Analytics 4 */}
+        {GA_TRACKING_ID && (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${GA_TRACKING_ID}', {
+                    page_path: window.location.pathname,
+                  });
+                `,
+              }}
+            />
+          </>
+        )}
+
         <Meta />
         <Links />
       </head>
@@ -135,6 +160,7 @@ export default function App() {
       }}
     >
       <CartProvider>
+        <ShippingBanner />
         <Header />
         <Cart />
         <Outlet />

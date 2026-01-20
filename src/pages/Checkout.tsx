@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { loadStripe, Stripe } from '@stripe/stripe-js'
 import { useCart, useCartDispatch } from '../context/CartContext'
 import { sizes, frames } from '../data/products'
 import { getResizedImage } from '../utils/images'
+import { trackBeginCheckout, trackAddPaymentInfo, trackPurchase } from '../utils/analytics'
 
 // DON'T load Stripe at module level - lazy load it when component mounts
 let stripePromise: Promise<Stripe | null> | null = null
@@ -55,12 +56,24 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: Check
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Map items for analytics
+  const analyticsItems = items.map(item => ({
+    id: item.productId,
+    name: item.title,
+    price: item.price,
+    quantity: item.quantity,
+    variant: `${item.sizeId} / ${item.frameId}`,
+  }))
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!stripe || !elements) return
 
     setProcessing(true)
     setError(null)
+
+    // Track add_payment_info when payment form is submitted
+    trackAddPaymentInfo(analyticsItems, total)
 
     try {
       // Step 1: Submit payment element
@@ -113,6 +126,10 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: Check
         })
 
         const orderData = await orderResponse.json()
+        const orderName = orderData.order?.name || paymentIntent.id.slice(-8).toUpperCase()
+
+        // Track successful purchase
+        trackPurchase(orderName, analyticsItems, total, 0, 0)
 
         if (!orderResponse.ok) {
           console.error('Order creation failed:', orderData)
@@ -122,7 +139,7 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: Check
           return
         }
 
-        onSuccess(orderData.order?.name || paymentIntent.id.slice(-8).toUpperCase())
+        onSuccess(orderName)
       }
     } catch (err) {
       console.error('Checkout error:', err)
@@ -432,6 +449,23 @@ export default function Checkout() {
 
   // Check for success from URL (legacy support)
   const isSuccessFromUrl = searchParams.get('success') || searchParams.get('redirect_status') === 'succeeded'
+
+  // Track begin_checkout when page loads with items
+  const hasTrackedBeginCheckout = useRef(false)
+  useEffect(() => {
+    if (isSuccessFromUrl || orderComplete || items.length === 0 || hasTrackedBeginCheckout.current) return
+    hasTrackedBeginCheckout.current = true
+    trackBeginCheckout(
+      items.map(item => ({
+        id: item.productId,
+        name: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        variant: `${item.sizeId} / ${item.frameId}`,
+      })),
+      total
+    )
+  }, [items, total, isSuccessFromUrl, orderComplete])
 
   // Lazy load Stripe only when this component mounts
   useEffect(() => {
