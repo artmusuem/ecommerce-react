@@ -29,7 +29,8 @@ describe('ArtistCircles', () => {
       />
     )
 
-    expect(screen.getByText('Browse by Artist')).toBeInTheDocument()
+    expect(screen.getByText('Collections')).toBeInTheDocument()
+    expect(screen.getByText('Museum-quality prints from the Smithsonian')).toBeInTheDocument()
     expect(screen.getByText('Winslow Homer')).toBeInTheDocument()
     expect(screen.getByText('Thomas Cole')).toBeInTheDocument()
   })

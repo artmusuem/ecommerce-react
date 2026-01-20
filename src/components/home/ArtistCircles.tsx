@@ -48,9 +48,12 @@ export function ArtistCircles({ artists, selectedArtist, onSelect }: ArtistCircl
   return (
     <section className="py-8 px-4 bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-center font-display text-lg text-ink-700 mb-6">
-          Browse by Artist
+        <h2 className="text-center font-display text-2xl text-ink-900 mb-2">
+          Collections
         </h2>
+        <p className="text-center text-sm text-ink-500 mb-6">
+          Museum-quality prints from the Smithsonian
+        </p>
 
         <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
           {/* Artist circles */}

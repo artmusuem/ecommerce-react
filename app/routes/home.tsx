@@ -177,25 +177,6 @@ export default function Home() {
         />
       )}
 
-      {/* Page Header */}
-      <div className="border-b bg-white border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h1 className="text-xl md:text-2xl font-display font-semibold text-ink-900">
-                {currentArtist?.name || "All Prints"}
-              </h1>
-              <p className="text-sm text-ink-500">
-                {currentArtist
-                  ? `${currentArtist.productCount} prints available`
-                  : "Museum-quality prints from the Smithsonian"}
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
       {/* Product Grid - Server-rendered with products! */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {filteredProducts.length > 0 ? (
