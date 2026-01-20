@@ -66,7 +66,7 @@ describe('Header', () => {
   describe('Free Shipping Badge', () => {
     it('should display free shipping message', () => {
       renderHeader()
-      expect(screen.getByText('Free shipping $100+')).toBeInTheDocument()
+      expect(screen.getByText('Free shipping')).toBeInTheDocument()
     })
   })
 

@@ -26,7 +26,7 @@ type FormStatus = 'idle' | 'loading' | 'success' | 'error'
 
 interface NewsletterFormProps {
   /** Visual variant */
-  variant?: 'default' | 'minimal' | 'card'
+  variant?: 'default' | 'minimal' | 'card' | 'dark'
   /** Placeholder text */
   placeholder?: string
   /** Button text */
@@ -122,6 +122,11 @@ export function NewsletterForm({
       container: 'flex flex-col gap-3',
       input: `${baseInputClass} border-gray-200 bg-white`,
       button: `${baseButtonClass} w-full bg-primary text-white hover:bg-primary-dark`,
+    },
+    dark: {
+      container: 'flex gap-2',
+      input: `${baseInputClass} border-white/20 bg-white/10 text-white placeholder:text-white/50`,
+      button: `${baseButtonClass} bg-white text-ink-900 hover:bg-paper-100`,
     },
   }
 

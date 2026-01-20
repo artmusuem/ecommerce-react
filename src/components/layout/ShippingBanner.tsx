@@ -1,19 +1,14 @@
 /**
  * Free Shipping Promotional Banner
  *
- * Displays at the top of the page to drive conversions.
- * Configurable threshold via constant.
+ * Displays at the top of the page highlighting free shipping on all orders.
+ * Mirrors hikariandink.com's premium positioning.
  *
  * @example
  * <ShippingBanner />
  */
 
-// Configurable threshold - update this to change the free shipping minimum
-export const FREE_SHIPPING_THRESHOLD = 75
-
 interface ShippingBannerProps {
-  /** Override the default threshold */
-  threshold?: number
   /** Custom message (optional) */
   message?: string
   /** Show close button (optional) */
@@ -23,13 +18,10 @@ interface ShippingBannerProps {
 }
 
 export function ShippingBanner({
-  threshold = FREE_SHIPPING_THRESHOLD,
-  message,
+  message = 'Free shipping on all orders',
   dismissible = false,
   onDismiss,
 }: ShippingBannerProps) {
-  const displayMessage = message || `Free shipping on orders over $${threshold}`
-
   return (
     <div
       className="bg-neutral-900 text-white text-center py-2 px-4 text-sm relative"
@@ -37,7 +29,7 @@ export function ShippingBanner({
       aria-label="Promotional banner"
     >
       <p className="font-medium tracking-wide">
-        {displayMessage}
+        {message}
       </p>
 
       {dismissible && onDismiss && (
@@ -66,51 +58,22 @@ export function ShippingBanner({
 }
 
 /**
- * Smart Shipping Banner that shows progress toward free shipping
- * Use this in the cart drawer for personalized messaging
+ * Free Shipping Badge for cart
+ * Shows confirmation that shipping is free on all orders
  */
-export function ShippingProgress({
-  currentTotal,
-  threshold = FREE_SHIPPING_THRESHOLD,
-}: {
-  currentTotal: number
-  threshold?: number
-}) {
-  const remaining = threshold - currentTotal
-  const progress = Math.min(100, (currentTotal / threshold) * 100)
-  const qualifies = currentTotal >= threshold
-
+export function ShippingProgress() {
   return (
-    <div className="bg-gray-50 rounded-lg p-3 mb-4">
-      {qualifies ? (
-        <p className="text-sm text-green-700 font-medium flex items-center gap-2">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
-          You qualify for free shipping!
-        </p>
-      ) : (
-        <>
-          <p className="text-sm text-gray-600 mb-2">
-            Add <span className="font-semibold text-gray-900">${remaining.toFixed(2)}</span> more for free shipping
-          </p>
-          <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-              role="progressbar"
-              aria-valuenow={Math.round(progress)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={`${progress.toFixed(0)}% toward free shipping`}
-            />
-          </div>
-        </>
-      )}
+    <div className="bg-green-50 rounded-lg p-3 mb-4">
+      <p className="text-sm text-green-700 font-medium flex items-center gap-2">
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+        Free shipping included
+      </p>
     </div>
   )
 }

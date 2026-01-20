@@ -1,47 +1,89 @@
 import { useLoaderData, useSearchParams, Link } from "react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 // @ts-expect-error - React Router 7 generates these types at build time
 import type { Route } from "./+types/home";
-import { fetchShopifyProducts, fetchCollections, fetchCollectionProducts } from "@/data/shopify-api";
+import { fetchShopifyProducts } from "@/data/shopify-api";
 import { getResizedImage, IMAGE_SIZES } from "@/utils/images";
-import type { Product, Collection } from "@/types";
+import type { Product } from "@/types";
 import { getDefaultMetaTags, getCollectionMetaTags } from "@/components/seo/MetaTags";
 import { NewsletterForm } from "@/components/newsletter/NewsletterForm";
+import { ArtistCircles } from "@/components/home/ArtistCircles";
+
+/**
+ * Artist type derived from products with avatar image
+ */
+interface Artist {
+  name: string;
+  handle: string;
+  productCount: number;
+  image: string;
+}
+
+/**
+ * Convert artist name to URL-safe handle
+ */
+function toHandle(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+}
 
 // Server-side data loading - this runs on the server BEFORE HTML is sent
 export async function loader({ request }: Route.LoaderArgs) {
   try {
     const url = new URL(request.url);
-    const collectionHandle = url.searchParams.get("collection");
+    const artistHandle = url.searchParams.get("artist");
 
-    // Fetch data on server - no client-side loading delay!
-    const [products, collections] = await Promise.all([
-      collectionHandle
-        ? fetchCollectionProducts(collectionHandle)
-        : fetchShopifyProducts(),
-      fetchCollections(),
-    ]);
+    // Fetch all products on server
+    const products = await fetchShopifyProducts();
 
-    return { products, collections, selectedCollection: collectionHandle };
+    // Derive unique artists from products with their counts and first image
+    const artistData = new Map<string, { count: number; image: string }>();
+    products.forEach((product) => {
+      if (product.artist) {
+        const existing = artistData.get(product.artist);
+        if (existing) {
+          artistData.set(product.artist, {
+            count: existing.count + 1,
+            image: existing.image, // Keep the first image found
+          });
+        } else {
+          artistData.set(product.artist, {
+            count: 1,
+            image: product.image || '',
+          });
+        }
+      }
+    });
+
+    // Convert to sorted array (by product count descending)
+    const artists: Artist[] = Array.from(artistData.entries())
+      .map(([name, data]) => ({
+        name,
+        handle: toHandle(name),
+        productCount: data.count,
+        image: data.image,
+      }))
+      .sort((a, b) => b.productCount - a.productCount);
+
+    return { products, artists, selectedArtist: artistHandle };
   } catch (error) {
     console.error("Loader error:", error);
     // Return empty data on error so page still renders
-    return { products: [], collections: [], selectedCollection: null };
+    return { products: [], artists: [], selectedArtist: null };
   }
 }
 
 // Meta tags for SEO with Open Graph support
 export function meta({ data }: Route.MetaArgs) {
-  // If a collection is selected, use collection-specific meta
-  if (data?.selectedCollection) {
-    const collection = data.collections?.find(
-      (c: Collection) => c.handle === data.selectedCollection
+  // If an artist is selected, use artist-specific meta
+  if (data?.selectedArtist) {
+    const artist = data.artists?.find(
+      (a: Artist) => a.handle === data.selectedArtist
     );
-    if (collection) {
+    if (artist) {
       return getCollectionMetaTags({
-        title: collection.title,
-        description: collection.description,
-        handle: collection.handle,
+        title: artist.name,
+        description: `Browse museum-quality prints by ${artist.name}`,
+        handle: artist.handle,
       });
     }
   }
@@ -61,97 +103,109 @@ function ProductCard({ product, priority = false }: { product: Product; priority
   return (
     <Link
       to={`/product/${encodeURIComponent(product.id)}`}
-      className="group block rounded-xl overflow-hidden card-lift bg-white"
+      className="group block bg-paper-50 hover:bg-paper-100 transition-colors"
     >
-      <div className="aspect-square overflow-hidden relative bg-gray-100">
+      <div className="aspect-[4/5] overflow-hidden relative bg-paper-100">
         <img
           src={thumbnailSrc}
           alt={product.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : "auto"}
           decoding="async"
         />
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/40">
-          <span className="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-800">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-ink-900/50">
+          <span className="px-5 py-2.5 text-sm font-medium bg-paper-50 text-ink-900">
             View Print
           </span>
         </div>
       </div>
       <div className="p-4">
-        <h2 className="font-medium text-sm leading-snug line-clamp-2 mb-2 text-gray-800">
+        <h2 className="font-display text-base leading-snug line-clamp-2 text-ink-900">
           {product.title}
         </h2>
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-primary">
-            From ${price.toFixed(0)}
-          </span>
-          <span className="text-xs text-gray-500">
-            {product.artist}
-          </span>
-        </div>
+        <p className="text-sm text-ink-500 mt-1">
+          {product.artist}
+        </p>
+        <p className="text-ink-700 font-medium mt-2">
+          From ${price.toFixed(0)}
+        </p>
       </div>
     </Link>
   );
 }
 
 export default function Home() {
-  const { products, collections, selectedCollection } = useLoaderData<typeof loader>();
+  const { products, artists, selectedArtist } = useLoaderData<typeof loader>();
   const [, setSearchParams] = useSearchParams();
 
   // Local state for immediate UI feedback (no flicker)
-  const [localSelection, setLocalSelection] = useState(selectedCollection || "");
+  const [localSelection, setLocalSelection] = useState(selectedArtist || "");
 
   // Sync local state when URL/loader data changes
   useEffect(() => {
-    setLocalSelection(selectedCollection || "");
-  }, [selectedCollection]);
+    setLocalSelection(selectedArtist || "");
+  }, [selectedArtist]);
 
-  const handleCollectionChange = (handle: string) => {
+  const handleArtistChange = (handle: string) => {
     setLocalSelection(handle); // Immediate UI update
     if (handle) {
-      setSearchParams({ collection: handle });
+      setSearchParams({ artist: handle });
     } else {
       setSearchParams({});
     }
   };
 
-  const currentCollection = collections.find((c: Collection) => c.handle === selectedCollection);
+  // Filter products by selected artist
+  const filteredProducts = useMemo(() => {
+    if (!selectedArtist) return products;
+    return products.filter((p) => toHandle(p.artist) === selectedArtist);
+  }, [products, selectedArtist]);
+
+  const currentArtist = artists.find((a: Artist) => a.handle === selectedArtist);
 
   return (
     <main className="bg-gray-50 min-h-screen">
-      {/* Compact Toolbar */}
+      {/* Artist Circles Navigation */}
+      {artists.length > 0 && (
+        <ArtistCircles
+          artists={artists}
+          selectedArtist={localSelection || null}
+          onSelect={handleArtistChange}
+        />
+      )}
+
+      {/* Page Header */}
       <div className="border-b bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-xl md:text-2xl font-display font-semibold text-gray-900">
-                  {currentCollection?.title || "All Prints"}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  {currentCollection?.description || "Museum-quality prints from the Smithsonian"}
-                </p>
-              </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-display font-semibold text-ink-900">
+                {currentArtist?.name || "All Prints"}
+              </h1>
+              <p className="text-sm text-ink-500">
+                {currentArtist
+                  ? `${currentArtist.productCount} prints available`
+                  : "Museum-quality prints from the Smithsonian"}
+              </p>
             </div>
 
-            {collections.length > 0 && (
-              <div className="flex items-center gap-2">
-                <label htmlFor="artist-filter" className="text-sm font-medium text-gray-600">Artist:</label>
+            {/* Mobile dropdown fallback */}
+            {artists.length > 0 && (
+              <div className="flex items-center gap-2 sm:hidden">
+                <label htmlFor="artist-filter" className="text-sm font-medium text-ink-600">Artist:</label>
                 <select
                   id="artist-filter"
                   value={localSelection}
-                  onChange={(e) => handleCollectionChange(e.target.value)}
-                  className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[180px] border-gray-200 bg-white text-gray-800 focus:border-primary focus:outline-none"
+                  onChange={(e) => handleArtistChange(e.target.value)}
+                  className="px-3 py-2 text-sm font-medium rounded-lg border-2 cursor-pointer transition-colors min-w-[160px] border-gray-200 bg-white text-ink-800 focus:border-ink-900 focus:outline-none"
                 >
                   <option value="">All Artists</option>
-                  {collections
-                    .filter((c: Collection) => c.handle !== "frontpage")
-                    .map((collection: Collection) => (
-                      <option key={collection.id} value={collection.handle}>
-                        {collection.title}
-                      </option>
-                    ))}
+                  {artists.map((artist: Artist) => (
+                    <option key={artist.handle} value={artist.handle}>
+                      {artist.name} ({artist.productCount})
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
@@ -161,9 +215,9 @@ export default function Home() {
 
       {/* Product Grid - Server-rendered with products! */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {products.length > 0 ? (
+        {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6">
-            {products.map((product: Product, index: number) => (
+            {filteredProducts.map((product: Product, index: number) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -174,71 +228,97 @@ export default function Home() {
         ) : (
           <div className="text-center py-16">
             <p className="text-gray-500">
-              No artwork found{currentCollection ? ` for ${currentCollection.title}` : ""}.
+              No artwork found{currentArtist ? ` for ${currentArtist.name}` : ""}.
             </p>
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="border-t mt-12 bg-white border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          {/* Newsletter Section */}
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-10 pb-10 border-b border-gray-200">
-            <div className="max-w-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Stay Updated
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Subscribe to get notified about new artwork and exclusive offers.
+      {/* Premium Footer */}
+      <footer className="bg-ink-900 text-paper-100 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+            {/* Brand Column */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-paper-50">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="#1a1a1a" strokeWidth="2"/>
+                    <rect x="6" y="6" width="12" height="12" rx="1" stroke="#1a1a1a" strokeWidth="1.5"/>
+                    <circle cx="12" cy="12" r="3" fill="#1a1a1a" opacity="0.9"/>
+                  </svg>
+                </div>
+                <h3 className="font-display text-2xl text-paper-50">
+                  Gallery Store
+                </h3>
+              </div>
+              <p className="text-paper-100/70 max-w-sm mb-6">
+                Museum-quality prints from the Smithsonian American Art Museum collection.
+                Free shipping on all orders.
               </p>
-              <NewsletterForm variant="default" />
+              {/* Newsletter */}
+              <div className="max-w-sm">
+                <h4 className="font-medium text-paper-50 mb-3">Stay Updated</h4>
+                <p className="text-sm text-paper-100/60 mb-4">
+                  Subscribe for new artwork and exclusive offers.
+                </p>
+                <NewsletterForm variant="dark" />
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-8 sm:gap-16">
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Shop</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li><a href="/" className="hover:text-gray-900">All Prints</a></li>
-                  <li><a href="/checkout" className="hover:text-gray-900">Cart</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3">About</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>
-                    <a
-                      href="https://www.si.edu/openaccess"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-gray-900"
-                    >
-                      Smithsonian Open Access
-                    </a>
-                  </li>
-                </ul>
-              </div>
+            {/* Shop Links */}
+            <div>
+              <h4 className="font-medium text-paper-50 mb-4 text-sm uppercase tracking-wider">Shop</h4>
+              <ul className="space-y-3 text-paper-100/70">
+                <li>
+                  <Link to="/" className="hover:text-paper-50 transition-colors">All Prints</Link>
+                </li>
+                <li>
+                  <Link to="/checkout" className="hover:text-paper-50 transition-colors">Cart</Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Info Links */}
+            <div>
+              <h4 className="font-medium text-paper-50 mb-4 text-sm uppercase tracking-wider">About</h4>
+              <ul className="space-y-3 text-paper-100/70">
+                <li>
+                  <a
+                    href="https://www.si.edu/openaccess"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-paper-50 transition-colors"
+                  >
+                    Smithsonian Open Access
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://americanart.si.edu"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-paper-50 transition-colors"
+                  >
+                    American Art Museum
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
 
-          {/* Bottom Footer */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" strokeWidth="2"/>
-                  <rect x="6" y="6" width="12" height="12" rx="1" stroke="white" strokeWidth="1.5"/>
-                  <circle cx="12" cy="12" r="3" fill="white" opacity="0.9"/>
-                </svg>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-800">Gallery Store</span>
-                <p className="text-xs text-gray-500">Museum-quality prints from the Smithsonian</p>
+          {/* Bottom Bar */}
+          <div className="mt-12 pt-8 border-t border-paper-100/10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <p className="text-sm text-paper-100/50">
+                © {new Date().getFullYear()} Gallery Store. Artwork courtesy of Smithsonian Open Access.
+              </p>
+              <div className="flex items-center gap-6">
+                <span className="text-sm text-paper-100/50">
+                  Free shipping worldwide
+                </span>
               </div>
             </div>
-            <p className="text-sm text-gray-500">
-              Free shipping on orders over $75
-            </p>
           </div>
         </div>
       </footer>

@@ -24,54 +24,86 @@
 }
 
 @theme {
-  /* Warm Charcoal Primary Palette - sophisticated gallery aesthetic */
-  --color-primary: #2d3436;
-  --color-primary-dark: #1e2425;
-  --color-primary-light: #4a5568;
-  
-  /* Neutrals - override Tailwind defaults */
+  /* Premium Ink Palette - hikariandink.com inspired */
+  --color-ink-50: #f7f7f7;
+  --color-ink-100: #e3e3e3;
+  --color-ink-200: #c8c8c8;
+  --color-ink-300: #a4a4a4;
+  --color-ink-400: #818181;
+  --color-ink-500: #666666;
+  --color-ink-600: #515151;
+  --color-ink-700: #434343;
+  --color-ink-800: #383838;
+  --color-ink-900: #1a1a1a;
+  --color-ink-950: #0d0d0d;
+
+  /* Premium Paper Palette - warm whites */
+  --color-paper-50: #fafafa;
+  --color-paper-100: #f5f5f5;
+  --color-paper-200: #eeeeee;
+
+  /* Warm accent tones */
+  --color-warm-50: #faf8f5;
+  --color-warm-100: #f5f0e8;
+
+  /* Primary - use ink-900 for sophisticated look */
+  --color-primary: #1a1a1a;
+  --color-primary-dark: #0d0d0d;
+  --color-primary-light: #383838;
+
+  /* Keep backward compatible neutrals */
   --color-white: #FFFFFF;
-  --color-gray-50: #F8FAFC;
-  --color-gray-100: #F1F5F9;
-  --color-gray-200: #E2E8F0;
-  --color-gray-300: #CBD5E1;
-  --color-gray-400: #94A3B8;
-  --color-gray-500: #64748B;
-  --color-gray-600: #475569;
-  --color-gray-700: #334155;
-  --color-gray-800: #1E293B;
-  --color-gray-900: #0F172A;
-  
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #eeeeee;
+  --color-gray-300: #c8c8c8;
+  --color-gray-400: #a4a4a4;
+  --color-gray-500: #666666;
+  --color-gray-600: #515151;
+  --color-gray-700: #434343;
+  --color-gray-800: #383838;
+  --color-gray-900: #1a1a1a;
+
   /* Accent - Warm Gold for art */
   --color-accent: #D97706;
   --color-accent-light: #F59E0B;
-  
+
   /* Typography */
   --font-display: 'Playfair Display', serif;
   --font-body: 'Inter', sans-serif;
 }
 
 :root {
+  /* Premium Ink/Paper palette for CSS variable usage */
+  --color-ink-900: #1a1a1a;
+  --color-ink-800: #383838;
+  --color-ink-700: #434343;
+  --color-ink-600: #515151;
+  --color-ink-500: #666666;
+  --color-paper-50: #fafafa;
+  --color-paper-100: #f5f5f5;
+  --color-paper-200: #eeeeee;
+
   /* Keep CSS variables for backward compatibility with existing inline styles */
-  --color-primary: #2d3436;
-  --color-primary-dark: #1e2425;
-  --color-primary-light: #4a5568;
-  
+  --color-primary: #1a1a1a;
+  --color-primary-dark: #0d0d0d;
+  --color-primary-light: #383838;
+
   --color-white: #FFFFFF;
-  --color-gray-50: #F8FAFC;
-  --color-gray-100: #F1F5F9;
-  --color-gray-200: #E2E8F0;
-  --color-gray-300: #CBD5E1;
-  --color-gray-400: #94A3B8;
-  --color-gray-500: #64748B;
-  --color-gray-600: #475569;
-  --color-gray-700: #334155;
-  --color-gray-800: #1E293B;
-  --color-gray-900: #0F172A;
-  
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #eeeeee;
+  --color-gray-300: #c8c8c8;
+  --color-gray-400: #a4a4a4;
+  --color-gray-500: #666666;
+  --color-gray-600: #515151;
+  --color-gray-700: #434343;
+  --color-gray-800: #383838;
+  --color-gray-900: #1a1a1a;
+
   --color-accent: #D97706;
   --color-accent-light: #F59E0B;
-  
+
   --font-display: 'Playfair Display', serif;
   --font-body: 'Inter', sans-serif;
 }

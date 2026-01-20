@@ -153,6 +153,9 @@ describe('NewsletterForm', () => {
 
     rerender(<NewsletterForm variant="card" />)
     expect(container.querySelector('form')).toBeInTheDocument()
+
+    rerender(<NewsletterForm variant="dark" />)
+    expect(container.querySelector('form')).toBeInTheDocument()
   })
 
   it('applies custom className', () => {

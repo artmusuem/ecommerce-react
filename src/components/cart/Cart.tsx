@@ -204,8 +204,8 @@ export default function Cart() {
         {/* Footer */}
         {items.length > 0 && (
           <div className="px-5 py-4 border-t border-gray-200">
-            {/* Free shipping progress indicator */}
-            <ShippingProgress currentTotal={total} />
+            {/* Free shipping confirmation */}
+            <ShippingProgress />
 
             <div className="flex items-center justify-between mb-3">
               <span className="text-gray-600">Subtotal</span>
