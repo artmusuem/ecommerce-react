@@ -1,210 +1,322 @@
-import { useLoaderData, useSearchParams, Link } from "react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useLoaderData, Link } from "react-router";
 // @ts-expect-error - React Router 7 generates these types at build time
 import type { Route } from "./+types/home";
 import { fetchShopifyProducts } from "@/data/shopify-api";
 import { getResizedImage, IMAGE_SIZES } from "@/utils/images";
 import type { Product } from "@/types";
-import { getDefaultMetaTags, getCollectionMetaTags } from "@/components/seo/MetaTags";
+import { getDefaultMetaTags } from "@/components/seo/MetaTags";
 import { NewsletterForm } from "@/components/newsletter/NewsletterForm";
-import { ArtistCircles } from "@/components/home/ArtistCircles";
 
-/**
- * Artist type derived from products with avatar image
- */
-interface Artist {
-  name: string;
-  handle: string;
-  productCount: number;
-  image: string;
-}
-
-/**
- * Convert artist name to URL-safe handle
- */
-function toHandle(name: string): string {
-  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-}
-
-// Server-side data loading - this runs on the server BEFORE HTML is sent
-export async function loader({ request }: Route.LoaderArgs) {
+// Server-side data loading
+export async function loader(_args: Route.LoaderArgs) {
   try {
-    const url = new URL(request.url);
-    const artistHandle = url.searchParams.get("artist");
-
-    // Fetch all products on server
     const products = await fetchShopifyProducts();
-
-    // Derive unique artists from products with their counts and first image
-    const artistData = new Map<string, { count: number; image: string }>();
-    products.forEach((product) => {
-      if (product.artist) {
-        const existing = artistData.get(product.artist);
-        if (existing) {
-          artistData.set(product.artist, {
-            count: existing.count + 1,
-            image: existing.image, // Keep the first image found
-          });
-        } else {
-          artistData.set(product.artist, {
-            count: 1,
-            image: product.image || '',
-          });
-        }
-      }
-    });
-
-    // Convert to sorted array (by product count descending)
-    // Only include artists with 3+ prints for cleaner navigation
-    const artists: Artist[] = Array.from(artistData.entries())
-      .filter(([, data]) => data.count >= 3)
-      .map(([name, data]) => ({
-        name,
-        handle: toHandle(name),
-        productCount: data.count,
-        image: data.image,
-      }))
-      .sort((a, b) => b.productCount - a.productCount);
-
-    return { products, artists, selectedArtist: artistHandle };
+    // Get featured products (first 6 for grid)
+    const featured = products.slice(0, 6);
+    return { featured, totalCount: products.length };
   } catch (error) {
     console.error("Loader error:", error);
-    // Return empty data on error so page still renders
-    return { products: [], artists: [], selectedArtist: null };
+    return { featured: [], totalCount: 0 };
   }
 }
 
-// Meta tags for SEO with Open Graph support
-export function meta({ data }: Route.MetaArgs) {
-  // If an artist is selected, use artist-specific meta
-  if (data?.selectedArtist) {
-    const artist = data.artists?.find(
-      (a: Artist) => a.handle === data.selectedArtist
-    );
-    if (artist) {
-      return getCollectionMetaTags({
-        title: artist.name,
-        description: `Browse museum-quality prints by ${artist.name}`,
-        handle: artist.handle,
-      });
-    }
-  }
-
-  // Default home page meta with OG tags
+// Meta tags for SEO
+export function meta() {
   return getDefaultMetaTags();
 }
 
-// Product Card Component - rendered server-side with products
-function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
+// Product card with frame overlay
+function FeaturedProductCard({ product, index }: { product: Product; index: number }) {
   const price = product.priceRange?.minPrice
     ? parseFloat(product.priceRange.minPrice)
     : 45;
 
-  const thumbnailSrc = getResizedImage(product.image, IMAGE_SIZES.thumbnail);
-
   return (
     <Link
       to={`/product/${encodeURIComponent(product.id)}`}
-      className="group block bg-paper-50 hover:bg-paper-100 transition-colors"
+      className="group block"
     >
-      <div className="aspect-[4/5] overflow-hidden relative bg-paper-100 border border-ink-900/80 shadow-md">
+      <div className="relative aspect-[4/5] overflow-hidden bg-paper-100">
+        {/* Product image */}
         <img
-          src={thumbnailSrc}
+          src={getResizedImage(product.image, IMAGE_SIZES.thumbnail)}
           alt={product.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading={priority ? "eager" : "lazy"}
-          fetchPriority={priority ? "high" : "auto"}
-          decoding="async"
+          loading={index < 2 ? "eager" : "lazy"}
         />
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-ink-900/50">
-          <span className="px-5 py-2.5 text-sm font-medium bg-paper-50 text-ink-900">
-            View Print
-          </span>
+        {/* Frame overlay indicator */}
+        <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded px-2 py-1 flex items-center gap-1.5 shadow-sm">
+          <div className="w-4 h-4 rounded-sm border-2 border-ink-900" />
+          <span className="text-xs text-ink-700">Black frame</span>
         </div>
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-ink-900/0 group-hover:bg-ink-900/10 transition-colors duration-300" />
       </div>
-      <div className="p-4">
-        <h2 className="font-display text-base leading-snug line-clamp-2 text-ink-900">
+      <div className="py-3">
+        <h3 className="font-medium text-sm leading-snug line-clamp-1 text-ink-900 group-hover:text-ink-700">
           {product.title}
-        </h2>
-        <p className="text-sm text-ink-500 mt-1">
-          {product.artist}
-        </p>
-        <p className="text-ink-700 font-medium mt-2">
-          From ${price.toFixed(0)}
-        </p>
+        </h3>
+        <div className="flex items-baseline gap-1 mt-1">
+          <span className="text-xs text-ink-500">From</span>
+          <span className="font-medium text-ink-900">${price.toFixed(0)}</span>
+        </div>
       </div>
     </Link>
   );
 }
 
 export default function Home() {
-  const { products, artists, selectedArtist } = useLoaderData<typeof loader>();
-  const [, setSearchParams] = useSearchParams();
-
-  // Local state for immediate UI feedback (no flicker)
-  const [localSelection, setLocalSelection] = useState(selectedArtist || "");
-
-  // Sync local state when URL/loader data changes
-  useEffect(() => {
-    setLocalSelection(selectedArtist || "");
-  }, [selectedArtist]);
-
-  const handleArtistChange = (handle: string) => {
-    setLocalSelection(handle); // Immediate UI update
-    if (handle) {
-      setSearchParams({ artist: handle });
-    } else {
-      setSearchParams({});
-    }
-  };
-
-  // Filter products by selected artist
-  const filteredProducts = useMemo(() => {
-    if (!selectedArtist) return products;
-    return products.filter((p) => toHandle(p.artist) === selectedArtist);
-  }, [products, selectedArtist]);
-
-  const currentArtist = artists.find((a: Artist) => a.handle === selectedArtist);
+  const { featured } = useLoaderData<typeof loader>();
 
   return (
-    <main className="bg-gray-50 min-h-screen">
-      {/* Artist Circles Navigation */}
-      {artists.length > 0 && (
-        <ArtistCircles
-          artists={artists}
-          selectedArtist={localSelection || null}
-          onSelect={handleArtistChange}
-          filteredCount={filteredProducts.length}
-        />
-      )}
+    <main className="bg-paper-50 min-h-screen">
+      {/* Hero Section - Full viewport dramatic visual */}
+      <section className="relative bg-ink-900 text-paper-50 min-h-[85vh] flex items-center justify-center">
+        {/* Background image with overlay - use brighter image (index 3 = Summertime) */}
+        {featured[3] && (
+          <div className="absolute inset-0">
+            <img
+              src={getResizedImage(featured[3].image, IMAGE_SIZES.full)}
+              alt=""
+              className="w-full h-full object-cover opacity-50"
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-ink-900/50 via-ink-900/30 to-ink-900/70" />
+          </div>
+        )}
 
-      {/* Product Grid - Server-rendered with products! */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6 fade-in-stagger">
-            {filteredProducts.map((product: Product, index: number) => (
-              <ProductCard
+        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+          {/* Decorative text */}
+          <div className="text-5xl sm:text-6xl lg:text-7xl font-display text-paper-100/40 mb-6">
+            Smithsonian
+          </div>
+
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight mb-6">
+            <span className="block">American Masters,</span>
+            <span className="block">Now Yours</span>
+          </h1>
+          <p className="text-lg sm:text-xl text-paper-100/80 max-w-2xl mx-auto mb-10">
+            Own a piece of American art history. We bring the Smithsonian collection to your walls
+            with giclée prints on fine art paper—restored, preserved, and ready for your home.
+          </p>
+          <Link
+            to="/collections"
+            className="inline-block px-10 py-4 bg-paper-50 text-ink-900 font-medium hover:bg-paper-100 transition-colors text-lg"
+          >
+            Browse the collection
+          </Link>
+        </div>
+      </section>
+
+
+      {/* Timeless American Classics - Benefits + Mockup */}
+      <section className="py-20 sm:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Mockup Image - Framed art display */}
+            <div className="relative order-2 lg:order-1">
+              <div className="bg-paper-100 rounded-xl p-8 sm:p-12 shadow-2xl">
+                {featured[0] && (
+                  <div
+                    className="aspect-[4/3] overflow-hidden bg-paper-50"
+                    style={{
+                      border: '10px solid #1a1a1a',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.25), inset 0 0 10px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    <img
+                      src={getResizedImage(featured[0].image, IMAGE_SIZES.full)}
+                      alt={featured[0].title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Text Content */}
+            <div className="order-1 lg:order-2">
+              <p className="text-sm font-medium text-ink-500 uppercase tracking-wider mb-3">
+                From the Archives
+              </p>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-ink-900 mb-6 leading-tight">
+                History deserves a place on your wall
+              </h2>
+              <p className="text-ink-600 text-lg mb-8">
+                Every piece in our collection comes from the Smithsonian American Art Museum archives.
+                We digitally restore each work, then print it on 100% cotton rag paper using
+                archival-grade inks—the same standards used by museums worldwide.
+              </p>
+
+              {/* Benefits Icons */}
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-ink-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-ink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <span className="text-ink-700">100% cotton rag fine art paper</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-ink-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-ink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <span className="text-ink-700">Giclée printing, 200+ year lifespan</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-ink-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-ink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                  <span className="text-ink-700">Free worldwide shipping</span>
+                </div>
+              </div>
+
+              <Link
+                to="/collections"
+                className="inline-block px-8 py-3.5 bg-ink-900 text-paper-50 font-medium hover:bg-ink-800 transition-colors"
+              >
+                Shop prints
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Works */}
+      <section className="py-20 sm:py-28 bg-paper-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-3xl sm:text-4xl text-ink-900 mb-4">
+              Featured Works
+            </h2>
+            <p className="text-ink-600 max-w-2xl mx-auto">
+              From Winslow Homer's coastal scenes to Mary Cassatt's intimate portraits—
+              each print captures a defining moment in American art history, restored with
+              painstaking attention to the original palette and texture.
+            </p>
+          </div>
+
+          {/* Featured Grid - 6 products */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
+            {featured.map((product: Product, index: number) => (
+              <FeaturedProductCard
                 key={product.id}
                 product={product}
-                priority={index < 6}
+                index={index}
               />
             ))}
           </div>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-gray-500">
-              No artwork found{currentArtist ? ` for ${currentArtist.name}` : ""}.
+
+          {/* View All Button */}
+          <div className="text-center mt-12">
+            <Link
+              to="/collections"
+              className="inline-flex items-center gap-2 px-8 py-3.5 border-2 border-ink-900 text-ink-900 font-medium hover:bg-ink-900 hover:text-paper-50 transition-colors"
+            >
+              View all prints
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Process */}
+      <section className="py-20 sm:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-3xl sm:text-4xl text-ink-900 mb-4">
+              The Gallery Store Difference
+            </h2>
+            <p className="text-ink-600 max-w-2xl mx-auto">
+              We don't just print copies. We restore, refine, and reproduce each work
+              using the same techniques trusted by conservators and curators.
             </p>
           </div>
-        )}
-      </div>
 
-      {/* Premium Footer */}
-      <footer className="bg-ink-900 text-paper-100 mt-12">
+          {/* Before/After Preview */}
+          {featured[1] && (
+            <div className="max-w-2xl mx-auto mb-16">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-lg shadow-xl">
+                <img
+                  src={getResizedImage(featured[1].image, IMAGE_SIZES.full)}
+                  alt="Restored artwork"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium text-ink-900">
+                  Digitally restored
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3 Pillars */}
+          <div className="grid sm:grid-cols-3 gap-12 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-ink-100 flex items-center justify-center">
+                <svg className="w-8 h-8 text-ink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+              </div>
+              <h3 className="font-medium text-lg text-ink-900 mb-2">Digital Restoration</h3>
+              <p className="text-ink-600">
+                Color-accurate scans corrected for age and damage
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-ink-100 flex items-center justify-center">
+                <svg className="w-8 h-8 text-ink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                </svg>
+              </div>
+              <h3 className="font-medium text-lg text-ink-900 mb-2">True-to-Original</h3>
+              <p className="text-ink-600">
+                Matched to the artist's original palette and intent
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-ink-100 flex items-center justify-center">
+                <svg className="w-8 h-8 text-ink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+              <h3 className="font-medium text-lg text-ink-900 mb-2">Built to Last</h3>
+              <p className="text-ink-600">
+                Archival materials rated for 200+ years
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* Newsletter Section */}
+      <section className="py-20 bg-paper-100">
+        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="font-display text-2xl sm:text-3xl text-ink-900 mb-4">
+            Join the Gallery
+          </h2>
+          <p className="text-ink-600 mb-8">
+            Be the first to know when we add new works to the collection.
+            No spam—just art, stories, and occasional exclusive offers.
+          </p>
+          <NewsletterForm />
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-ink-900 text-paper-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
             {/* Brand Column */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-1">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-paper-50">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -213,30 +325,22 @@ export default function Home() {
                     <circle cx="12" cy="12" r="3" fill="#1a1a1a" opacity="0.9"/>
                   </svg>
                 </div>
-                <h3 className="font-display text-2xl text-paper-50">
+                <span className="font-display text-xl text-paper-50">
                   Gallery Store
-                </h3>
+                </span>
               </div>
-              <p className="text-paper-100/70 max-w-sm mb-6">
-                Museum-quality prints from the Smithsonian American Art Museum collection.
-                Free shipping on all orders.
+              <p className="text-paper-100/70 text-sm max-w-xs">
+                Bringing the Smithsonian American Art Museum to your walls.
+                Restored prints on archival paper, shipped free worldwide.
               </p>
-              {/* Newsletter */}
-              <div className="max-w-sm">
-                <h4 className="font-medium text-paper-50 mb-3">Stay Updated</h4>
-                <p className="text-sm text-paper-100/60 mb-4">
-                  Subscribe for new artwork and exclusive offers.
-                </p>
-                <NewsletterForm variant="dark" />
-              </div>
             </div>
 
             {/* Shop Links */}
             <div>
               <h4 className="font-medium text-paper-50 mb-4 text-sm uppercase tracking-wider">Shop</h4>
-              <ul className="space-y-3 text-paper-100/70">
+              <ul className="space-y-3 text-paper-100/70 text-sm">
                 <li>
-                  <Link to="/" className="hover:text-paper-50 transition-colors">All Prints</Link>
+                  <Link to="/collections" className="hover:text-paper-50 transition-colors">All prints</Link>
                 </li>
                 <li>
                   <Link to="/checkout" className="hover:text-paper-50 transition-colors">Cart</Link>
@@ -244,10 +348,13 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Info Links */}
+            {/* About Links */}
             <div>
               <h4 className="font-medium text-paper-50 mb-4 text-sm uppercase tracking-wider">About</h4>
-              <ul className="space-y-3 text-paper-100/70">
+              <ul className="space-y-3 text-paper-100/70 text-sm">
+                <li>
+                  <Link to="/about" className="hover:text-paper-50 transition-colors">Our story</Link>
+                </li>
                 <li>
                   <a
                     href="https://www.si.edu/openaccess"
@@ -258,15 +365,21 @@ export default function Home() {
                     Smithsonian Open Access
                   </a>
                 </li>
+              </ul>
+            </div>
+
+            {/* Support Links */}
+            <div>
+              <h4 className="font-medium text-paper-50 mb-4 text-sm uppercase tracking-wider">Support</h4>
+              <ul className="space-y-3 text-paper-100/70 text-sm">
                 <li>
-                  <a
-                    href="https://americanart.si.edu"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-paper-50 transition-colors"
-                  >
-                    American Art Museum
-                  </a>
+                  <Link to="/about" className="hover:text-paper-50 transition-colors">FAQ</Link>
+                </li>
+                <li>
+                  <Link to="/about" className="hover:text-paper-50 transition-colors">Shipping</Link>
+                </li>
+                <li>
+                  <Link to="/about" className="hover:text-paper-50 transition-colors">Returns</Link>
                 </li>
               </ul>
             </div>
@@ -276,13 +389,11 @@ export default function Home() {
           <div className="mt-12 pt-8 border-t border-paper-100/10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <p className="text-sm text-paper-100/50">
-                © {new Date().getFullYear()} Gallery Store. Artwork courtesy of Smithsonian Open Access.
+                © {new Date().getFullYear()} Gallery Store — All rights reserved
               </p>
-              <div className="flex items-center gap-6">
-                <span className="text-sm text-paper-100/50">
-                  Free shipping worldwide
-                </span>
-              </div>
+              <p className="text-sm text-paper-100/50">
+                Artwork courtesy of Smithsonian Open Access
+              </p>
             </div>
           </div>
         </div>

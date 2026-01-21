@@ -1,35 +1,47 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useCart, useCartDispatch } from '../../context/CartContext'
+
+/**
+ * Artist collections for dropdown menu
+ */
+const artistCollections = [
+  { name: 'Winslow Homer', handle: 'winslow-homer' },
+  { name: 'Mary Cassatt', handle: 'mary-cassatt' },
+  { name: 'Thomas Cole', handle: 'thomas-cole' },
+]
 
 /**
  * Header Component
  *
  * Main navigation header with logo, navigation links, and cart button.
- * Follows hikariandink.com's premium navigation pattern.
  *
  * Features:
  * - Sticky positioning for always-visible navigation
- * - Desktop: Logo | Collection | About | Cart
- * - Mobile: Hamburger | Logo | Cart (hamburger opens menu)
+ * - Desktop: Logo | Collections (dropdown) | About | Cart
+ * - Mobile: Hamburger | Logo | Cart (hamburger opens menu with dropdowns)
  * - Cart button with item count badge
- *
- * @example
- * ```tsx
- * // In app/root.tsx
- * <Header />
- * ```
+ * - Smooth roll-down animation for dropdowns
  */
 export default function Header() {
   const { itemCount } = useCart()
   const dispatch = useCartDispatch()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [collectionsOpen, setCollectionsOpen] = useState(false)
+  const [mobileCollectionsOpen, setMobileCollectionsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const navLinks = [
-    { href: '/', label: 'Collection' },
-    { href: '/about', label: 'About' },
-  ]
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setCollectionsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const isActive = (href: string) => {
     if (href === '/') return location.pathname === '/'
@@ -75,11 +87,12 @@ export default function Header() {
             </svg>
           </div>
 
-          <div className="hidden sm:block">
-            <span className="text-xl font-semibold tracking-tight block leading-tight text-gray-900">
+          {/* Brand text - always visible, subtitle only on larger screens */}
+          <div>
+            <span className="text-lg sm:text-xl font-semibold tracking-tight block leading-tight text-gray-900">
               Gallery Store
             </span>
-            <span className="text-xs tracking-wide text-gray-400">
+            <span className="hidden sm:block text-xs tracking-wide text-gray-400">
               Smithsonian Collection
             </span>
           </div>
@@ -87,19 +100,68 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className={`text-sm font-medium tracking-wide transition-colors ${
-                isActive(link.href)
+          {/* Collections with dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setCollectionsOpen(!collectionsOpen)}
+              className={`flex items-center gap-1 text-sm font-medium tracking-wide transition-colors ${
+                isActive('/collections')
                   ? 'text-gray-900'
                   : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              {link.label}
-            </Link>
-          ))}
+              Collections
+              <svg
+                className={`w-4 h-4 transition-transform duration-300 ${collectionsOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Desktop Dropdown - slow roll-down animation */}
+            <div
+              className={`absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden transition-all duration-500 ease-out origin-top ${
+                collectionsOpen
+                  ? 'opacity-100 scale-y-100 translate-y-0'
+                  : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none'
+              }`}
+            >
+              <div className="py-2">
+                <Link
+                  to="/collections"
+                  onClick={() => setCollectionsOpen(false)}
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  All Collections
+                </Link>
+                <div className="border-t border-gray-100 my-1" />
+                {artistCollections.map((artist) => (
+                  <Link
+                    key={artist.handle}
+                    to={`/collections/${artist.handle}`}
+                    onClick={() => setCollectionsOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                  >
+                    {artist.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <Link
+            to="/about"
+            className={`text-sm font-medium tracking-wide transition-colors ${
+              isActive('/about')
+                ? 'text-gray-900'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            About
+          </Link>
         </nav>
 
         {/* Right side: Cart button */}
@@ -119,11 +181,11 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile Navigation Menu - animated slide/fade */}
+      {/* Mobile Navigation Menu - slow roll-down animation */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${
+        className={`md:hidden overflow-hidden transition-all duration-500 ease-out ${
           mobileMenuOpen
-            ? 'max-h-40 opacity-100'
+            ? 'max-h-96 opacity-100'
             : 'max-h-0 opacity-0'
         }`}
       >
@@ -132,20 +194,68 @@ export default function Header() {
           aria-label="Mobile navigation"
         >
           <div className="px-4 py-3 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
-                  isActive(link.href)
+            {/* Collections with nested dropdown */}
+            <div>
+              <button
+                onClick={() => setMobileCollectionsOpen(!mobileCollectionsOpen)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                  isActive('/collections')
                     ? 'bg-gray-100 text-gray-900'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                {link.label}
-              </Link>
-            ))}
+                Collections
+                <svg
+                  className={`w-4 h-4 transition-transform duration-300 ${mobileCollectionsOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Mobile Collections dropdown - slow roll-down */}
+              <div
+                className={`overflow-hidden transition-all duration-500 ease-out ${
+                  mobileCollectionsOpen
+                    ? 'max-h-48 opacity-100'
+                    : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="pl-4 py-1 space-y-1">
+                  <Link
+                    to="/collections"
+                    onClick={() => { setMobileMenuOpen(false); setMobileCollectionsOpen(false); }}
+                    className="block px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    All Collections
+                  </Link>
+                  {artistCollections.map((artist) => (
+                    <Link
+                      key={artist.handle}
+                      to={`/collections/${artist.handle}`}
+                      onClick={() => { setMobileMenuOpen(false); setMobileCollectionsOpen(false); }}
+                      className="block px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+                    >
+                      {artist.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <Link
+              to="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                isActive('/about')
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              About
+            </Link>
           </div>
         </nav>
       </div>

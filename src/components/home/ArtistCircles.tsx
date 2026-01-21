@@ -121,12 +121,20 @@ export function ArtistCircles({ artists, selectedArtist, onSelect, filteredCount
           })}
         </div>
 
-        {/* Clear filter hint when artist is selected */}
-        {selectedArtist && (
-          <p className="text-center text-xs text-ink-400 mt-4">
-            Click artist again to show all
-          </p>
-        )}
+        {/* View All Collections button - centered below circles */}
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => onSelect('')}
+            className={`px-6 py-2.5 text-sm font-medium border rounded-full transition-colors ${
+              selectedArtist
+                ? 'border-ink-800 text-ink-800 hover:bg-ink-800 hover:text-white'
+                : 'border-ink-300 text-ink-500 bg-ink-50'
+            }`}
+          >
+            View All Collections
+          </button>
+        </div>
+
       </div>
     </section>
   )

@@ -93,19 +93,6 @@ describe('ArtistCircles', () => {
     expect(handleSelect).toHaveBeenCalledWith('')
   })
 
-  it('should show hint text when artist is selected', () => {
-    const handleSelect = vi.fn()
-    render(
-      <ArtistCircles
-        artists={mockArtists}
-        selectedArtist="winslow-homer"
-        onSelect={handleSelect}
-      />
-    )
-
-    expect(screen.getByText('Click artist again to show all')).toBeInTheDocument()
-  })
-
   it('should show dynamic title and count when artist is selected', () => {
     const handleSelect = vi.fn()
     render(
@@ -120,19 +107,6 @@ describe('ArtistCircles', () => {
     expect(screen.getByText('Winslow Homer Collection')).toBeInTheDocument()
     // The subtitle shows the filtered count (different from artist's product count)
     expect(screen.getByText('12 prints')).toBeInTheDocument()
-  })
-
-  it('should not show hint text when no artist is selected', () => {
-    const handleSelect = vi.fn()
-    render(
-      <ArtistCircles
-        artists={mockArtists}
-        selectedArtist={null}
-        onSelect={handleSelect}
-      />
-    )
-
-    expect(screen.queryByText('Click artist again to show all')).not.toBeInTheDocument()
   })
 
   it('should visually highlight selected artist', () => {
