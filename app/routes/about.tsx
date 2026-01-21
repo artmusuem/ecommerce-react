@@ -39,7 +39,7 @@ export default function About() {
       {/* Content Sections */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
         {/* Smithsonian Partnership */}
-        <section>
+        <section id="story">
           <h2 className="text-2xl font-display font-semibold text-ink-900 mb-4">
             Smithsonian Open Access
           </h2>
@@ -76,7 +76,7 @@ export default function About() {
         </section>
 
         {/* Print Quality */}
-        <section>
+        <section id="prints">
           <h2 className="text-2xl font-display font-semibold text-ink-900 mb-4">
             Museum-Quality Prints
           </h2>
@@ -111,7 +111,7 @@ export default function About() {
         </section>
 
         {/* Framing Options */}
-        <section>
+        <section id="framing">
           <h2 className="text-2xl font-display font-semibold text-ink-900 mb-4">
             Custom Framing
           </h2>
@@ -130,7 +130,7 @@ export default function About() {
         </section>
 
         {/* Shipping */}
-        <section>
+        <section id="shipping">
           <h2 className="text-2xl font-display font-semibold text-ink-900 mb-4">
             Free Worldwide Shipping
           </h2>

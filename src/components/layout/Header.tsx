@@ -121,12 +121,12 @@ export default function Header() {
               </svg>
             </button>
 
-            {/* Desktop Dropdown - slow roll-down animation */}
+            {/* Desktop Dropdown - slow roll-down animation (700ms open, 500ms close) */}
             <div
-              className={`absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden transition-all duration-500 ease-out origin-top ${
+              className={`absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden origin-top ${
                 collectionsOpen
-                  ? 'opacity-100 scale-y-100 translate-y-0'
-                  : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none'
+                  ? 'opacity-100 scale-y-100 translate-y-0 transition-all duration-700 ease-out'
+                  : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none transition-all duration-500 ease-out'
               }`}
             >
               <div className="py-2">
@@ -181,12 +181,12 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile Navigation Menu - slow roll-down animation */}
+      {/* Mobile Navigation Menu - slow roll-down animation (700ms open, 500ms close) */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-500 ease-out ${
+        className={`md:hidden overflow-hidden ${
           mobileMenuOpen
-            ? 'max-h-96 opacity-100'
-            : 'max-h-0 opacity-0'
+            ? 'max-h-96 opacity-100 transition-all duration-700 ease-out'
+            : 'max-h-0 opacity-0 transition-all duration-500 ease-out'
         }`}
       >
         <nav
@@ -215,12 +215,12 @@ export default function Header() {
                 </svg>
               </button>
 
-              {/* Mobile Collections dropdown - slow roll-down */}
+              {/* Mobile Collections dropdown - slow roll-down (700ms open, 500ms close) */}
               <div
-                className={`overflow-hidden transition-all duration-500 ease-out ${
+                className={`overflow-hidden ${
                   mobileCollectionsOpen
-                    ? 'max-h-48 opacity-100'
-                    : 'max-h-0 opacity-0'
+                    ? 'max-h-48 opacity-100 transition-all duration-700 ease-out'
+                    : 'max-h-0 opacity-0 transition-all duration-500 ease-out'
                 }`}
               >
                 <div className="pl-4 py-1 space-y-1">

@@ -14,6 +14,7 @@ import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { CartProvider } from "@/context/CartContext";
 import { ProductsProvider } from "@/context/ProductsContext";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import Cart from "@/components/cart/Cart";
 import { GA_TRACKING_ID } from "@/utils/analytics";
 import { fetchShopifyProducts } from "@/data/shopify-api";
@@ -31,7 +32,7 @@ export const links: LinksFunction = () => [
  * Root loader - fetches products for the entire app
  * Products are used by Cart's "More from Artist" carousel
  */
-export async function loader({}: Route.LoaderArgs) {
+export async function loader(_args: Route.LoaderArgs) {
   try {
     const products = await fetchShopifyProducts();
     return { products };
@@ -184,6 +185,7 @@ export default function App() {
           <Header />
           <Cart />
           <Outlet />
+          <Footer />
         </CartProvider>
       </ProductsProvider>
     </ReactErrorBoundary>

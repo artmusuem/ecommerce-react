@@ -25,7 +25,7 @@ export function meta() {
   return getDefaultMetaTags();
 }
 
-// Product card with frame overlay
+// Product card with black frame
 function FeaturedProductCard({ product, index }: { product: Product; index: number }) {
   const price = product.priceRange?.minPrice
     ? parseFloat(product.priceRange.minPrice)
@@ -36,21 +36,20 @@ function FeaturedProductCard({ product, index }: { product: Product; index: numb
       to={`/product/${encodeURIComponent(product.id)}`}
       className="group block"
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-paper-100">
-        {/* Product image */}
-        <img
-          src={getResizedImage(product.image, IMAGE_SIZES.thumbnail)}
-          alt={product.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading={index < 2 ? "eager" : "lazy"}
-        />
-        {/* Frame overlay indicator */}
-        <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded px-2 py-1 flex items-center gap-1.5 shadow-sm">
-          <div className="w-4 h-4 rounded-sm border-2 border-ink-900" />
-          <span className="text-xs text-ink-700">Black frame</span>
+      {/* Image Container with Black Frame */}
+      <div className="relative aspect-[4/5] overflow-hidden bg-paper-100 p-3">
+        {/* Black frame border */}
+        <div className="relative w-full h-full border-[6px] border-ink-900 shadow-lg overflow-hidden">
+          {/* Product image */}
+          <img
+            src={getResizedImage(product.image, IMAGE_SIZES.thumbnail)}
+            alt={product.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading={index < 2 ? "eager" : "lazy"}
+          />
+          {/* Hover overlay */}
+          <div className="absolute inset-0 bg-ink-900/0 group-hover:bg-ink-900/10 transition-colors duration-300" />
         </div>
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-ink-900/0 group-hover:bg-ink-900/10 transition-colors duration-300" />
       </div>
       <div className="py-3">
         <h3 className="font-medium text-sm leading-snug line-clamp-1 text-ink-900 group-hover:text-ink-700">
@@ -311,93 +310,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-ink-900 text-paper-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-            {/* Brand Column */}
-            <div className="lg:col-span-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-paper-50">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="#1a1a1a" strokeWidth="2"/>
-                    <rect x="6" y="6" width="12" height="12" rx="1" stroke="#1a1a1a" strokeWidth="1.5"/>
-                    <circle cx="12" cy="12" r="3" fill="#1a1a1a" opacity="0.9"/>
-                  </svg>
-                </div>
-                <span className="font-display text-xl text-paper-50">
-                  Gallery Store
-                </span>
-              </div>
-              <p className="text-paper-100/70 text-sm max-w-xs">
-                Bringing the Smithsonian American Art Museum to your walls.
-                Restored prints on archival paper, shipped free worldwide.
-              </p>
-            </div>
-
-            {/* Shop Links */}
-            <div>
-              <h4 className="font-medium text-paper-50 mb-4 text-sm uppercase tracking-wider">Shop</h4>
-              <ul className="space-y-3 text-paper-100/70 text-sm">
-                <li>
-                  <Link to="/collections" className="hover:text-paper-50 transition-colors">All prints</Link>
-                </li>
-                <li>
-                  <Link to="/checkout" className="hover:text-paper-50 transition-colors">Cart</Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* About Links */}
-            <div>
-              <h4 className="font-medium text-paper-50 mb-4 text-sm uppercase tracking-wider">About</h4>
-              <ul className="space-y-3 text-paper-100/70 text-sm">
-                <li>
-                  <Link to="/about" className="hover:text-paper-50 transition-colors">Our story</Link>
-                </li>
-                <li>
-                  <a
-                    href="https://www.si.edu/openaccess"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-paper-50 transition-colors"
-                  >
-                    Smithsonian Open Access
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Support Links */}
-            <div>
-              <h4 className="font-medium text-paper-50 mb-4 text-sm uppercase tracking-wider">Support</h4>
-              <ul className="space-y-3 text-paper-100/70 text-sm">
-                <li>
-                  <Link to="/about" className="hover:text-paper-50 transition-colors">FAQ</Link>
-                </li>
-                <li>
-                  <Link to="/about" className="hover:text-paper-50 transition-colors">Shipping</Link>
-                </li>
-                <li>
-                  <Link to="/about" className="hover:text-paper-50 transition-colors">Returns</Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="mt-12 pt-8 border-t border-paper-100/10">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <p className="text-sm text-paper-100/50">
-                © {new Date().getFullYear()} Gallery Store — All rights reserved
-              </p>
-              <p className="text-sm text-paper-100/50">
-                Artwork courtesy of Smithsonian Open Access
-              </p>
-            </div>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

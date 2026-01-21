@@ -100,34 +100,37 @@ function ProductCardComponent({ product, priority = false }: ProductCardProps) {
       className="group block rounded-xl overflow-hidden card-lift bg-white"
       data-testid="product-card"
     >
-      {/* Image Container */}
-      <div className="aspect-square overflow-hidden relative bg-gray-100">
-        {imageError ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm text-gray-400">Unavailable</span>
-          </div>
-        ) : (
-          <>
-            {/* Skeleton placeholder - shows until image loads */}
-            {!isLoaded && (
-              <div className="absolute inset-0 skeleton-pulse" />
-            )}
-
-            {/* Image - priority images show instantly, lazy images fade in via CSS */}
-            <img
-              ref={imgRef}
-              {...imgProps}
-              data-testid="product-image"
-            />
-
-            {/* Quick view overlay */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/40">
-              <span className="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-800">
-                View Print
-              </span>
+      {/* Image Container with Black Frame */}
+      <div className="aspect-square overflow-hidden relative bg-paper-100 p-3">
+        {/* Black frame border */}
+        <div className="relative w-full h-full border-[6px] border-ink-900 shadow-lg">
+          {imageError ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <span className="text-sm text-gray-400">Unavailable</span>
             </div>
-          </>
-        )}
+          ) : (
+            <>
+              {/* Skeleton placeholder - shows until image loads */}
+              {!isLoaded && (
+                <div className="absolute inset-0 skeleton-pulse" />
+              )}
+
+              {/* Image - priority images show instantly, lazy images fade in via CSS */}
+              <img
+                ref={imgRef}
+                {...imgProps}
+                data-testid="product-image"
+              />
+
+              {/* Quick view overlay */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/40">
+                <span className="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-800">
+                  View Print
+                </span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Info */}
