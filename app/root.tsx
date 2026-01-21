@@ -5,13 +5,18 @@ import {
   Scripts,
   ScrollRestoration,
   isRouteErrorResponse,
+  useLoaderData,
   type LinksFunction,
 } from "react-router";
+// @ts-expect-error - React Router 7 generates these types at build time
+import type { Route } from "./+types/root";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { CartProvider } from "@/context/CartContext";
+import { ProductsProvider } from "@/context/ProductsContext";
 import Header from "@/components/layout/Header";
 import Cart from "@/components/cart/Cart";
 import { GA_TRACKING_ID } from "@/utils/analytics";
+import { fetchShopifyProducts } from "@/data/shopify-api";
 
 import "./app.css";
 
@@ -21,6 +26,20 @@ export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://cdn.shopify.com", crossOrigin: "anonymous" },
   // Fonts are self-hosted in /public/fonts/ - see app.css @font-face
 ];
+
+/**
+ * Root loader - fetches products for the entire app
+ * Products are used by Cart's "More from Artist" carousel
+ */
+export async function loader({}: Route.LoaderArgs) {
+  try {
+    const products = await fetchShopifyProducts();
+    return { products };
+  } catch (error) {
+    console.error("Root loader error:", error);
+    return { products: [] };
+  }
+}
 
 /**
  * Global error fallback component
@@ -149,6 +168,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const { products } = useLoaderData<typeof loader>();
+
   return (
     <ReactErrorBoundary
       FallbackComponent={GlobalErrorFallback}
@@ -158,11 +179,13 @@ export default function App() {
         window.location.href = "/";
       }}
     >
-      <CartProvider>
-        <Header />
-        <Cart />
-        <Outlet />
-      </CartProvider>
+      <ProductsProvider products={products}>
+        <CartProvider>
+          <Header />
+          <Cart />
+          <Outlet />
+        </CartProvider>
+      </ProductsProvider>
     </ReactErrorBoundary>
   );
 }
