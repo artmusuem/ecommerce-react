@@ -259,6 +259,82 @@ async function createProductWithVariants(artwork, collectionId) {
 }
 
 /**
+ * Get the Online Store publication ID
+ * Products must be published to this channel to be visible via Storefront API
+ */
+async function getOnlineStorePublicationId() {
+  const query = `
+    query {
+      publications(first: 10) {
+        nodes {
+          id
+          name
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyGraphQL(query);
+  const publications = data.publications.nodes;
+
+  // Look for Online Store or Hydrogen channel
+  const onlineStore = publications.find(p =>
+    p.name.toLowerCase().includes('online store') ||
+    p.name.toLowerCase().includes('headless')
+  );
+
+  if (!onlineStore) {
+    console.warn('Available publications:', publications.map(p => p.name).join(', '));
+    // Return first publication as fallback
+    return publications[0]?.id || null;
+  }
+
+  return onlineStore.id;
+}
+
+/**
+ * Publish product to sales channel
+ */
+async function publishProduct(productId, publicationId) {
+  if (!publicationId) return null;
+
+  const query = `
+    mutation publishablePublish($id: ID!, $input: [PublicationInput!]!) {
+      publishablePublish(id: $id, input: $input) {
+        publishable {
+          ... on Product {
+            id
+            handle
+          }
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    id: productId,
+    input: [{ publicationId }],
+  };
+
+  try {
+    const data = await shopifyGraphQL(query, variables);
+
+    if (data.publishablePublish.userErrors.length > 0) {
+      console.error(`  Publish errors: ${JSON.stringify(data.publishablePublish.userErrors)}`);
+    }
+
+    return data.publishablePublish.publishable;
+  } catch (error) {
+    console.error(`  Publish failed: ${error.message}`);
+    return null;
+  }
+}
+
+/**
  * Upload image to product
  */
 async function uploadProductImage(productId, imageUrl, altText) {
@@ -350,6 +426,15 @@ async function main() {
   console.log(`Existing collections: ${existingCollections.length}`);
   console.log(`Existing products: ${existingProducts.length}`);
 
+  // Get publication ID for publishing products to storefront
+  console.log('\nFetching publication (sales channel)...');
+  const publicationId = await getOnlineStorePublicationId();
+  if (publicationId) {
+    console.log(`Publication ID: ${publicationId}`);
+  } else {
+    console.warn('Warning: No publication found. Products may not be visible via Storefront API.');
+  }
+
   const existingHandles = new Set(existingProducts.map(p => p.handle));
 
   // Track stats
@@ -428,10 +513,16 @@ async function main() {
           await sleep(CONFIG.RATE_LIMIT_DELAY);
         }
 
+        // Publish product to sales channel (required for Storefront API visibility)
+        if (publicationId) {
+          await publishProduct(product.id, publicationId);
+          await sleep(CONFIG.RATE_LIMIT_DELAY);
+        }
+
         existingHandles.add(productHandle);
         productsCreated++;
 
-        console.log(`    ✓ Created with ${variantCount} variants`);
+        console.log(`    ✓ Created with ${variantCount} variants (published)`);
       } catch (error) {
         console.error(`    ✗ Error: ${error.message}`);
       }

@@ -300,17 +300,17 @@ describe('Checkout Page', () => {
   })
 
   describe('Navigation', () => {
-    it('should render logo link to home', async () => {
+    it('should render Continue Shopping link in success state', async () => {
       render(
-        <TestWrapper cartItems={[createMockCartItem()]}>
+        <TestWrapper initialRoute="/checkout?success=true">
           <Checkout />
         </TestWrapper>
       )
 
       await waitFor(() => {
-        // Logo link goes to home page
-        const logoLink = screen.getByRole('link', { name: /Gallery Store/i })
-        expect(logoLink).toHaveAttribute('href', '/')
+        // Continue Shopping link goes to home page
+        const continueLink = screen.getByRole('link', { name: /Continue Shopping/i })
+        expect(continueLink).toHaveAttribute('href', '/')
       })
     })
   })

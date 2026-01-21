@@ -76,10 +76,10 @@ describe('Header', () => {
       expect(screen.getAllByRole('link', { name: 'About' }).length).toBeGreaterThan(0)
     })
 
-    it('should link Collection to home page', () => {
+    it('should link Collection to collections page', () => {
       renderHeader()
       const collectionLinks = screen.getAllByRole('link', { name: 'Collection' })
-      expect(collectionLinks[0]).toHaveAttribute('href', '/')
+      expect(collectionLinks[0]).toHaveAttribute('href', '/collections')
     })
 
     it('should link About to about page', () => {
@@ -112,14 +112,15 @@ describe('Header', () => {
       expect(menuWrapper).toHaveClass('opacity-0')
     })
 
-    it('should show Collection and About links in mobile menu', () => {
+    it('should show Collection and About in mobile menu', () => {
       renderHeader()
       const hamburgerButton = screen.getByRole('button', { name: /open menu/i })
       fireEvent.click(hamburgerButton)
 
       const mobileNav = screen.getByRole('navigation', { name: /mobile navigation/i })
-      // Collection and About are now simple links in mobile menu
-      expect(mobileNav).toContainElement(screen.getAllByText('Collection')[1])
+      // Collection is a button (dropdown toggle) and About is a link in mobile menu
+      const collectionButtons = screen.getAllByRole('button', { name: 'Collection' })
+      expect(collectionButtons.length).toBeGreaterThan(0) // At least the mobile Collection button
       expect(mobileNav).toContainElement(screen.getAllByText('About')[1])
     })
 
@@ -136,17 +137,19 @@ describe('Header', () => {
       expect(menuWrapper).toHaveClass('opacity-0')
     })
 
-    it('should close menu when Collection link is clicked', () => {
+    it('should open artist dropdown when Collection button is clicked', () => {
       renderHeader()
       const hamburgerButton = screen.getByRole('button', { name: /open menu/i })
       fireEvent.click(hamburgerButton)
 
-      const mobileCollectionLinks = screen.getAllByRole('link', { name: 'Collection' })
-      const menuWrapper = screen.getByRole('navigation', { name: /mobile navigation/i }).parentElement
-      fireEvent.click(mobileCollectionLinks[mobileCollectionLinks.length - 1]) // Click mobile Collection link
+      // Collection is now a button that toggles a dropdown
+      const collectionButtons = screen.getAllByRole('button', { name: 'Collection' })
+      const mobileCollectionButton = collectionButtons[collectionButtons.length - 1]
+      fireEvent.click(mobileCollectionButton)
 
-      // Menu should be closed (opacity-0 after animation)
-      expect(menuWrapper).toHaveClass('opacity-0')
+      // "All Artists" links should be visible (desktop + mobile dropdowns)
+      const allArtistsLinks = screen.getAllByRole('link', { name: 'All Artists' })
+      expect(allArtistsLinks.length).toBeGreaterThan(0)
     })
   })
 

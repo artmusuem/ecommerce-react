@@ -489,22 +489,6 @@ export default function Checkout() {
 
   return (
     <main className="min-h-screen bg-white lg:bg-gray-50">
-      {/* Logo Header */}
-      <div className="border-b border-gray-200 py-6 bg-white">
-        <div className="max-w-6xl mx-auto px-4">
-          <Link to="/" className="flex items-center justify-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-ink-900">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-                <rect x="6" y="6" width="12" height="12" rx="1" stroke="white" strokeWidth="1.5" fill="none"/>
-                <circle cx="12" cy="12" r="3" fill="white" opacity="0.9"/>
-              </svg>
-            </div>
-            <span className="text-xl font-semibold text-ink-900">Gallery Store</span>
-          </Link>
-        </div>
-      </div>
-
       <div className="max-w-6xl mx-auto">
         <div className="lg:grid lg:grid-cols-2">
           {/* Left Column - Form */}
