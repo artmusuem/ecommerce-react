@@ -164,7 +164,7 @@ export default function About() {
         {/* CTA */}
         <section className="text-center pt-8">
           <Link
-            to="/"
+            to="/collections"
             className="inline-block px-8 py-4 bg-ink-900 text-paper-50 rounded-xl font-semibold hover:bg-ink-800 transition-colors"
           >
             Browse Collection

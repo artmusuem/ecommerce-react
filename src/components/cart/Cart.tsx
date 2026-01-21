@@ -80,9 +80,16 @@ export default function Cart() {
               <p className="font-medium mb-1 text-gray-800">
                 Your cart is empty
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 mb-4">
                 Add prints to get started
               </p>
+              <Link
+                to="/collections"
+                onClick={() => dispatch({ type: 'TOGGLE_CART' })}
+                className="inline-block px-6 py-2.5 text-white font-medium rounded-lg btn-primary"
+              >
+                Browse Collection
+              </Link>
             </div>
           ) : (
             <div className="space-y-4">
