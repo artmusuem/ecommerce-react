@@ -290,7 +290,7 @@ function OrderSummary({ items, total, isOpen, onToggle }: {
                   {item.title}
                 </h3>
                 <p className="text-xs mt-0.5 text-ink-500">
-                  {size?.name} / {frame?.name} frame
+                  {size?.name || item.sizeId} / {frame?.name || item.frameId}
                 </p>
               </div>
 

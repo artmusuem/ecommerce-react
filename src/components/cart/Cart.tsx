@@ -146,30 +146,10 @@ export default function Cart() {
                         <p className="text-xs mt-0.5 text-gray-500">
                           {item.artist}
                         </p>
-                        {/* Display selected size */}
+                        {/* Display selected size and frame */}
                         <p className="text-xs mt-1 text-ink-500">
-                          {item.sizeId}
+                          {item.sizeId} / {item.frameId}
                         </p>
-                        {/* Frame Color Selector Circles */}
-                        <div className="flex items-center gap-1.5 mt-2">
-                          {Object.entries(frameColors).map(([name, color]) => (
-                            <button
-                              key={name}
-                              onClick={() => dispatch({
-                                type: 'UPDATE_FRAME',
-                                payload: { key: item.key, frameId: name }
-                              })}
-                              className={`w-5 h-5 rounded-full transition-all ${
-                                item.frameId === name
-                                  ? 'ring-2 ring-ink-400 ring-offset-1'
-                                  : 'border border-ink-200 hover:border-ink-400'
-                              }`}
-                              style={{ backgroundColor: color }}
-                              aria-label={`Select ${name}`}
-                              title={name}
-                            />
-                          ))}
-                        </div>
                       </div>
 
                       {/* Price */}

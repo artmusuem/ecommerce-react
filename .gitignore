@@ -29,3 +29,8 @@ migration-*.json
 # Test/backup data files
 public/data/test-*.json
 public/data/*.default.json
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
