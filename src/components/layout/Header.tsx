@@ -119,10 +119,16 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile Navigation Menu */}
-      {mobileMenuOpen && (
+      {/* Mobile Navigation Menu - animated slide/fade */}
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${
+          mobileMenuOpen
+            ? 'max-h-40 opacity-100'
+            : 'max-h-0 opacity-0'
+        }`}
+      >
         <nav
-          className="md:hidden border-t border-gray-100 bg-white"
+          className="border-t border-gray-100 bg-white"
           aria-label="Mobile navigation"
         >
           <div className="px-4 py-3 space-y-1">
@@ -142,7 +148,7 @@ export default function Header() {
             ))}
           </div>
         </nav>
-      )}
+      </div>
     </header>
   )
 }

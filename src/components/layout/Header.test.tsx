@@ -66,24 +66,26 @@ describe('Header', () => {
   describe('Navigation Links', () => {
     it('should render Collection link', () => {
       renderHeader()
-      expect(screen.getByRole('link', { name: 'Collection' })).toBeInTheDocument()
+      // Multiple links exist (desktop + mobile), check at least one exists
+      expect(screen.getAllByRole('link', { name: 'Collection' }).length).toBeGreaterThan(0)
     })
 
     it('should render About link', () => {
       renderHeader()
-      expect(screen.getByRole('link', { name: 'About' })).toBeInTheDocument()
+      // Multiple links exist (desktop + mobile), check at least one exists
+      expect(screen.getAllByRole('link', { name: 'About' }).length).toBeGreaterThan(0)
     })
 
     it('should link Collection to home page', () => {
       renderHeader()
-      const collectionLink = screen.getByRole('link', { name: 'Collection' })
-      expect(collectionLink).toHaveAttribute('href', '/')
+      const collectionLinks = screen.getAllByRole('link', { name: 'Collection' })
+      expect(collectionLinks[0]).toHaveAttribute('href', '/')
     })
 
     it('should link About to about page', () => {
       renderHeader()
-      const aboutLink = screen.getByRole('link', { name: 'About' })
-      expect(aboutLink).toHaveAttribute('href', '/about')
+      const aboutLinks = screen.getAllByRole('link', { name: 'About' })
+      expect(aboutLinks[0]).toHaveAttribute('href', '/about')
     })
   })
 
@@ -97,16 +99,17 @@ describe('Header', () => {
       renderHeader()
       const hamburgerButton = screen.getByRole('button', { name: /open menu/i })
 
-      // Initially closed
-      expect(screen.queryByRole('navigation', { name: /mobile navigation/i })).not.toBeInTheDocument()
+      // Initially closed - menu wrapper has opacity-0
+      const menuWrapper = screen.getByRole('navigation', { name: /mobile navigation/i }).parentElement
+      expect(menuWrapper).toHaveClass('opacity-0')
 
       // Open menu
       fireEvent.click(hamburgerButton)
-      expect(screen.getByRole('navigation', { name: /mobile navigation/i })).toBeInTheDocument()
+      expect(menuWrapper).toHaveClass('opacity-100')
 
       // Close menu
       fireEvent.click(screen.getByRole('button', { name: /close menu/i }))
-      expect(screen.queryByRole('navigation', { name: /mobile navigation/i })).not.toBeInTheDocument()
+      expect(menuWrapper).toHaveClass('opacity-0')
     })
 
     it('should show Collection and About links in mobile menu', () => {
@@ -125,9 +128,11 @@ describe('Header', () => {
       fireEvent.click(hamburgerButton)
 
       const mobileLinks = screen.getAllByRole('link', { name: 'Collection' })
+      const menuWrapper = screen.getByRole('navigation', { name: /mobile navigation/i }).parentElement
       fireEvent.click(mobileLinks[mobileLinks.length - 1]) // Click mobile link
 
-      expect(screen.queryByRole('navigation', { name: /mobile navigation/i })).not.toBeInTheDocument()
+      // Menu should be closed (opacity-0 after animation)
+      expect(menuWrapper).toHaveClass('opacity-0')
     })
   })
 

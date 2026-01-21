@@ -15,6 +15,8 @@ interface ArtistCirclesProps {
   artists: ArtistCircle[]
   selectedArtist: string | null
   onSelect: (handle: string) => void
+  /** Total count of filtered products */
+  filteredCount?: number
 }
 
 /**
@@ -33,7 +35,7 @@ interface ArtistCirclesProps {
  * />
  * ```
  */
-export function ArtistCircles({ artists, selectedArtist, onSelect }: ArtistCirclesProps) {
+export function ArtistCircles({ artists, selectedArtist, onSelect, filteredCount }: ArtistCirclesProps) {
   if (!artists.length) return null
 
   const handleClick = (handle: string) => {
@@ -45,14 +47,30 @@ export function ArtistCircles({ artists, selectedArtist, onSelect }: ArtistCircl
     }
   }
 
+  // Find selected artist's name for dynamic title
+  const selectedArtistData = selectedArtist
+    ? artists.find(a => a.handle === selectedArtist)
+    : null
+
+  // Dynamic title: "All Collections" or "{Artist} Collection"
+  const collectionTitle = selectedArtistData
+    ? `${selectedArtistData.name} Collection`
+    : 'All Collections'
+
+  // Dynamic subtitle: count or tagline
+  const countLabel = filteredCount === 1 ? 'print' : 'prints'
+  const subtitle = selectedArtist && filteredCount !== undefined
+    ? `${filteredCount} ${countLabel}`
+    : 'Museum-quality prints from the Smithsonian'
+
   return (
     <section className="py-8 px-4 bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-center font-display text-2xl text-ink-900 mb-2">
-          Collections
+          {collectionTitle}
         </h2>
         <p className="text-center text-sm text-ink-500 mb-6">
-          Museum-quality prints from the Smithsonian
+          {subtitle}
         </p>
 
         <div className="flex flex-wrap justify-center gap-6 sm:gap-8">

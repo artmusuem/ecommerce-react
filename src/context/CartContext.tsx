@@ -135,6 +135,13 @@ function reduceCartItems(items: CartItem[], action: CartAction): CartItem[] {
       )
     }
 
+    case 'UPDATE_FRAME': {
+      const { key, frameId } = action.payload
+      return items.map(item =>
+        item.key === key ? { ...item, frameId } : item
+      )
+    }
+
     case 'CLEAR_CART':
       return []
 
@@ -234,6 +241,10 @@ export function CartProvider({ children }: CartProviderProps) {
         }
         break
       }
+
+      case 'UPDATE_FRAME':
+        cartItemsStore.setState(prev => reduceCartItems(prev, action))
+        break
 
       default:
         cartItemsStore.setState(prev => reduceCartItems(prev, action))

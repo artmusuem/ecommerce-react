@@ -112,15 +112,15 @@ export default function Cart() {
                     className="p-4 rounded-xl bg-white"
                   >
                     <div className="flex gap-3">
-                      {/* Clickable image with frame color border */}
+                      {/* Clickable image with frame color border - no radius, frame effect */}
                       <Link
                         to={`/product/${encodeURIComponent(item.productId)}`}
                         state={productState}
                         onClick={() => dispatch({ type: 'TOGGLE_CART' })}
-                        className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity bg-gray-100"
+                        className="w-20 h-20 overflow-hidden flex-shrink-0 hover:opacity-90 transition-opacity"
                         style={{
                           border: `3px solid ${frameColor}`,
-                          boxShadow: 'inset 0 0 4px rgba(0,0,0,0.1)'
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15), inset 0 0 4px rgba(0,0,0,0.1)'
                         }}
                       >
                         <img
@@ -145,10 +145,30 @@ export default function Cart() {
                         <p className="text-xs mt-0.5 text-gray-500">
                           {item.artist}
                         </p>
-                        {/* Display selected options */}
-                        <p className="text-xs mt-1 text-gray-500">
-                          {item.sizeId} • {item.frameId}
+                        {/* Display selected size */}
+                        <p className="text-xs mt-1 text-ink-500">
+                          {item.sizeId}
                         </p>
+                        {/* Frame Color Selector Circles */}
+                        <div className="flex items-center gap-1.5 mt-2">
+                          {Object.entries(frameColors).map(([name, color]) => (
+                            <button
+                              key={name}
+                              onClick={() => dispatch({
+                                type: 'UPDATE_FRAME',
+                                payload: { key: item.key, frameId: name }
+                              })}
+                              className={`w-5 h-5 rounded-full transition-all ${
+                                item.frameId === name
+                                  ? 'ring-2 ring-ink-400 ring-offset-1'
+                                  : 'border border-ink-200 hover:border-ink-400'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              aria-label={`Select ${name}`}
+                              title={name}
+                            />
+                          ))}
+                        </div>
                       </div>
 
                       {/* Price */}

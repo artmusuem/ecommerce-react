@@ -107,7 +107,7 @@ function ProductCard({ product, priority = false }: { product: Product; priority
       to={`/product/${encodeURIComponent(product.id)}`}
       className="group block bg-paper-50 hover:bg-paper-100 transition-colors"
     >
-      <div className="aspect-[4/5] overflow-hidden relative bg-paper-100">
+      <div className="aspect-[4/5] overflow-hidden relative bg-paper-100 border border-ink-900/80 shadow-md">
         <img
           src={thumbnailSrc}
           alt={product.title}
@@ -174,13 +174,14 @@ export default function Home() {
           artists={artists}
           selectedArtist={localSelection || null}
           onSelect={handleArtistChange}
+          filteredCount={filteredProducts.length}
         />
       )}
 
       {/* Product Grid - Server-rendered with products! */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6 fade-in-stagger">
             {filteredProducts.map((product: Product, index: number) => (
               <ProductCard
                 key={product.id}

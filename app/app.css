@@ -511,6 +511,35 @@ h1, h2, h3, .font-display {
 }
 
 /* ============================================
+   STAGGERED FADE-IN
+   Premium gallery-style product grid animation
+   ============================================ */
+
+.fade-in-stagger > * {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.fade-in-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.fade-in-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.fade-in-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.fade-in-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.fade-in-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.fade-in-stagger > *:nth-child(6) { animation-delay: 250ms; }
+.fade-in-stagger > *:nth-child(7) { animation-delay: 300ms; }
+.fade-in-stagger > *:nth-child(8) { animation-delay: 350ms; }
+.fade-in-stagger > *:nth-child(9) { animation-delay: 400ms; }
+.fade-in-stagger > *:nth-child(10) { animation-delay: 450ms; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
    REDUCED MOTION
    Respect user accessibility preferences
    ============================================ */

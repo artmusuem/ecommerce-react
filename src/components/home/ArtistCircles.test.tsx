@@ -29,7 +29,7 @@ describe('ArtistCircles', () => {
       />
     )
 
-    expect(screen.getByText('Collections')).toBeInTheDocument()
+    expect(screen.getByText('All Collections')).toBeInTheDocument()
     expect(screen.getByText('Museum-quality prints from the Smithsonian')).toBeInTheDocument()
     expect(screen.getByText('Winslow Homer')).toBeInTheDocument()
     expect(screen.getByText('Thomas Cole')).toBeInTheDocument()
@@ -104,6 +104,22 @@ describe('ArtistCircles', () => {
     )
 
     expect(screen.getByText('Click artist again to show all')).toBeInTheDocument()
+  })
+
+  it('should show dynamic title and count when artist is selected', () => {
+    const handleSelect = vi.fn()
+    render(
+      <ArtistCircles
+        artists={mockArtists}
+        selectedArtist="winslow-homer"
+        onSelect={handleSelect}
+        filteredCount={12}
+      />
+    )
+
+    expect(screen.getByText('Winslow Homer Collection')).toBeInTheDocument()
+    // The subtitle shows the filtered count (different from artist's product count)
+    expect(screen.getByText('12 prints')).toBeInTheDocument()
   })
 
   it('should not show hint text when no artist is selected', () => {

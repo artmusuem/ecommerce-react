@@ -286,7 +286,7 @@ export default function Product() {
                 disabled={!selectedVariant || selectedVariant.availableForSale === false}
                 className={`w-full py-4 rounded-xl text-lg font-semibold transition-all ${
                   added
-                    ? 'bg-green-500 text-white'
+                    ? 'bg-ink-700 text-paper-50'
                     : 'btn-primary'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >

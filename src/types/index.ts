@@ -118,6 +118,7 @@ export type CartAction =
   | { type: 'ADD_ITEM'; payload: AddItemPayload }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { key: string; quantity: number } }
+  | { type: 'UPDATE_FRAME'; payload: { key: string; frameId: string } }
   | { type: 'TOGGLE_CART' }
   | { type: 'CLOSE_CART' }
   | { type: 'CLEAR_CART' }

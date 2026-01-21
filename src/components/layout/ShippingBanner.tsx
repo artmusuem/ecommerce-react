@@ -63,8 +63,8 @@ export function ShippingBanner({
  */
 export function ShippingProgress() {
   return (
-    <div className="bg-green-50 rounded-lg p-3 mb-4">
-      <p className="text-sm text-green-700 font-medium flex items-center gap-2">
+    <div className="bg-ink-50 rounded-lg p-3 mb-4 border border-ink-200">
+      <p className="text-sm text-ink-700 font-medium flex items-center gap-2">
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"

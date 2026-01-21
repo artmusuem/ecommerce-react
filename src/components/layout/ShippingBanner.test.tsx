@@ -54,11 +54,11 @@ describe('ShippingProgress', () => {
     expect(screen.getByText('Free shipping included')).toBeInTheDocument()
   })
 
-  it('has green background styling', () => {
+  it('has ink palette background styling', () => {
     const { container } = render(<ShippingProgress />)
 
     const wrapper = container.firstChild
-    expect(wrapper).toHaveClass('bg-green-50')
+    expect(wrapper).toHaveClass('bg-ink-50')
   })
 
   it('displays check icon', () => {
