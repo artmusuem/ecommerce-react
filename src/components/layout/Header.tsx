@@ -121,12 +121,12 @@ export default function Header() {
               </svg>
             </button>
 
-            {/* Desktop Dropdown - slow roll-down animation (700ms open, 500ms close) */}
+            {/* Desktop Dropdown - slow roll-down animation (1000ms open with delay, 500ms close) */}
             <div
               className={`absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden origin-top ${
                 collectionsOpen
-                  ? 'opacity-100 scale-y-100 translate-y-0 transition-all duration-700 ease-out'
-                  : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none transition-all duration-500 ease-out'
+                  ? 'opacity-100 scale-y-100 translate-y-0 transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] delay-100'
+                  : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none transition-all duration-500 ease-out delay-0'
               }`}
             >
               <div className="py-2">
@@ -181,12 +181,12 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile Navigation Menu - slow roll-down animation (700ms open, 500ms close) */}
+      {/* Mobile Navigation Menu - slow roll-down animation (1000ms open with delay, 500ms close) */}
       <div
         className={`md:hidden overflow-hidden ${
           mobileMenuOpen
-            ? 'max-h-96 opacity-100 transition-all duration-700 ease-out'
-            : 'max-h-0 opacity-0 transition-all duration-500 ease-out'
+            ? 'max-h-96 opacity-100 transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] delay-100'
+            : 'max-h-0 opacity-0 transition-all duration-500 ease-out delay-0'
         }`}
       >
         <nav
@@ -215,12 +215,12 @@ export default function Header() {
                 </svg>
               </button>
 
-              {/* Mobile Collections dropdown - slow roll-down (700ms open, 500ms close) */}
+              {/* Mobile Collections dropdown - slow roll-down (1000ms open with delay, 500ms close) */}
               <div
                 className={`overflow-hidden ${
                   mobileCollectionsOpen
-                    ? 'max-h-48 opacity-100 transition-all duration-700 ease-out'
-                    : 'max-h-0 opacity-0 transition-all duration-500 ease-out'
+                    ? 'max-h-48 opacity-100 transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] delay-100'
+                    : 'max-h-0 opacity-0 transition-all duration-500 ease-out delay-0'
                 }`}
               >
                 <div className="pl-4 py-1 space-y-1">

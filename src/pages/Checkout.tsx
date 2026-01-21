@@ -48,9 +48,10 @@ interface CheckoutFormProps {
   shippingAddress: ShippingAddress
   email: string
   onSuccess: (orderName: string) => void
+  isShippingComplete: boolean
 }
 
-function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: CheckoutFormProps) {
+function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShippingComplete }: CheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [processing, setProcessing] = useState(false)
@@ -67,7 +68,7 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: Check
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!stripe || !elements) return
+    if (!stripe || !elements || !isShippingComplete) return
 
     setProcessing(true)
     setError(null)
@@ -149,14 +150,9 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: Check
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div>
-        <label className="block text-sm font-medium mb-2 text-gray-700">
-          Payment details
-        </label>
-        <div className="border-2 rounded-xl p-4 border-gray-200 bg-white">
-          <PaymentElement />
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="border rounded-xl p-4 border-gray-200 bg-white">
+        <PaymentElement />
       </div>
 
       {error && (
@@ -167,11 +163,11 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: Check
 
       <button
         type="submit"
-        disabled={!stripe || processing}
+        disabled={!stripe || processing || !isShippingComplete}
         className={`w-full py-4 rounded-xl font-semibold text-lg text-white transition-all ${
-          processing
+          processing || !isShippingComplete
             ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-primary hover:bg-primary-dark cursor-pointer'
+            : 'bg-ink-900 hover:bg-ink-800 cursor-pointer'
         }`}
       >
         {processing ? (
@@ -182,8 +178,10 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: Check
             </svg>
             Processing...
           </span>
+        ) : !isShippingComplete ? (
+          'Complete shipping info to pay'
         ) : (
-          `Pay $${total}`
+          `Pay now`
         )}
       </button>
 
@@ -191,7 +189,7 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess }: Check
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
-        Secured by Stripe
+        All transactions are secure and encrypted
       </p>
     </form>
   )
@@ -223,7 +221,7 @@ function SuccessMessage({ orderName }: { orderName: string }) {
         </p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl font-medium transition-all btn-primary"
+          className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl font-medium transition-all bg-ink-900 hover:bg-ink-800"
         >
           Continue Shopping
         </Link>
@@ -232,190 +230,107 @@ function SuccessMessage({ orderName }: { orderName: string }) {
   )
 }
 
-// Shipping address form component
-function ShippingForm({
-  address,
-  setAddress,
-  email,
-  setEmail
-}: {
-  address: ShippingAddress
-  setAddress: (address: ShippingAddress) => void
-  email: string
-  setEmail: (email: string) => void
+// Order Summary Component (collapsible on mobile)
+function OrderSummary({ items, total, isOpen, onToggle }: {
+  items: CartItem[]
+  total: number
+  isOpen: boolean
+  onToggle: () => void
 }) {
-  const updateField = (field: keyof ShippingAddress, value: string) => {
-    setAddress({ ...address, [field]: value })
-  }
-
   return (
-    <div className="space-y-4">
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium mb-2 text-gray-700">
-          Email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-          className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium mb-2 text-gray-700">
-            First Name
-          </label>
-          <input
-            id="firstName"
-            name="fname"
-            type="text"
-            autoComplete="given-name"
-            value={address.firstName}
-            onChange={(e) => updateField('firstName', e.target.value)}
-            required
-            className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-          />
-        </div>
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium mb-2 text-gray-700">
-            Last Name
-          </label>
-          <input
-            id="lastName"
-            name="lname"
-            type="text"
-            autoComplete="family-name"
-            value={address.lastName}
-            onChange={(e) => updateField('lastName', e.target.value)}
-            required
-            className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="address1" className="block text-sm font-medium mb-2 text-gray-700">
-          Address
-        </label>
-        <input
-          id="address1"
-          name="address1"
-          type="text"
-          autoComplete="address-line1"
-          value={address.address1}
-          onChange={(e) => updateField('address1', e.target.value)}
-          placeholder="Street address"
-          required
-          className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="address2" className="block text-sm font-medium mb-2 text-gray-700">
-          Apartment, suite, etc. (optional)
-        </label>
-        <input
-          id="address2"
-          name="address2"
-          type="text"
-          autoComplete="address-line2"
-          value={address.address2}
-          onChange={(e) => updateField('address2', e.target.value)}
-          className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium mb-2 text-gray-700">
-            City
-          </label>
-          <input
-            id="city"
-            name="city"
-            type="text"
-            autoComplete="address-level2"
-            value={address.city}
-            onChange={(e) => updateField('city', e.target.value)}
-            required
-            className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-          />
-        </div>
-        <div>
-          <label htmlFor="province" className="block text-sm font-medium mb-2 text-gray-700">
-            State/Province
-          </label>
-          <input
-            id="province"
-            name="state"
-            type="text"
-            autoComplete="address-level1"
-            value={address.province}
-            onChange={(e) => updateField('province', e.target.value)}
-            required
-            className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="zip" className="block text-sm font-medium mb-2 text-gray-700">
-            ZIP/Postal Code
-          </label>
-          <input
-            id="zip"
-            name="zip"
-            type="text"
-            autoComplete="postal-code"
-            value={address.zip}
-            onChange={(e) => updateField('zip', e.target.value)}
-            required
-            className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-          />
-        </div>
-        <div>
-          <label htmlFor="country" className="block text-sm font-medium mb-2 text-gray-700">
-            Country
-          </label>
-          <select
-            id="country"
-            name="country"
-            autoComplete="country"
-            value={address.country}
-            onChange={(e) => updateField('country', e.target.value)}
-            required
-            className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
+    <div className="bg-paper-100 lg:bg-white">
+      {/* Mobile: Collapsible header */}
+      <button
+        onClick={onToggle}
+        className="lg:hidden w-full flex items-center justify-between px-4 py-4 border-b border-gray-200"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium text-ink-900">
+          Order summary
+          <svg
+            className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <option value="US">United States</option>
-            <option value="CA">Canada</option>
-            <option value="GB">United Kingdom</option>
-            <option value="AU">Australia</option>
-          </select>
-        </div>
-      </div>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </span>
+        <span className="font-semibold text-ink-900">${total}</span>
+      </button>
 
-      <div>
-        <label htmlFor="phone" className="block text-sm font-medium mb-2 text-gray-700">
-          Phone (optional)
-        </label>
-        <input
-          id="phone"
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          value={address.phone}
-          onChange={(e) => updateField('phone', e.target.value)}
-          placeholder="(555) 555-5555"
-          className="w-full px-4 py-3 border-2 rounded-xl outline-none transition-all border-gray-200 bg-white focus:border-primary"
-        />
+      {/* Content */}
+      <div className={`${isOpen ? 'block' : 'hidden'} lg:block p-4 lg:p-6 space-y-4`}>
+        {/* Items */}
+        {items.map((item) => {
+          const size = sizes.find(s => s.id === item.sizeId)
+          const frame = frames.find(f => f.id === item.frameId)
+
+          return (
+            <div key={item.key} className="flex gap-3">
+              <div className="relative">
+                <div
+                  className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border-2"
+                  style={{ borderColor: frame?.color || '#333' }}
+                >
+                  <img
+                    src={getResizedImage(item.image, 80)}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {item.quantity > 1 && (
+                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-ink-600 text-white text-xs rounded-full flex items-center justify-center">
+                    {item.quantity}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm line-clamp-1 text-ink-900">
+                  {item.title}
+                </h3>
+                <p className="text-xs mt-0.5 text-ink-500">
+                  {size?.name} / {frame?.name} frame
+                </p>
+              </div>
+
+              <span className="font-medium text-sm text-ink-900">
+                ${item.price * item.quantity}
+              </span>
+            </div>
+          )
+        })}
+
+        {/* Discount code */}
+        <div className="flex gap-2 pt-2">
+          <input
+            type="text"
+            placeholder="Discount code"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-ink-500"
+          />
+          <button className="px-4 py-2 bg-gray-100 text-ink-600 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+            Apply
+          </button>
+        </div>
+
+        {/* Totals */}
+        <div className="border-t pt-4 space-y-2 border-gray-200">
+          <div className="flex justify-between text-sm text-ink-600">
+            <span>Subtotal</span>
+            <span>${total}</span>
+          </div>
+          <div className="flex justify-between text-sm text-ink-600">
+            <span>Shipping</span>
+            <span className="text-ink-500">Enter shipping address</span>
+          </div>
+          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+            <span className="font-semibold text-ink-900">Total</span>
+            <div className="text-right">
+              <span className="text-xs text-ink-500 mr-2">USD</span>
+              <span className="text-xl font-semibold text-ink-900">${total}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -428,6 +343,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchParams] = useSearchParams()
+  const [orderSummaryOpen, setOrderSummaryOpen] = useState(false)
 
   // Order success state
   const [orderComplete, setOrderComplete] = useState(false)
@@ -512,13 +428,18 @@ export default function Checkout() {
   }
 
   // Check if shipping form is complete
-  const isShippingComplete = email &&
+  const isShippingComplete = !!(email &&
     shippingAddress.firstName &&
     shippingAddress.lastName &&
     shippingAddress.address1 &&
     shippingAddress.city &&
     shippingAddress.province &&
-    shippingAddress.zip
+    shippingAddress.zip)
+
+  // Update field helper
+  const updateField = (field: keyof ShippingAddress, value: string) => {
+    setShippingAddress({ ...shippingAddress, [field]: value })
+  }
 
   // Return success page
   if (isSuccessFromUrl || orderComplete) {
@@ -557,65 +478,163 @@ export default function Checkout() {
   const appearance = {
     theme: 'stripe' as const,
     variables: {
-      colorPrimary: '#0A5EB8',
+      colorPrimary: '#1a1a1a',
       colorBackground: '#ffffff',
-      colorText: '#1E293B',
+      colorText: '#1a1a1a',
       colorDanger: '#dc2626',
       fontFamily: 'Inter, system-ui, sans-serif',
-      borderRadius: '12px',
+      borderRadius: '8px',
     }
   }
 
   return (
-    <main className="min-h-screen py-8 bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Back link */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 text-sm mb-6 transition-colors text-gray-500 hover:text-gray-700"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to shop
-        </Link>
-
-        <h1 className="text-3xl font-display font-semibold mb-8 text-gray-900">
-          Checkout
-        </h1>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Shipping Address */}
-          <div className="lg:col-span-1">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">
-              Shipping Address
-            </h2>
-            <div className="rounded-2xl p-5 bg-white">
-              <ShippingForm
-                address={shippingAddress}
-                setAddress={setShippingAddress}
-                email={email}
-                setEmail={setEmail}
-              />
+    <main className="min-h-screen bg-white lg:bg-gray-50">
+      {/* Logo Header */}
+      <div className="border-b border-gray-200 py-6 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <Link to="/" className="flex items-center justify-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-ink-900">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" strokeWidth="2" fill="none"/>
+                <rect x="6" y="6" width="12" height="12" rx="1" stroke="white" strokeWidth="1.5" fill="none"/>
+                <circle cx="12" cy="12" r="3" fill="white" opacity="0.9"/>
+              </svg>
             </div>
-          </div>
+            <span className="text-xl font-semibold text-ink-900">Gallery Store</span>
+          </Link>
+        </div>
+      </div>
 
-          {/* Payment Form */}
-          <div className="lg:col-span-1">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">
-              Payment
-            </h2>
-            <div className="rounded-2xl p-6 bg-white">
-              {!isShippingComplete ? (
-                <div className="text-center py-8 text-gray-500">
-                  <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <p>Please fill in your shipping address first</p>
+      <div className="max-w-6xl mx-auto">
+        <div className="lg:grid lg:grid-cols-2">
+          {/* Left Column - Form */}
+          <div className="bg-white px-4 py-8 lg:px-12 lg:py-10 lg:border-r lg:border-gray-200">
+            {/* Contact Section */}
+            <section className="mb-8">
+              <h2 className="text-lg font-semibold text-ink-900 mb-4">Contact</h2>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email or mobile phone number"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+              />
+              <label className="flex items-center gap-2 mt-3 text-sm text-ink-600">
+                <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                Email me with news and offers
+              </label>
+            </section>
+
+            {/* Delivery Section */}
+            <section className="mb-8">
+              <h2 className="text-lg font-semibold text-ink-900 mb-4">Delivery</h2>
+              <div className="space-y-3">
+                <select
+                  value={shippingAddress.country}
+                  onChange={(e) => updateField('country', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900 bg-white"
+                >
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="AU">Australia</option>
+                </select>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={shippingAddress.firstName}
+                    onChange={(e) => updateField('firstName', e.target.value)}
+                    placeholder="First name (optional)"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                  />
+                  <input
+                    type="text"
+                    value={shippingAddress.lastName}
+                    onChange={(e) => updateField('lastName', e.target.value)}
+                    placeholder="Last name"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                  />
                 </div>
-              ) : loading || !stripeReady ? (
-                <div className="flex items-center justify-center py-12">
+
+                <input
+                  type="text"
+                  value={shippingAddress.address1}
+                  onChange={(e) => updateField('address1', e.target.value)}
+                  placeholder="Address"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                />
+
+                <input
+                  type="text"
+                  value={shippingAddress.address2}
+                  onChange={(e) => updateField('address2', e.target.value)}
+                  placeholder="Apartment, suite, etc. (optional)"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                />
+
+                <div className="grid grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    value={shippingAddress.city}
+                    onChange={(e) => updateField('city', e.target.value)}
+                    placeholder="City"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                  />
+                  <input
+                    type="text"
+                    value={shippingAddress.province}
+                    onChange={(e) => updateField('province', e.target.value)}
+                    placeholder="State"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                  />
+                  <input
+                    type="text"
+                    value={shippingAddress.zip}
+                    onChange={(e) => updateField('zip', e.target.value)}
+                    placeholder="ZIP code"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                  />
+                </div>
+
+                <input
+                  type="tel"
+                  value={shippingAddress.phone}
+                  onChange={(e) => updateField('phone', e.target.value)}
+                  placeholder="Phone (optional)"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                />
+              </div>
+            </section>
+
+            {/* Shipping Method */}
+            <section className="mb-8">
+              <h2 className="text-lg font-semibold text-ink-900 mb-4">Shipping method</h2>
+              <div className="bg-paper-100 rounded-lg px-4 py-3 text-sm text-ink-500">
+                {isShippingComplete ? (
+                  <div className="flex justify-between items-center">
+                    <span>Free worldwide shipping</span>
+                    <span className="font-medium text-ink-900">Free</span>
+                  </div>
+                ) : (
+                  'Enter your shipping address to view available shipping methods.'
+                )}
+              </div>
+            </section>
+
+            {/* Payment Section */}
+            <section>
+              <h2 className="text-lg font-semibold text-ink-900 mb-2">Payment</h2>
+              <p className="text-sm text-ink-500 mb-4">All transactions are secure and encrypted.</p>
+
+              {loading || !stripeReady ? (
+                <div className="flex items-center justify-center py-12 border border-gray-200 rounded-xl bg-white">
                   <svg
                     className="animate-spin h-8 w-8 text-gray-400"
                     viewBox="0 0 24 24"
@@ -625,11 +644,11 @@ export default function Checkout() {
                   </svg>
                 </div>
               ) : error ? (
-                <div className="text-center py-8">
+                <div className="text-center py-8 border border-gray-200 rounded-xl bg-white">
                   <p className="text-red-600 mb-4">{error}</p>
                   <button
                     onClick={() => window.location.reload()}
-                    className="px-6 py-2 text-white rounded-lg btn-primary"
+                    className="px-6 py-2 text-white rounded-lg bg-ink-900 hover:bg-ink-800"
                   >
                     Try Again
                   </button>
@@ -642,73 +661,21 @@ export default function Checkout() {
                     shippingAddress={shippingAddress}
                     email={email}
                     onSuccess={handleOrderSuccess}
+                    isShippingComplete={isShippingComplete}
                   />
                 </Elements>
               ) : null}
-            </div>
+            </section>
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">
-              Order Summary
-            </h2>
-            <div className="rounded-2xl p-5 space-y-4 bg-white sticky top-4">
-              {items.map((item) => {
-                const size = sizes.find(s => s.id === item.sizeId)
-                const frame = frames.find(f => f.id === item.frameId)
-
-                return (
-                  <div key={item.key} className="flex gap-3">
-                    <div
-                      className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100"
-                      style={{
-                        border: `2px solid ${frame?.color || '#333'}`,
-                      }}
-                    >
-                      <img
-                        src={getResizedImage(item.image, 80)}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm line-clamp-1 text-gray-800">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs mt-0.5 text-gray-500">
-                        {size?.name} • {frame?.name}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        Qty: {item.quantity}
-                      </p>
-                    </div>
-
-                    <span className="font-semibold text-sm text-gray-800">
-                      ${item.price * item.quantity}
-                    </span>
-                  </div>
-                )
-              })}
-
-              <div className="border-t pt-4 space-y-2 border-gray-200">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Subtotal</span>
-                  <span>${total}</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Shipping</span>
-                  <span className="text-green-600">Free</span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                  <span className="font-medium text-gray-800">Total</span>
-                  <span className="text-xl font-display font-semibold text-gray-900">
-                    ${total}
-                  </span>
-                </div>
-              </div>
-            </div>
+          {/* Right Column - Order Summary */}
+          <div className="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto order-first lg:order-last">
+            <OrderSummary
+              items={items}
+              total={total}
+              isOpen={orderSummaryOpen}
+              onToggle={() => setOrderSummaryOpen(!orderSummaryOpen)}
+            />
           </div>
         </div>
       </div>

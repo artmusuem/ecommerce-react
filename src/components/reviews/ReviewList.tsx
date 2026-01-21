@@ -101,7 +101,7 @@ function ReviewCard({ review }: { review: Review }) {
           <div className="flex items-center gap-2 mb-1">
             <StarRating rating={review.rating} size="sm" />
             {review.verified && (
-              <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-xs text-ink-600 bg-ink-100 px-2 py-0.5 rounded-full font-medium">
                 Verified Buyer
               </span>
             )}
