@@ -64,10 +64,11 @@ describe('Header', () => {
   })
 
   describe('Navigation Links', () => {
-    it('should render Collection link', () => {
+    it('should render Collection link on desktop', () => {
       renderHeader()
-      // Collection is now a simple link, not a dropdown
-      expect(screen.getAllByRole('link', { name: 'Collection' }).length).toBeGreaterThan(0)
+      // Desktop Collection is a simple link
+      const collectionLink = screen.getByRole('link', { name: 'Collection' })
+      expect(collectionLink).toBeInTheDocument()
     })
 
     it('should render About link', () => {
@@ -78,8 +79,8 @@ describe('Header', () => {
 
     it('should link Collection to collections page', () => {
       renderHeader()
-      const collectionLinks = screen.getAllByRole('link', { name: 'Collection' })
-      expect(collectionLinks[0]).toHaveAttribute('href', '/collections')
+      const collectionLink = screen.getByRole('link', { name: 'Collection' })
+      expect(collectionLink).toHaveAttribute('href', '/collections')
     })
 
     it('should link About to about page', () => {
@@ -112,15 +113,15 @@ describe('Header', () => {
       expect(menuWrapper).toHaveClass('opacity-0')
     })
 
-    it('should show Collection and About in mobile menu', () => {
+    it('should show Collection dropdown and About in mobile menu', () => {
       renderHeader()
       const hamburgerButton = screen.getByRole('button', { name: /open menu/i })
       fireEvent.click(hamburgerButton)
 
       const mobileNav = screen.getByRole('navigation', { name: /mobile navigation/i })
-      // Collection is a button (dropdown toggle) and About is a link in mobile menu
-      const collectionButtons = screen.getAllByRole('button', { name: 'Collection' })
-      expect(collectionButtons.length).toBeGreaterThan(0) // At least the mobile Collection button
+      // Collection is a button (dropdown toggle) in mobile menu
+      const collectionButton = screen.getByRole('button', { name: 'Collection' })
+      expect(collectionButton).toBeInTheDocument()
       expect(mobileNav).toContainElement(screen.getAllByText('About')[1])
     })
 

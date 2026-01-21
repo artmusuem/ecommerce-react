@@ -3,7 +3,6 @@ import { useCart, useCartDispatch } from '../../context/CartContext'
 import { getResizedImage } from '../../utils/images'
 import type { ProductRouterState } from '../../types'
 import { ShippingProgress } from '../layout/ShippingBanner'
-import { MoreFromArtist } from './MoreFromArtist'
 
 /**
  * Cart Component
@@ -195,12 +194,6 @@ export default function Cart() {
                         Remove
                       </button>
                     </div>
-
-                    {/* More from this artist carousel */}
-                    <MoreFromArtist
-                      artist={item.artist}
-                      currentProductId={item.productId}
-                    />
                   </div>
                 )
               })}
