@@ -64,10 +64,10 @@ describe('Header', () => {
   })
 
   describe('Navigation Links', () => {
-    it('should render Collections dropdown button', () => {
+    it('should render Collection link', () => {
       renderHeader()
-      // Collections is now a dropdown button, not a link
-      expect(screen.getAllByRole('button', { name: 'Collections' }).length).toBeGreaterThan(0)
+      // Collection is now a simple link, not a dropdown
+      expect(screen.getAllByRole('link', { name: 'Collection' }).length).toBeGreaterThan(0)
     })
 
     it('should render About link', () => {
@@ -76,10 +76,10 @@ describe('Header', () => {
       expect(screen.getAllByRole('link', { name: 'About' }).length).toBeGreaterThan(0)
     })
 
-    it('should show All Collections link in dropdown', () => {
+    it('should link Collection to home page', () => {
       renderHeader()
-      // The "All Collections" link should exist in the dropdown
-      expect(screen.getAllByRole('link', { name: 'All Collections' }).length).toBeGreaterThan(0)
+      const collectionLinks = screen.getAllByRole('link', { name: 'Collection' })
+      expect(collectionLinks[0]).toHaveAttribute('href', '/')
     })
 
     it('should link About to about page', () => {
@@ -112,14 +112,14 @@ describe('Header', () => {
       expect(menuWrapper).toHaveClass('opacity-0')
     })
 
-    it('should show Collections button and About link in mobile menu', () => {
+    it('should show Collection and About links in mobile menu', () => {
       renderHeader()
       const hamburgerButton = screen.getByRole('button', { name: /open menu/i })
       fireEvent.click(hamburgerButton)
 
       const mobileNav = screen.getByRole('navigation', { name: /mobile navigation/i })
-      // Collections is now a button in mobile menu too
-      expect(mobileNav).toContainElement(screen.getAllByText('Collections')[1])
+      // Collection and About are now simple links in mobile menu
+      expect(mobileNav).toContainElement(screen.getAllByText('Collection')[1])
       expect(mobileNav).toContainElement(screen.getAllByText('About')[1])
     })
 
@@ -131,6 +131,19 @@ describe('Header', () => {
       const mobileAboutLinks = screen.getAllByRole('link', { name: 'About' })
       const menuWrapper = screen.getByRole('navigation', { name: /mobile navigation/i }).parentElement
       fireEvent.click(mobileAboutLinks[mobileAboutLinks.length - 1]) // Click mobile About link
+
+      // Menu should be closed (opacity-0 after animation)
+      expect(menuWrapper).toHaveClass('opacity-0')
+    })
+
+    it('should close menu when Collection link is clicked', () => {
+      renderHeader()
+      const hamburgerButton = screen.getByRole('button', { name: /open menu/i })
+      fireEvent.click(hamburgerButton)
+
+      const mobileCollectionLinks = screen.getAllByRole('link', { name: 'Collection' })
+      const menuWrapper = screen.getByRole('navigation', { name: /mobile navigation/i }).parentElement
+      fireEvent.click(mobileCollectionLinks[mobileCollectionLinks.length - 1]) // Click mobile Collection link
 
       // Menu should be closed (opacity-0 after animation)
       expect(menuWrapper).toHaveClass('opacity-0')

@@ -34,7 +34,7 @@ vi.stubEnv('VITE_STRIPE_PUBLIC_KEY', 'pk_test_mock')
 // Helper to add items to cart
 function CartLoader({ items, children }: { items: ReturnType<typeof createMockCartItem>[]; children?: ReactNode }) {
   const dispatch = useCartDispatch()
-  
+
   useEffect(() => {
     items.forEach(item => {
       dispatch({
@@ -52,16 +52,16 @@ function CartLoader({ items, children }: { items: ReturnType<typeof createMockCa
       })
     })
   }, [dispatch, items])
-  
+
   return <>{children}</>
 }
 
 // Test wrapper
-function TestWrapper({ 
-  children, 
+function TestWrapper({
+  children,
   initialRoute = '/checkout',
   cartItems = []
-}: { 
+}: {
   children: ReactNode
   initialRoute?: string
   cartItems?: ReturnType<typeof createMockCartItem>[]
@@ -89,15 +89,15 @@ function TestWrapper({
   )
 }
 
-// Helper to fill shipping form (required for payment section to appear)
+// Helper to fill shipping form using placeholders (component uses placeholders, not labels)
 async function fillShippingForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('Email'), 'test@example.com')
-  await user.type(screen.getByLabelText('First Name'), 'John')
-  await user.type(screen.getByLabelText('Last Name'), 'Doe')
-  await user.type(screen.getByLabelText('Address'), '123 Main St')
-  await user.type(screen.getByLabelText('City'), 'New York')
-  await user.type(screen.getByLabelText(/State\/Province/), 'NY')
-  await user.type(screen.getByLabelText(/ZIP\/Postal Code/), '10001')
+  await user.type(screen.getByPlaceholderText('Email or mobile phone number'), 'test@example.com')
+  await user.type(screen.getByPlaceholderText('First name (optional)'), 'John')
+  await user.type(screen.getByPlaceholderText('Last name'), 'Doe')
+  await user.type(screen.getByPlaceholderText('Address'), '123 Main St')
+  await user.type(screen.getByPlaceholderText('City'), 'New York')
+  await user.type(screen.getByPlaceholderText('State'), 'NY')
+  await user.type(screen.getByPlaceholderText('ZIP code'), '10001')
 }
 
 describe('Checkout Page', () => {
@@ -117,7 +117,7 @@ describe('Checkout Page', () => {
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
         expect(screen.getByText('Your cart is empty')).toBeInTheDocument()
       })
@@ -129,7 +129,7 @@ describe('Checkout Page', () => {
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
         expect(screen.getByRole('link', { name: 'Continue shopping' })).toBeInTheDocument()
       })
@@ -137,7 +137,7 @@ describe('Checkout Page', () => {
   })
 
   describe('With Cart Items', () => {
-    const testItems = [createMockCartItem({ 
+    const testItems = [createMockCartItem({
       productId: 'test-1',
       title: 'Test Artwork',
       artist: 'Test Artist',
@@ -146,49 +146,49 @@ describe('Checkout Page', () => {
       price: 45
     })]
 
-    it('should render checkout heading', async () => {
+    it('should render Contact section heading', async () => {
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Checkout' })).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Contact' })).toBeInTheDocument()
       })
     })
 
-    it('should show order summary heading', async () => {
+    it('should render Delivery section heading', async () => {
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Order Summary' })).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Delivery' })).toBeInTheDocument()
       })
     })
 
-    it('should show payment heading', async () => {
+    it('should render Payment section heading', async () => {
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: 'Payment' })).toBeInTheDocument()
       })
     })
 
-    it('should display cart item title', async () => {
+    it('should display cart item title in order summary', async () => {
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
         expect(screen.getByText('Test Artwork')).toBeInTheDocument()
       })
@@ -217,7 +217,6 @@ describe('Checkout Page', () => {
     })
 
     it('should show error on payment intent failure', async () => {
-      const user = userEvent.setup()
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
       render(
@@ -226,14 +225,12 @@ describe('Checkout Page', () => {
         </TestWrapper>
       )
 
-      await fillShippingForm(user)
       await waitFor(() => {
         expect(screen.getByText('Unable to initialize payment. Please try again.')).toBeInTheDocument()
       })
     })
 
     it('should show Try Again button on error', async () => {
-      const user = userEvent.setup()
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
       render(
@@ -242,21 +239,18 @@ describe('Checkout Page', () => {
         </TestWrapper>
       )
 
-      await fillShippingForm(user)
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Try Again' })).toBeInTheDocument()
       })
     })
 
     it('should render Stripe Elements after payment intent loads', async () => {
-      const user = userEvent.setup()
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
 
-      await fillShippingForm(user)
       await waitFor(() => {
         expect(screen.getByTestId('stripe-elements')).toBeInTheDocument()
       })
@@ -272,13 +266,13 @@ describe('Checkout Page', () => {
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument()
+        expect(screen.getByPlaceholderText('Email or mobile phone number')).toBeInTheDocument()
       })
     })
 
-    it('should render pay button with total', async () => {
+    it('should render pay button', async () => {
       const user = userEvent.setup()
       render(
         <TestWrapper cartItems={testItems}>
@@ -288,37 +282,35 @@ describe('Checkout Page', () => {
 
       await fillShippingForm(user)
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Pay \$/ })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Pay now' })).toBeInTheDocument()
       })
     })
 
-    it('should show secured by Stripe message', async () => {
-      const user = userEvent.setup()
+    it('should show secure transaction message', async () => {
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
 
-      await fillShippingForm(user)
       await waitFor(() => {
-        expect(screen.getByText(/Secured by Stripe/i)).toBeInTheDocument()
+        expect(screen.getByText(/All transactions are secure and encrypted/i)).toBeInTheDocument()
       })
     })
   })
 
   describe('Navigation', () => {
-    const testItems = [createMockCartItem()]
-
-    it('should render back to shop link', async () => {
+    it('should render logo link to home', async () => {
       render(
-        <TestWrapper cartItems={testItems}>
+        <TestWrapper cartItems={[createMockCartItem()]}>
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
-        expect(screen.getByRole('link', { name: /Back to shop/i })).toBeInTheDocument()
+        // Logo link goes to home page
+        const logoLink = screen.getByRole('link', { name: /Gallery Store/i })
+        expect(logoLink).toHaveAttribute('href', '/')
       })
     })
   })
@@ -330,7 +322,7 @@ describe('Checkout Page', () => {
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
         expect(screen.getByText('Thank you for your order!')).toBeInTheDocument()
       })
@@ -342,7 +334,7 @@ describe('Checkout Page', () => {
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
         expect(screen.getByRole('link', { name: 'Continue Shopping' })).toBeInTheDocument()
       })
@@ -354,7 +346,7 @@ describe('Checkout Page', () => {
           <Checkout />
         </TestWrapper>
       )
-      
+
       await waitFor(() => {
         expect(screen.getByText('Thank you for your order!')).toBeInTheDocument()
       })

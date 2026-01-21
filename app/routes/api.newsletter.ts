@@ -69,35 +69,78 @@ async function subscribeToMailchimp(email: string): Promise<SubscriptionResult> 
 }
 
 /**
- * Subscribe email to Klaviyo
+ * Subscribe email to Klaviyo (Modern API - 2024 revision)
+ * Uses the Profile Subscription Bulk Create endpoint
+ *
+ * Environment:
+ * - KLAVIYO_API_KEY: Your private API key (starts with pk_)
+ * - KLAVIYO_LIST_ID: Your list ID (e.g., XyZaBc)
  */
 async function subscribeToKlaviyo(email: string): Promise<SubscriptionResult> {
   const apiKey = process.env.KLAVIYO_API_KEY
   const listId = process.env.KLAVIYO_LIST_ID
 
-  if (!apiKey) {
+  if (!apiKey || !listId) {
     return { success: false, message: 'klaviyo_not_configured' }
   }
 
-  const url = 'https://a.klaviyo.com/api/v2/list/' + (listId || 'default') + '/subscribe'
+  // Modern Klaviyo API endpoint for subscriptions
+  const url = 'https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/'
 
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
+      'Authorization': `Klaviyo-API-Key ${apiKey}`,
+      'revision': '2024-10-15',
     },
     body: JSON.stringify({
-      api_key: apiKey,
-      profiles: [{ email }],
+      data: {
+        type: 'profile-subscription-bulk-create-job',
+        attributes: {
+          profiles: {
+            data: [
+              {
+                type: 'profile',
+                attributes: {
+                  email: email,
+                  subscriptions: {
+                    email: {
+                      marketing: {
+                        consent: 'SUBSCRIBED',
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          historical_import: false,
+        },
+        relationships: {
+          list: {
+            data: {
+              type: 'list',
+              id: listId,
+            },
+          },
+        },
+      },
     }),
   })
 
-  if (response.ok) {
+  if (response.ok || response.status === 202) {
     return { success: true, mode: 'production' }
   }
 
-  console.error('Klaviyo error:', await response.text())
+  // Handle "already subscribed" as success
+  if (response.status === 409) {
+    return { success: true, message: 'already_subscribed', mode: 'production' }
+  }
+
+  const errorText = await response.text()
+  console.error('Klaviyo error:', response.status, errorText)
   return { success: false, message: 'subscription_failed' }
 }
 

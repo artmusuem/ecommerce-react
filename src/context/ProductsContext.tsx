@@ -31,6 +31,7 @@ export function ProductsProvider({ children, products }: ProductsProviderProps) 
  * Access all products
  * Returns empty array if used outside provider (safe fallback)
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useProducts(): Product[] {
   const context = useContext(ProductsContext)
   return context?.products ?? []

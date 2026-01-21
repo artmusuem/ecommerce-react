@@ -4,7 +4,7 @@
 [![React](https://img.shields.io/badge/React-18.2-61dafb)](https://react.dev/)
 [![React Router](https://img.shields.io/badge/React_Router-7.1-ca4245)](https://reactrouter.com/)
 [![Lighthouse](https://img.shields.io/badge/Lighthouse-98%2F95%2F96%2F100-brightgreen)](https://pagespeed.web.dev/)
-[![Tests](https://img.shields.io/badge/Tests-331%20passing-success)](/)
+[![Tests](https://img.shields.io/badge/Tests-330%20passing-success)](/)
 [![Coverage](https://img.shields.io/badge/Coverage-89%25-green)](/)
 
 A **production-ready starter kit** for building headless Shopify storefronts with React Router 7 SSR. Fork this repo and deploy your own art print store in under an hour.
@@ -41,7 +41,7 @@ A **production-ready starter kit** for building headless Shopify storefronts wit
 
 ### Developer Experience
 - [x] **TypeScript strict mode** - Zero `any` types
-- [x] **331 passing tests** - Unit, component, integration
+- [x] **330 passing tests** - Unit, component, integration
 - [x] **89% test coverage** - CI enforced thresholds
 - [x] **Zero ESLint warnings** - Clean codebase
 - [x] **Comprehensive docs** - Architecture, guides, API reference
@@ -176,7 +176,7 @@ The `@shopify/hydrogen-react` library is used for Shopify components (Money, Ima
 
 | Metric | Value | Details |
 |--------|-------|---------|
-| **Test Coverage** | 331 tests | Unit, component, and integration tests |
+| **Test Coverage** | 330 tests | Unit, component, and integration tests |
 | **TypeScript** | 100% strict | Zero `any` types, full type safety |
 | **Bundle Size** | 88KB gzipped | Code-split with lazy loading |
 | **Image Optimization** | ~70% reduction | Cloudinary CDN with auto-format |
@@ -339,25 +339,28 @@ export function getResizedImage(url: string, maxSize: number): string {
 ### Test Results
 
 ```
- ✓ src/utils/images.test.ts (20 tests)
  ✓ src/utils/analytics.test.ts (17 tests)
+ ✓ src/utils/images.test.ts (20 tests)
  ✓ src/data/products.test.ts (33 tests)
  ✓ src/context/CartContext.test.tsx (14 tests)
- ✓ src/components/cart/Cart.test.tsx (21 tests)
- ✓ src/components/product/ProductCard.test.tsx (17 tests)
- ✓ src/components/layout/Header.test.tsx (16 tests)
+ ✓ src/components/cart/Cart.test.tsx (22 tests)
+ ✓ src/components/checkout/ShopifyCheckoutButton.test.tsx (15 tests)
+ ✓ src/components/home/ArtistCircles.test.tsx (9 tests)
+ ✓ src/components/layout/Header.test.tsx (17 tests)
  ✓ src/components/layout/ShippingBanner.test.tsx (8 tests)
- ✓ src/components/home/ArtistCircles.test.tsx (10 tests)
  ✓ src/components/newsletter/NewsletterForm.test.tsx (15 tests)
+ ✓ src/components/product/FrameIcon.test.tsx (24 tests)
+ ✓ src/components/product/FramePreview.test.tsx (22 tests)
+ ✓ src/components/product/ProductCard.test.tsx (18 tests)
  ✓ src/components/reviews/StarRating.test.tsx (13 tests)
  ✓ src/components/seo/MetaTags.test.tsx (16 tests)
- ✓ src/pages/Home.test.tsx (19 tests)
+ ✓ src/pages/Home.test.tsx (18 tests)
  ✓ src/pages/Product.test.tsx (25 tests)
  ✓ src/pages/Checkout.test.tsx (17 tests)
  ✓ src/test/integration.test.tsx (7 tests)
 
  Test Files  19 passed (19)
-      Tests  331 passed (331)
+      Tests  330 passed (330)
 ```
 
 ### Test Categories
@@ -483,11 +486,15 @@ STRIPE_SECRET_KEY=sk_test_xxx
 VITE_GA_TRACKING_ID=G-XXXXXXXXXX
 
 # Newsletter service (choose one)
-MAILCHIMP_API_KEY=xxx
-MAILCHIMP_LIST_ID=xxx
-# OR
-KLAVIYO_API_KEY=xxx
-KLAVIYO_LIST_ID=xxx
+# Mailchimp - get from mailchimp.com/developer
+MAILCHIMP_API_KEY=xxx-us21
+MAILCHIMP_LIST_ID=abc123def4
+
+# OR Klaviyo (most popular for Shopify)
+# Get from: Settings → API Keys → Private Key (starts with pk_)
+# Get list ID from: Lists → Your List → Settings
+KLAVIYO_API_KEY=pk_xxx
+KLAVIYO_LIST_ID=XyZaBc
 
 # ============================================
 # OPTIONAL - Print Fulfillment
@@ -502,7 +509,7 @@ PRINTFUL_API_KEY=xxx
 | Feature | Recommended Service | Alternatives |
 |---------|---------------------|--------------|
 | **Analytics** | Google Analytics 4 | Plausible, Fathom |
-| **Newsletter** | Mailchimp (free tier) | Klaviyo, ConvertKit, SendGrid |
+| **Newsletter** | Klaviyo (most popular for Shopify) | Mailchimp, ConvertKit, SendGrid |
 | **Reviews** | Judge.me (free tier) | Yotpo, Stamped.io |
 | **Fulfillment** | Printful | Prodigi, Gooten, SPOD |
 | **Image CDN** | Cloudinary (free tier) | Imgix, Shopify CDN |
