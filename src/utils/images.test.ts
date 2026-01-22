@@ -15,7 +15,7 @@ describe('images.ts utilities', () => {
       expect(IMAGE_SIZES.blur).toBe(20)
       expect(IMAGE_SIZES.thumbnail).toBe(400)
       expect(IMAGE_SIZES.preview).toBe(800)
-      expect(IMAGE_SIZES.full).toBe(1600)
+      expect(IMAGE_SIZES.full).toBe(1200)
     })
   })
 
@@ -54,13 +54,13 @@ describe('images.ts utilities', () => {
       })
 
       it('should use correct transform parameters', () => {
-        const result = getResizedImage(smithsonianUrl, 1600)
-        
+        const result = getResizedImage(smithsonianUrl, 1200)
+
         // Should NOT contain dpr_auto (we removed it for caching consistency)
         expect(result).not.toContain('dpr_auto')
-        
-        // Should contain our standard transforms
-        expect(result).toMatch(/w_1600,c_limit,q_auto,f_auto/)
+
+        // Should contain our standard transforms (q_auto:good for better compression)
+        expect(result).toMatch(/w_1200,c_limit,q_auto:good,f_auto/)
       })
 
       it('should properly encode special characters in URL', () => {
@@ -84,7 +84,7 @@ describe('images.ts utilities', () => {
 
       it('should generate full size', () => {
         const result = getResizedImage(smithsonianUrl, IMAGE_SIZES.full)
-        expect(result).toContain('w_1600')
+        expect(result).toContain('w_1200')
       })
     })
   })
