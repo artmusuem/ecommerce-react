@@ -8,6 +8,7 @@ import {
   useLoaderData,
   type LinksFunction,
 } from "react-router";
+import { Analytics } from "@vercel/analytics/react";
 // @ts-expect-error - React Router 7 generates these types at build time
 import type { Route } from "./+types/root";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
@@ -165,6 +166,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
+        <Analytics />
       </body>
     </html>
   );
