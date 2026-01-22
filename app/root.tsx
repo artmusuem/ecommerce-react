@@ -25,7 +25,9 @@ export const links: LinksFunction = () => [
   // CDN preconnects for images
   { rel: "preconnect", href: "https://res.cloudinary.com", crossOrigin: "anonymous" },
   { rel: "preconnect", href: "https://cdn.shopify.com", crossOrigin: "anonymous" },
-  // Fonts are self-hosted in /public/fonts/ - see app.css @font-face
+  // Font preloads - start downloading immediately instead of waiting for CSS
+  { rel: "preload", href: "/fonts/playfair-display-latin.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+  { rel: "preload", href: "/fonts/inter-latin.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
 ];
 
 /**
