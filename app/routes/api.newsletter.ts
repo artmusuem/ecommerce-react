@@ -80,68 +80,85 @@ async function subscribeToKlaviyo(email: string): Promise<SubscriptionResult> {
   const apiKey = process.env.KLAVIYO_API_KEY
   const listId = process.env.KLAVIYO_LIST_ID
 
+  // Debug logging
+  console.log('[Klaviyo] API Key present:', !!apiKey, apiKey ? `(${apiKey.substring(0, 6)}...)` : '')
+  console.log('[Klaviyo] List ID:', listId || 'NOT SET')
+
   if (!apiKey || !listId) {
+    console.error('[Klaviyo] Missing credentials - API Key:', !!apiKey, 'List ID:', !!listId)
     return { success: false, message: 'klaviyo_not_configured' }
   }
 
   // Modern Klaviyo API endpoint for subscriptions
   const url = 'https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/'
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'Authorization': `Klaviyo-API-Key ${apiKey}`,
-      'revision': '2024-10-15',
-    },
-    body: JSON.stringify({
-      data: {
-        type: 'profile-subscription-bulk-create-job',
-        attributes: {
-          profiles: {
-            data: [
-              {
-                type: 'profile',
-                attributes: {
-                  email: email,
-                  subscriptions: {
-                    email: {
-                      marketing: {
-                        consent: 'SUBSCRIBED',
-                      },
+  const requestBody = {
+    data: {
+      type: 'profile-subscription-bulk-create-job',
+      attributes: {
+        profiles: {
+          data: [
+            {
+              type: 'profile',
+              attributes: {
+                email: email,
+                subscriptions: {
+                  email: {
+                    marketing: {
+                      consent: 'SUBSCRIBED',
                     },
                   },
                 },
               },
-            ],
-          },
-          historical_import: false,
-        },
-        relationships: {
-          list: {
-            data: {
-              type: 'list',
-              id: listId,
             },
+          ],
+        },
+        historical_import: false,
+      },
+      relationships: {
+        list: {
+          data: {
+            type: 'list',
+            id: listId,
           },
         },
       },
-    }),
-  })
-
-  if (response.ok || response.status === 202) {
-    return { success: true, mode: 'production' }
+    },
   }
 
-  // Handle "already subscribed" as success
-  if (response.status === 409) {
-    return { success: true, message: 'already_subscribed', mode: 'production' }
-  }
+  console.log('[Klaviyo] Sending request for email:', email)
 
-  const errorText = await response.text()
-  console.error('Klaviyo error:', response.status, errorText)
-  return { success: false, message: 'subscription_failed' }
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Klaviyo-API-Key ${apiKey}`,
+        'revision': '2024-10-15',
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    console.log('[Klaviyo] Response status:', response.status)
+
+    if (response.ok || response.status === 202) {
+      console.log('[Klaviyo] Success!')
+      return { success: true, mode: 'production' }
+    }
+
+    // Handle "already subscribed" as success
+    if (response.status === 409) {
+      return { success: true, message: 'already_subscribed', mode: 'production' }
+    }
+
+    const errorText = await response.text()
+    console.error('[Klaviyo] Error response:', response.status, errorText)
+    return { success: false, message: 'subscription_failed' }
+  } catch (error) {
+    console.error('[Klaviyo] Fetch error:', error)
+    return { success: false, message: 'subscription_failed' }
+  }
 }
 
 /**
