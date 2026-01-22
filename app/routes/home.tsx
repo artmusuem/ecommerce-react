@@ -70,21 +70,18 @@ export default function Home() {
   return (
     <main className="bg-paper-50 min-h-screen">
       {/* Hero Section - Full viewport dramatic visual */}
-      <section className="relative bg-ink-900 text-paper-50 min-h-[85vh] flex items-center justify-center">
-        {/* Background image with overlay - use brighter image (index 3 = Summertime) */}
-        {/* Using 600px with eco compression - 50% opacity doesn't need high detail */}
-        {featured[3] && (
-          <div className="absolute inset-0">
-            <img
-              src={getResizedImage(featured[3].image, 600, { quality: 'auto:eco' })}
-              alt=""
-              className="w-full h-full object-cover opacity-50"
-              loading="eager"
-              fetchPriority="high"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-ink-900/50 via-ink-900/30 to-ink-900/70" />
-          </div>
-        )}
+      {/* Using CSS background-image for faster LCP (renders without waiting for hydration) */}
+      <section
+        className="relative bg-ink-900 text-paper-50 min-h-[85vh] flex items-center justify-center"
+        style={featured[3] ? {
+          backgroundImage: `
+            linear-gradient(to bottom, rgba(26,26,26,0.5), rgba(26,26,26,0.3), rgba(26,26,26,0.7)),
+            url(${getResizedImage(featured[3].image, 600, { quality: 'auto:eco' })})
+          `,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        } : undefined}
+      >
 
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           {/* Decorative text */}
