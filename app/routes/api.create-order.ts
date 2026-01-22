@@ -1,5 +1,11 @@
+import Stripe from 'stripe'
+
 const SHOPIFY_STORE = process.env.SHOPIFY_STORE || process.env.VITE_SHOPIFY_STORE
 const SHOPIFY_ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_TOKEN
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY
+
+// Initialize Stripe
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null
 
 interface LineItem {
   title: string
@@ -67,6 +73,71 @@ const DRAFT_ORDER_COMPLETE = `
   }
 `
 
+// GraphQL query to find existing order by payment intent (idempotency)
+const FIND_ORDER_BY_NOTE = `
+  query findOrderByNote($query: String!) {
+    orders(first: 1, query: $query) {
+      edges {
+        node {
+          id
+          name
+          totalPriceSet {
+            shopMoney {
+              amount
+              currencyCode
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+// GraphQL mutation to adjust inventory
+const INVENTORY_ADJUST = `
+  mutation inventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!) {
+    inventoryAdjustQuantities(input: $input) {
+      inventoryAdjustmentGroup {
+        reason
+        changes {
+          name
+          delta
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`
+
+// GraphQL query to get variant inventory info
+const GET_VARIANT_INVENTORY = `
+  query getVariantInventory($id: ID!) {
+    productVariant(id: $id) {
+      id
+      inventoryItem {
+        id
+        inventoryLevels(first: 1) {
+          edges {
+            node {
+              id
+              location {
+                id
+              }
+              quantities(names: ["available"]) {
+                name
+                quantity
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 async function shopifyAdminRequest(query: string, variables: Record<string, unknown>) {
   const response = await fetch(`https://${SHOPIFY_STORE}/admin/api/2024-01/graphql.json`, {
     method: 'POST',
@@ -83,6 +154,102 @@ async function shopifyAdminRequest(query: string, variables: Record<string, unkn
   }
 
   return response.json()
+}
+
+// Verify Stripe payment - CRITICAL SECURITY CHECK
+async function verifyStripePayment(paymentIntentId: string): Promise<{ verified: boolean; amount?: number; error?: string }> {
+  if (!stripe) {
+    console.warn('Stripe not configured - skipping payment verification')
+    return { verified: true } // Allow in dev mode without Stripe
+  }
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+
+    if (paymentIntent.status !== 'succeeded') {
+      return {
+        verified: false,
+        error: `Payment not completed. Status: ${paymentIntent.status}`
+      }
+    }
+
+    return {
+      verified: true,
+      amount: paymentIntent.amount / 100 // Convert from cents
+    }
+  } catch (error) {
+    console.error('Stripe verification error:', error)
+    return {
+      verified: false,
+      error: error instanceof Error ? error.message : 'Failed to verify payment'
+    }
+  }
+}
+
+// Check if order already exists for this payment intent (idempotency)
+async function findExistingOrder(paymentIntentId: string): Promise<{ exists: boolean; order?: { id: string; name: string; total: string } }> {
+  try {
+    const result = await shopifyAdminRequest(FIND_ORDER_BY_NOTE, {
+      query: `note:*${paymentIntentId}*`
+    })
+
+    const existingOrder = result.data?.orders?.edges?.[0]?.node
+    if (existingOrder) {
+      return {
+        exists: true,
+        order: {
+          id: existingOrder.id,
+          name: existingOrder.name,
+          total: existingOrder.totalPriceSet?.shopMoney?.amount
+        }
+      }
+    }
+
+    return { exists: false }
+  } catch (error) {
+    console.error('Error checking for existing order:', error)
+    return { exists: false }
+  }
+}
+
+// Adjust inventory for purchased items
+async function adjustInventory(lineItems: LineItem[]): Promise<void> {
+  for (const item of lineItems) {
+    if (!item.variantId) continue
+
+    try {
+      // Get inventory item ID for the variant
+      const variantResult = await shopifyAdminRequest(GET_VARIANT_INVENTORY, {
+        id: item.variantId
+      })
+
+      const inventoryItem = variantResult.data?.productVariant?.inventoryItem
+      const inventoryLevel = inventoryItem?.inventoryLevels?.edges?.[0]?.node
+
+      if (!inventoryItem?.id || !inventoryLevel?.location?.id) {
+        console.warn(`No inventory found for variant ${item.variantId}`)
+        continue
+      }
+
+      // Adjust inventory (reduce by quantity purchased)
+      await shopifyAdminRequest(INVENTORY_ADJUST, {
+        input: {
+          reason: 'sale',
+          name: 'available',
+          changes: [{
+            inventoryItemId: inventoryItem.id,
+            locationId: inventoryLevel.location.id,
+            delta: -item.quantity
+          }]
+        }
+      })
+
+      console.info(`Adjusted inventory for ${item.variantId}: -${item.quantity}`)
+    } catch (error) {
+      console.error(`Failed to adjust inventory for ${item.variantId}:`, error)
+      // Don't fail the order for inventory errors - just log
+    }
+  }
 }
 
 // Resource route - only action, no component
@@ -110,11 +277,12 @@ export async function action({ request }: { request: Request }) {
 
   try {
     const body = await request.json()
-    const { email, lineItems, shippingAddress, paymentIntentId } = body as {
+    const { email, lineItems, shippingAddress, paymentIntentId, total } = body as {
       email: string
       lineItems: LineItem[]
       shippingAddress: ShippingAddress
       paymentIntentId: string
+      total: number
     }
 
     // Validate required fields
@@ -128,7 +296,61 @@ export async function action({ request }: { request: Request }) {
       })
     }
 
-    // Build draft order input
+    // ========================================
+    // STEP 1: Verify Stripe Payment (SECURITY)
+    // ========================================
+    console.info('Verifying Stripe payment...')
+    const verification = await verifyStripePayment(paymentIntentId)
+
+    if (!verification.verified) {
+      console.error('Payment verification failed:', verification.error)
+      return new Response(JSON.stringify({
+        error: 'Payment verification failed',
+        details: verification.error
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Verify payment amount matches expected total (with small tolerance for rounding)
+    if (verification.amount && total) {
+      const tolerance = 0.01 // 1 cent tolerance for rounding
+      if (Math.abs(verification.amount - total) > tolerance) {
+        console.error('Payment amount mismatch:', { paid: verification.amount, expected: total })
+        return new Response(JSON.stringify({
+          error: 'Payment amount mismatch',
+          details: `Paid: $${verification.amount}, Expected: $${total}`
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+    }
+    console.info('Payment verified successfully')
+
+    // ========================================
+    // STEP 2: Check for Existing Order (Idempotency)
+    // ========================================
+    console.info('Checking for existing order...')
+    const existing = await findExistingOrder(paymentIntentId)
+
+    if (existing.exists && existing.order) {
+      console.info('Order already exists:', existing.order.name)
+      return new Response(JSON.stringify({
+        success: true,
+        order: existing.order,
+        stripePaymentIntent: paymentIntentId,
+        note: 'Order already processed'
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // ========================================
+    // STEP 3: Create Draft Order in Shopify
+    // ========================================
     const draftOrderInput = {
       email,
       note: `Stripe Payment Intent: ${paymentIntentId}`,
@@ -152,7 +374,6 @@ export async function action({ request }: { request: Request }) {
       tags: ['headless-checkout', 'stripe-payment'],
     }
 
-    // Step 1: Create draft order
     console.info('Creating draft order...')
     const createResult = await shopifyAdminRequest(DRAFT_ORDER_CREATE, {
       input: draftOrderInput
@@ -184,7 +405,9 @@ export async function action({ request }: { request: Request }) {
 
     console.info('Draft order created:', draftOrderId)
 
-    // Step 2: Complete draft order (marks as paid)
+    // ========================================
+    // STEP 4: Complete Draft Order (Mark as Paid)
+    // ========================================
     console.info('Completing draft order...')
     const completeResult = await shopifyAdminRequest(DRAFT_ORDER_COMPLETE, {
       id: draftOrderId
@@ -215,6 +438,14 @@ export async function action({ request }: { request: Request }) {
     }
 
     console.info('Order created successfully:', order.name)
+
+    // ========================================
+    // STEP 5: Adjust Inventory (Non-blocking)
+    // ========================================
+    // Run inventory adjustment in background - don't block order confirmation
+    adjustInventory(lineItems).catch(err => {
+      console.error('Background inventory adjustment failed:', err)
+    })
 
     // Return success with order details
     return new Response(JSON.stringify({

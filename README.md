@@ -4,7 +4,7 @@
 [![React](https://img.shields.io/badge/React-18.2-61dafb)](https://react.dev/)
 [![React Router](https://img.shields.io/badge/React_Router-7.1-ca4245)](https://reactrouter.com/)
 [![Lighthouse](https://img.shields.io/badge/Lighthouse-98%2F95%2F96%2F100-brightgreen)](https://pagespeed.web.dev/)
-[![Tests](https://img.shields.io/badge/Tests-330%20passing-success)](/)
+[![Tests](https://img.shields.io/badge/Tests-347%20passing-success)](/)
 [![Coverage](https://img.shields.io/badge/Coverage-89%25-green)](/)
 
 A **production-ready starter kit** for building headless Shopify storefronts with React Router 7 SSR. Fork this repo and deploy your own art print store in under an hour.
@@ -18,7 +18,8 @@ A **production-ready starter kit** for building headless Shopify storefronts wit
 ### Core E-commerce
 - [x] **Shopify Storefront API** - Products, collections, variants
 - [x] **Cart with SSR persistence** - localStorage without hydration errors
-- [x] **Stripe Checkout** - PCI-compliant payment processing
+- [x] **Dual checkout modes** - Stripe or Shopify with one env variable ([docs](docs/guides/CHECKOUT-MODES.md))
+- [x] **Works on free dev stores** - Stripe mode bypasses checkout restrictions
 - [x] **Product variants** - Size and frame options with dynamic pricing
 - [x] **Cloudinary CDN** - Automatic image optimization (WebP/AVIF)
 
@@ -41,7 +42,7 @@ A **production-ready starter kit** for building headless Shopify storefronts wit
 
 ### Developer Experience
 - [x] **TypeScript strict mode** - Zero `any` types
-- [x] **330 passing tests** - Unit, component, integration
+- [x] **347 passing tests** - Unit, component, integration
 - [x] **89% test coverage** - CI enforced thresholds
 - [x] **Zero ESLint warnings** - Clean codebase
 - [x] **Comprehensive docs** - Architecture, guides, API reference
@@ -50,33 +51,51 @@ A **production-ready starter kit** for building headless Shopify storefronts wit
 
 ## Quick Start
 
-### 1. Fork & Clone
+### Option A: Interactive Setup (Recommended)
 
 ```bash
+# 1. Clone
 git clone https://github.com/YOUR_USERNAME/ecommerce-react-shopify.git
 cd ecommerce-react-shopify
 npm install
-```
 
-### 2. Configure Environment
+# 2. Run setup wizard
+npm run setup
+# Guides you through Shopify and Stripe configuration
 
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` with your credentials (see [Environment Variables](#environment-variables)).
-
-### 3. Run Development Server
-
-```bash
+# 3. Start development
 npm run dev
 ```
 
-### 4. Deploy to Vercel
+### Option B: Manual Setup
+
+```bash
+# 1. Clone
+git clone https://github.com/YOUR_USERNAME/ecommerce-react-shopify.git
+cd ecommerce-react-shopify
+npm install
+
+# 2. Copy env template
+cp .env.example .env.local
+
+# 3. Edit .env.local with your credentials
+# See docs/guides/SETUP-CHECKLIST.md for detailed instructions
+
+# 4. Start development
+npm run dev
+```
+
+### Test Checkout
+
+Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC)
+
+### Deploy to Vercel
 
 ```bash
 vercel
 ```
+
+**Full setup guide:** [docs/guides/SETUP-CHECKLIST.md](docs/guides/SETUP-CHECKLIST.md)
 
 ---
 
@@ -176,7 +195,7 @@ The `@shopify/hydrogen-react` library is used for Shopify components (Money, Ima
 
 | Metric | Value | Details |
 |--------|-------|---------|
-| **Test Coverage** | 330 tests | Unit, component, and integration tests |
+| **Test Coverage** | 347 tests | Unit, component, and integration tests |
 | **TypeScript** | 100% strict | Zero `any` types, full type safety |
 | **Bundle Size** | 88KB gzipped | Code-split with lazy loading |
 | **Image Optimization** | ~70% reduction | Cloudinary CDN with auto-format |
@@ -359,8 +378,8 @@ export function getResizedImage(url: string, maxSize: number): string {
  ✓ src/pages/Checkout.test.tsx (17 tests)
  ✓ src/test/integration.test.tsx (7 tests)
 
- Test Files  19 passed (19)
-      Tests  330 passed (330)
+ Test Files  21 passed (21)
+      Tests  347 passed (347)
 ```
 
 ### Test Categories
@@ -471,10 +490,20 @@ VITE_SHOPIFY_STOREFRONT_TOKEN=your_token
 VITE_CLOUDINARY_CLOUD=your_cloud_name
 
 # ============================================
+# CHECKOUT MODE
+# ============================================
+
+# Options: 'stripe' (default) or 'shopify'
+# stripe = Custom UI, works on free dev stores
+# shopify = Native Shopify checkout redirect
+VITE_CHECKOUT_MODE=stripe
+
+# ============================================
 # REQUIRED FOR CHECKOUT - Payment Processing
 # ============================================
 
 # Stripe (stripe.com/docs/keys)
+# Required when VITE_CHECKOUT_MODE=stripe
 VITE_STRIPE_PUBLIC_KEY=pk_test_xxx
 STRIPE_SECRET_KEY=sk_test_xxx
 

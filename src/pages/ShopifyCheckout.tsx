@@ -23,13 +23,15 @@ const CREATE_CART_MUTATION = `
 `
 
 async function shopifyFetch(query: string, variables: Record<string, unknown>) {
+  // Type assertions are safe here - the caller (createShopifyCartAndRedirect)
+  // validates that these env vars exist before calling this function
   const res = await fetch(
     `https://${SHOPIFY_STORE}/api/2024-01/graphql.json`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_TOKEN,
+        'X-Shopify-Storefront-Access-Token': SHOPIFY_TOKEN as string,
       },
       body: JSON.stringify({ query, variables }),
     }

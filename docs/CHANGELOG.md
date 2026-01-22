@@ -1,8 +1,39 @@
-# Changelog: SSR-Safe Cart Persistence
+# Changelog
 
-## Decision Log
+This document captures the engineering decisions, iterations, and rationale behind key architectural changes.
 
-This document captures the engineering decisions, iterations, and rationale behind the SSR-safe cart persistence implementation.
+---
+
+## [2.1.0] - 2026-01-21
+
+### Added
+- **Dual checkout mode support** via `VITE_CHECKOUT_MODE` environment variable
+- Checkout configuration module (`src/config/checkout.ts`) with validation and fallback logic
+- Comprehensive checkout modes documentation (`docs/guides/CHECKOUT-MODES.md`)
+- Configuration tests for checkout mode selection (14 new tests)
+- Smart fallback behavior: if requested mode isn't configured, falls back to alternative
+
+### Changed
+- `app/routes/checkout.tsx` now dynamically loads Stripe or Shopify checkout based on config
+- Updated `.env.example` with checkout mode documentation and test card numbers
+- Updated `README.md` with checkout options feature documentation
+- Updated `docs/README.md` to link to new checkout modes guide
+- Fixed Checkout.test.tsx to match actual component implementation (Elements, not Embedded Checkout)
+
+### Technical Details
+
+#### Decision: Dual Checkout Mode Architecture
+**Context**: Free Shopify dev stores have locked checkout, blocking headless development testing.
+
+**Solution**: Support two checkout modes switchable via environment variable:
+- `stripe` (default): Custom checkout with Stripe Elements, creates orders via Admin API
+- `shopify`: Native Shopify checkout redirect via Storefront API cart creation
+
+**Benefits**:
+- Developers can test full checkout flow on free dev stores
+- Production stores can use either mode based on business needs
+- Graceful fallback if one mode isn't configured
+- Comprehensive error messages guide setup
 
 ---
 

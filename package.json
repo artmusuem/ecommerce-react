@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "setup": "node scripts/setup.js",
     "dev": "react-router dev",
     "dev:api": "node server/index.js",
     "build": "react-router build",

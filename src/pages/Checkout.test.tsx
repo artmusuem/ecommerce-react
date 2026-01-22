@@ -10,12 +10,18 @@ import { useEffect, type ReactNode } from 'react'
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
-// Mock Stripe Embedded Checkout
+// Mock Stripe Elements (PaymentElement)
 vi.mock('@stripe/react-stripe-js', () => ({
-  EmbeddedCheckoutProvider: ({ children }: { children: ReactNode }) => (
-    <div data-testid="stripe-checkout-provider">{children}</div>
+  Elements: ({ children }: { children: ReactNode }) => (
+    <div data-testid="stripe-elements-provider">{children}</div>
   ),
-  EmbeddedCheckout: () => <div data-testid="stripe-embedded-checkout">Stripe Embedded Checkout</div>,
+  PaymentElement: () => <div data-testid="stripe-payment-element">Payment Element</div>,
+  useStripe: () => ({
+    confirmPayment: vi.fn().mockResolvedValue({ paymentIntent: { status: 'succeeded', id: 'test_pi' } })
+  }),
+  useElements: () => ({
+    submit: vi.fn().mockResolvedValue({})
+  }),
 }))
 
 vi.mock('@stripe/stripe-js', () => ({
@@ -117,7 +123,7 @@ describe('Checkout Page', () => {
       })
     })
 
-    it('should not render Stripe Embedded Checkout when cart is empty', async () => {
+    it('should not render Stripe Payment Element when cart is empty', async () => {
       render(
         <TestWrapper>
           <Checkout />
@@ -125,7 +131,7 @@ describe('Checkout Page', () => {
       )
 
       await waitFor(() => {
-        expect(screen.queryByTestId('stripe-embedded-checkout')).not.toBeInTheDocument()
+        expect(screen.queryByTestId('stripe-payment-element')).not.toBeInTheDocument()
       })
     })
   })
@@ -152,7 +158,7 @@ describe('Checkout Page', () => {
       })
     })
 
-    it('should render Stripe Embedded Checkout', async () => {
+    it('should render Stripe Payment Element', async () => {
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
@@ -160,7 +166,7 @@ describe('Checkout Page', () => {
       )
 
       await waitFor(() => {
-        expect(screen.getByTestId('stripe-embedded-checkout')).toBeInTheDocument()
+        expect(screen.getByTestId('stripe-payment-element')).toBeInTheDocument()
       })
     })
 
@@ -172,8 +178,7 @@ describe('Checkout Page', () => {
       )
 
       await waitFor(() => {
-        expect(screen.getByText('Secure checkout')).toBeInTheDocument()
-        expect(screen.getByText('Powered by Stripe')).toBeInTheDocument()
+        expect(screen.getByText('Secure checkout powered by Stripe')).toBeInTheDocument()
       })
     })
   })
@@ -181,23 +186,22 @@ describe('Checkout Page', () => {
   describe('Checkout Session', () => {
     const testItems = [createMockCartItem()]
 
-    it('should create checkout session when component renders with items', async () => {
+    it('should create payment intent when component renders with items', async () => {
       render(
         <TestWrapper cartItems={testItems}>
           <Checkout />
         </TestWrapper>
       )
 
-      // The fetchClientSecret is called by EmbeddedCheckoutProvider
-      // Since we mock it, we verify the component renders the provider
+      // Verify the Elements provider renders (which means payment intent was created)
       await waitFor(() => {
-        expect(screen.getByTestId('stripe-checkout-provider')).toBeInTheDocument()
+        expect(screen.getByTestId('stripe-elements-provider')).toBeInTheDocument()
       })
     })
   })
 
-  // Note: Error state tests are skipped because EmbeddedCheckoutProvider
-  // is mocked and doesn't actually call fetchClientSecret. Error handling
+  // Note: Error state tests are skipped because Elements provider
+  // is mocked and doesn't actually call the payment intent API. Error handling
   // is tested manually via the live checkout flow.
 
   describe('Navigation', () => {
