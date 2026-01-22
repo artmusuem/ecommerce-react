@@ -231,12 +231,13 @@ function SuccessMessage({ orderName }: { orderName: string }) {
 }
 
 // Order Summary Component (collapsible on mobile)
-function OrderSummary({ items, total, isOpen, onToggle, isShippingComplete }: {
+function OrderSummary({ items, total, isOpen, onToggle, isShippingComplete, missingFieldsCount }: {
   items: CartItem[]
   total: number
   isOpen: boolean
   onToggle: () => void
   isShippingComplete: boolean
+  missingFieldsCount: number
 }) {
   return (
     <div className="bg-paper-100 lg:bg-white">
@@ -323,7 +324,7 @@ function OrderSummary({ items, total, isOpen, onToggle, isShippingComplete }: {
           <div className="flex justify-between text-sm text-ink-600">
             <span>Shipping</span>
             <span className={isShippingComplete ? "font-medium text-ink-900" : "text-ink-500"}>
-              {isShippingComplete ? "Free" : "Enter shipping address"}
+              {isShippingComplete ? "Free" : missingFieldsCount === 1 ? "Complete 1 field" : `Complete ${missingFieldsCount} fields`}
             </span>
           </div>
           <div className="flex justify-between items-center pt-2 border-t border-gray-100">
@@ -437,6 +438,18 @@ export default function Checkout() {
     shippingAddress.city &&
     shippingAddress.province &&
     shippingAddress.zip)
+
+  // Helper to get what's missing for better UX messaging
+  const getMissingFields = () => {
+    const missing: string[] = []
+    if (!email) missing.push('email')
+    if (!shippingAddress.lastName) missing.push('last name')
+    if (!shippingAddress.address1) missing.push('address')
+    if (!shippingAddress.city) missing.push('city')
+    if (!shippingAddress.province) missing.push('state')
+    if (!shippingAddress.zip) missing.push('ZIP code')
+    return missing
+  }
 
   // Update field helper
   const updateField = (field: keyof ShippingAddress, value: string) => {
@@ -609,7 +622,12 @@ export default function Checkout() {
                     <span className="font-medium text-ink-900">Free</span>
                   </div>
                 ) : (
-                  'Enter your shipping address to view available shipping methods.'
+                  (() => {
+                    const missing = getMissingFields()
+                    if (missing.length === 0) return 'Loading shipping methods...'
+                    if (missing.length === 1) return `Enter your ${missing[0]} to view shipping methods.`
+                    return `Enter your ${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]} to continue.`
+                  })()
                 )}
               </div>
             </section>
@@ -662,6 +680,7 @@ export default function Checkout() {
               isOpen={orderSummaryOpen}
               onToggle={() => setOrderSummaryOpen(!orderSummaryOpen)}
               isShippingComplete={isShippingComplete}
+              missingFieldsCount={getMissingFields().length}
             />
           </div>
         </div>
