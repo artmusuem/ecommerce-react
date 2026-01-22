@@ -72,14 +72,15 @@ export default function Home() {
       {/* Hero Section - Full viewport dramatic visual */}
       <section className="relative bg-ink-900 text-paper-50 min-h-[85vh] flex items-center justify-center">
         {/* Background image with overlay - use brighter image (index 3 = Summertime) */}
-        {/* Using preview size (800px) - sufficient for 50% opacity background */}
+        {/* Using 600px with eco compression - 50% opacity doesn't need high detail */}
         {featured[3] && (
           <div className="absolute inset-0">
             <img
-              src={getResizedImage(featured[3].image, IMAGE_SIZES.preview)}
+              src={getResizedImage(featured[3].image, 600, { quality: 'auto:eco' })}
               alt=""
               className="w-full h-full object-cover opacity-50"
               loading="eager"
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-ink-900/50 via-ink-900/30 to-ink-900/70" />
           </div>
@@ -114,7 +115,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             {/* Mockup Image - Framed art display */}
-            {/* Using preview size (800px) - matches displayed dimensions */}
+            {/* Using 600px - displayed at ~518px max */}
             <div className="relative order-2 lg:order-1">
               <div className="bg-paper-100 rounded-xl p-8 sm:p-12 shadow-2xl">
                 {featured[0] && (
@@ -126,7 +127,7 @@ export default function Home() {
                     }}
                   >
                     <img
-                      src={getResizedImage(featured[0].image, IMAGE_SIZES.preview)}
+                      src={getResizedImage(featured[0].image, 600)}
                       alt={featured[0].title}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -240,12 +241,12 @@ export default function Home() {
           </div>
 
           {/* Before/After Preview */}
-          {/* Using preview size (800px) - matches max displayed width of 672px */}
+          {/* Using 700px - displayed at ~665px max */}
           {featured[1] && (
             <div className="max-w-2xl mx-auto mb-16">
               <div className="relative aspect-[16/10] overflow-hidden rounded-lg shadow-xl">
                 <img
-                  src={getResizedImage(featured[1].image, IMAGE_SIZES.preview)}
+                  src={getResizedImage(featured[1].image, 700)}
                   alt="Restored artwork"
                   className="w-full h-full object-cover"
                   loading="lazy"
