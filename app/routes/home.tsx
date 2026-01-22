@@ -25,6 +25,23 @@ export function meta() {
   return getDefaultMetaTags();
 }
 
+// Preload LCP image for faster paint
+export function links({ data }: Route.LinksArgs) {
+  const featured = data?.featured;
+  if (!featured?.[3]?.image) return [];
+
+  // Preload the hero background image with high priority
+  const heroImageUrl = getResizedImage(featured[3].image, 600, { quality: 'auto:eco' });
+  return [
+    {
+      rel: "preload",
+      as: "image",
+      href: heroImageUrl,
+      fetchpriority: "high",
+    },
+  ];
+}
+
 // Product card with black frame
 function FeaturedProductCard({ product, index }: { product: Product; index: number }) {
   const price = product.priceRange?.minPrice
