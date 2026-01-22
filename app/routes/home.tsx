@@ -25,22 +25,6 @@ export function meta() {
   return getDefaultMetaTags();
 }
 
-// Preload LCP image for faster paint
-export function links({ data }: Route.LinksArgs) {
-  const featured = data?.featured;
-  if (!featured?.[3]?.image) return [];
-
-  // Preload the hero background image with high priority
-  const heroImageUrl = getResizedImage(featured[3].image, 600, { quality: 'auto:eco' });
-  return [
-    {
-      rel: "preload",
-      as: "image",
-      href: heroImageUrl,
-      fetchpriority: "high",
-    },
-  ];
-}
 
 // Product card with black frame
 function FeaturedProductCard({ product, index }: { product: Product; index: number }) {
@@ -84,16 +68,32 @@ function FeaturedProductCard({ product, index }: { product: Product; index: numb
 export default function Home() {
   const { featured } = useLoaderData<typeof loader>();
 
+  // Generate hero image URL for preload
+  const heroImageUrl = featured[3]?.image
+    ? getResizedImage(featured[3].image, 600, { quality: 'auto:eco' })
+    : null;
+
   return (
     <main className="bg-paper-50 min-h-screen">
+      {/* Preload LCP image - React hoists this to head during SSR */}
+      {heroImageUrl && (
+        <link
+          rel="preload"
+          as="image"
+          href={heroImageUrl}
+          // @ts-expect-error - fetchpriority is valid but not in React types yet
+          fetchpriority="high"
+        />
+      )}
+
       {/* Hero Section - Full viewport dramatic visual */}
       {/* Using CSS background-image for faster LCP (renders without waiting for hydration) */}
       <section
         className="relative bg-ink-900 text-paper-50 min-h-[85vh] flex items-center justify-center"
-        style={featured[3] ? {
+        style={heroImageUrl ? {
           backgroundImage: `
             linear-gradient(to bottom, rgba(26,26,26,0.5), rgba(26,26,26,0.3), rgba(26,26,26,0.7)),
-            url(${getResizedImage(featured[3].image, 600, { quality: 'auto:eco' })})
+            url(${heroImageUrl})
           `,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
