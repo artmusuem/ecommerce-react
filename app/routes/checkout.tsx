@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 
-// Lazy load the checkout component (contains Stripe)
-const CheckoutComponent = lazy(() => import("@/pages/Checkout"));
+// Lazy load the Shopify checkout component
+const ShopifyCheckoutComponent = lazy(() => import("@/pages/ShopifyCheckout"));
 
 function CheckoutLoading() {
   return (
@@ -26,7 +26,7 @@ function CheckoutLoading() {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           />
         </svg>
-        <p className="text-gray-500">Loading checkout...</p>
+        <p className="text-gray-500">Preparing checkout...</p>
       </div>
     </main>
   );
@@ -42,7 +42,7 @@ export function meta() {
 export default function Checkout() {
   return (
     <Suspense fallback={<CheckoutLoading />}>
-      <CheckoutComponent />
+      <ShopifyCheckoutComponent />
     </Suspense>
   );
 }

@@ -7,9 +7,8 @@ import { sizes, frames } from '../data/products'
 import { getResizedImage } from '../utils/images'
 import { trackBeginCheckout, trackAddPaymentInfo, trackPurchase } from '../utils/analytics'
 
-// DON'T load Stripe at module level - lazy load it when component mounts
+// Lazy load Stripe
 let stripePromise: Promise<Stripe | null> | null = null
-
 function getStripe() {
   if (!stripePromise) {
     stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '')
@@ -48,16 +47,16 @@ interface CheckoutFormProps {
   shippingAddress: ShippingAddress
   email: string
   onSuccess: (orderName: string) => void
-  isShippingComplete: boolean
+  isFormValid: boolean
+  onValidate: () => void
 }
 
-function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShippingComplete }: CheckoutFormProps) {
+function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isFormValid, onValidate }: CheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Map items for analytics
   const analyticsItems = items.map(item => ({
     id: item.productId,
     name: item.title,
@@ -68,16 +67,17 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShipp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!stripe || !elements || !isShippingComplete) return
+
+    // Trigger validation display
+    onValidate()
+
+    if (!stripe || !elements || !isFormValid) return
 
     setProcessing(true)
     setError(null)
-
-    // Track add_payment_info when payment form is submitted
     trackAddPaymentInfo(analyticsItems, total)
 
     try {
-      // Step 1: Submit payment element
       const { error: submitError } = await elements.submit()
       if (submitError) {
         setError(submitError.message || 'Payment failed')
@@ -85,13 +85,10 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShipp
         return
       }
 
-      // Step 2: Confirm payment with Stripe
       const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
         elements,
-        confirmParams: {
-          receipt_email: email,
-        },
-        redirect: 'if_required', // Don't redirect, handle inline
+        confirmParams: { receipt_email: email },
+        redirect: 'if_required',
       })
 
       if (confirmError) {
@@ -100,7 +97,6 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShipp
         return
       }
 
-      // Step 3: Payment succeeded - create order in Shopify
       if (paymentIntent && paymentIntent.status === 'succeeded') {
         const lineItems = items.map(item => {
           const size = sizes.find(s => s.id === item.sizeId)
@@ -128,18 +124,7 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShipp
 
         const orderData = await orderResponse.json()
         const orderName = orderData.order?.name || paymentIntent.id.slice(-8).toUpperCase()
-
-        // Track successful purchase
         trackPurchase(orderName, analyticsItems, total, 0, 0)
-
-        if (!orderResponse.ok) {
-          console.error('Order creation failed:', orderData)
-          // Payment succeeded but order creation failed - still show success
-          // but log the error for manual resolution
-          onSuccess(paymentIntent.id.slice(-8).toUpperCase())
-          return
-        }
-
         onSuccess(orderName)
       }
     } catch (err) {
@@ -163,11 +148,9 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShipp
 
       <button
         type="submit"
-        disabled={!stripe || processing || !isShippingComplete}
+        disabled={!stripe || processing}
         className={`w-full py-4 rounded-xl font-semibold text-lg text-white transition-all ${
-          processing || !isShippingComplete
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-ink-900 hover:bg-ink-800 cursor-pointer'
+          processing ? 'bg-gray-400 cursor-not-allowed' : 'bg-ink-900 hover:bg-ink-800 cursor-pointer'
         }`}
       >
         {processing ? (
@@ -178,10 +161,8 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShipp
             </svg>
             Processing...
           </span>
-        ) : !isShippingComplete ? (
-          'Complete shipping info to pay'
         ) : (
-          `Pay now`
+          `Pay $${total}`
         )}
       </button>
 
@@ -189,7 +170,7 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShipp
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
-        All transactions are secure and encrypted
+        Secure checkout powered by Stripe
       </p>
     </form>
   )
@@ -197,10 +178,7 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isShipp
 
 function SuccessMessage({ orderName }: { orderName: string }) {
   const dispatch = useCartDispatch()
-
-  useEffect(() => {
-    dispatch({ type: 'CLEAR_CART' })
-  }, [dispatch])
+  useEffect(() => { dispatch({ type: 'CLEAR_CART' }) }, [dispatch])
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
@@ -210,19 +188,10 @@ function SuccessMessage({ orderName }: { orderName: string }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-3xl font-display font-semibold mb-4 text-gray-900">
-          Thank you for your order!
-        </h1>
-        <p className="mb-2 text-gray-600">
-          Your payment was successful and your prints are being prepared.
-        </p>
-        <p className="text-sm mb-8 text-gray-400">
-          Order: {orderName}
-        </p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl font-medium transition-all bg-ink-900 hover:bg-ink-800"
-        >
+        <h1 className="text-3xl font-display font-semibold mb-4 text-gray-900">Thank you for your order!</h1>
+        <p className="mb-2 text-gray-600">Your payment was successful and your prints are being prepared.</p>
+        <p className="text-sm mb-8 text-gray-400">Order: {orderName}</p>
+        <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl font-medium bg-ink-900 hover:bg-ink-800">
           Continue Shopping
         </Link>
       </div>
@@ -230,110 +199,89 @@ function SuccessMessage({ orderName }: { orderName: string }) {
   )
 }
 
-// Order Summary Component (collapsible on mobile)
-function OrderSummary({ items, total, isOpen, onToggle, isShippingComplete, missingFieldsCount }: {
-  items: CartItem[]
-  total: number
-  isOpen: boolean
-  onToggle: () => void
-  isShippingComplete: boolean
-  missingFieldsCount: number
+// Form field with validation
+function FormField({
+  label,
+  type = 'text',
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+  required = false,
+  error,
+  autoComplete,
+}: {
+  label: string
+  type?: string
+  value: string
+  onChange: (value: string) => void
+  onBlur?: () => void
+  placeholder?: string
+  required?: boolean
+  error?: string | null
+  autoComplete?: string
 }) {
   return (
-    <div className="bg-paper-100 lg:bg-white">
-      {/* Mobile: Collapsible header */}
-      <button
-        onClick={onToggle}
-        className="lg:hidden w-full flex items-center justify-between px-4 py-4 border-b border-gray-200"
-      >
-        <span className="flex items-center gap-2 text-sm font-medium text-ink-900">
-          Order summary
-          <svg
-            className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </span>
-        <span className="font-semibold text-ink-900">${total}</span>
-      </button>
+    <div>
+      <label className="block text-sm font-medium text-ink-700 mb-1">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        className={`w-full px-4 py-3 border rounded-lg outline-none transition-all ${
+          error
+            ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+            : 'border-gray-300 focus:border-ink-900 focus:ring-1 focus:ring-ink-900'
+        }`}
+      />
+      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+    </div>
+  )
+}
 
-      {/* Content */}
-      <div className={`${isOpen ? 'block' : 'hidden'} lg:block p-4 lg:p-6 space-y-4`}>
-        {/* Items */}
+// Order Summary
+function OrderSummary({ items, total }: { items: CartItem[]; total: number }) {
+  return (
+    <div className="bg-gray-50 rounded-xl p-6">
+      <h2 className="text-lg font-semibold text-ink-900 mb-4">Order Summary</h2>
+
+      <div className="space-y-4 mb-6">
         {items.map((item) => {
           const size = sizes.find(s => s.id === item.sizeId)
           const frame = frames.find(f => f.id === item.frameId)
-
           return (
             <div key={item.key} className="flex gap-3">
-              <div className="relative">
-                <div
-                  className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border-2"
-                  style={{ borderColor: frame?.color || '#333' }}
-                >
-                  <img
-                    src={getResizedImage(item.image, 80)}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {item.quantity > 1 && (
-                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-ink-600 text-white text-xs rounded-full flex items-center justify-center">
-                    {item.quantity}
-                  </span>
-                )}
+              <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border-2" style={{ borderColor: frame?.color || '#333' }}>
+                <img src={getResizedImage(item.image, 80)} alt={item.title} className="w-full h-full object-cover" />
               </div>
-
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm line-clamp-1 text-ink-900">
-                  {item.title}
-                </h3>
-                <p className="text-xs mt-0.5 text-ink-500">
-                  {size?.name || item.sizeId} / {frame?.name || item.frameId}
-                </p>
+                <h3 className="font-medium text-sm line-clamp-1 text-ink-900">{item.title}</h3>
+                <p className="text-xs text-ink-500">{size?.name} / {frame?.name}</p>
+                <p className="text-xs text-ink-500">Qty: {item.quantity}</p>
               </div>
-
-              <span className="font-medium text-sm text-ink-900">
-                ${item.price * item.quantity}
-              </span>
+              <span className="font-medium text-sm text-ink-900">${item.price * item.quantity}</span>
             </div>
           )
         })}
+      </div>
 
-        {/* Discount code */}
-        <div className="flex gap-2 pt-2">
-          <input
-            type="text"
-            placeholder="Discount code"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-ink-500"
-          />
-          <button className="px-4 py-2 bg-gray-100 text-ink-600 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
-            Apply
-          </button>
+      <div className="border-t pt-4 space-y-2 border-gray-200">
+        <div className="flex justify-between text-sm text-ink-600">
+          <span>Subtotal</span>
+          <span>${total}</span>
         </div>
-
-        {/* Totals */}
-        <div className="border-t pt-4 space-y-2 border-gray-200">
-          <div className="flex justify-between text-sm text-ink-600">
-            <span>Subtotal</span>
-            <span>${total}</span>
-          </div>
-          <div className="flex justify-between text-sm text-ink-600">
-            <span>Shipping</span>
-            <span className={isShippingComplete ? "font-medium text-ink-900" : "text-ink-500"}>
-              {isShippingComplete ? "Free" : missingFieldsCount === 1 ? "Complete 1 field" : `Complete ${missingFieldsCount} fields`}
-            </span>
-          </div>
-          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-            <span className="font-semibold text-ink-900">Total</span>
-            <div className="text-right">
-              <span className="text-xs text-ink-500 mr-2">USD</span>
-              <span className="text-xl font-semibold text-ink-900">${total}</span>
-            </div>
-          </div>
+        <div className="flex justify-between text-sm text-ink-600">
+          <span>Shipping</span>
+          <span className="text-green-600 font-medium">Free</span>
+        </div>
+        <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+          <span className="font-semibold text-ink-900">Total</span>
+          <span className="text-xl font-semibold text-ink-900">${total}</span>
         </div>
       </div>
     </div>
@@ -347,55 +295,65 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchParams] = useSearchParams()
-  const [orderSummaryOpen, setOrderSummaryOpen] = useState(false)
 
-  // Order success state
   const [orderComplete, setOrderComplete] = useState(false)
   const [orderName, setOrderName] = useState('')
 
-  // Customer info state
+  // Form state
   const [email, setEmail] = useState('')
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
-    firstName: '',
-    lastName: '',
-    address1: '',
-    address2: '',
-    city: '',
-    province: '',
-    zip: '',
-    country: 'US',
-    phone: '',
+    firstName: '', lastName: '', address1: '', address2: '',
+    city: '', province: '', zip: '', country: 'US', phone: '',
   })
 
-  // Check for success from URL (legacy support)
-  const isSuccessFromUrl = searchParams.get('success') || searchParams.get('redirect_status') === 'succeeded'
+  // Validation state
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [showAllErrors, setShowAllErrors] = useState(false)
 
-  // Track begin_checkout when page loads with items
+  const markTouched = (field: string) => setTouched(prev => ({ ...prev, [field]: true }))
+  const shouldShowError = (field: string) => showAllErrors || touched[field]
+
+  // Validation
+  const isEmailValid = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
+
+  const getError = (field: string, value: string, required = true) => {
+    if (!shouldShowError(field)) return null
+    if (required && !value.trim()) return 'This field is required'
+    if (field === 'email' && value && !isEmailValid(value)) return 'Please enter a valid email'
+    return null
+  }
+
+  const isFormValid = !!(
+    email && isEmailValid(email) &&
+    shippingAddress.lastName &&
+    shippingAddress.address1 &&
+    shippingAddress.city &&
+    shippingAddress.province &&
+    shippingAddress.zip
+  )
+
+  const handleValidate = () => setShowAllErrors(true)
+
+  // Track begin_checkout
   const hasTrackedBeginCheckout = useRef(false)
   useEffect(() => {
-    if (isSuccessFromUrl || orderComplete || items.length === 0 || hasTrackedBeginCheckout.current) return
+    if (items.length === 0 || hasTrackedBeginCheckout.current) return
     hasTrackedBeginCheckout.current = true
     trackBeginCheckout(
-      items.map(item => ({
-        id: item.productId,
-        name: item.title,
-        price: item.price,
-        quantity: item.quantity,
-        variant: `${item.sizeId} / ${item.frameId}`,
-      })),
+      items.map(item => ({ id: item.productId, name: item.title, price: item.price, quantity: item.quantity, variant: `${item.sizeId} / ${item.frameId}` })),
       total
     )
-  }, [items, total, isSuccessFromUrl, orderComplete])
+  }, [items, total])
 
-  // Lazy load Stripe only when this component mounts
+  const isSuccessFromUrl = searchParams.get('success') || searchParams.get('redirect_status') === 'succeeded'
+
   useEffect(() => {
     if (isSuccessFromUrl || orderComplete) return
     getStripe().then(() => setStripeReady(true))
   }, [isSuccessFromUrl, orderComplete])
 
   useEffect(() => {
-    if (isSuccessFromUrl || orderComplete) return
-    if (items.length === 0) {
+    if (isSuccessFromUrl || orderComplete || items.length === 0) {
       setLoading(false)
       return
     }
@@ -407,11 +365,7 @@ export default function Checkout() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ items, total })
         })
-
-        if (!response.ok) {
-          throw new Error('Failed to create payment intent')
-        }
-
+        if (!response.ok) throw new Error('Failed to create payment intent')
         const data = await response.json()
         setClientSecret(data.clientSecret)
       } catch (err) {
@@ -425,38 +379,15 @@ export default function Checkout() {
     createPaymentIntent()
   }, [items, total, isSuccessFromUrl, orderComplete])
 
-  // Handle successful order
   const handleOrderSuccess = (name: string) => {
     setOrderName(name)
     setOrderComplete(true)
   }
 
-  // Check if shipping form is complete (firstName is optional per UI)
-  const isShippingComplete = !!(email &&
-    shippingAddress.lastName &&
-    shippingAddress.address1 &&
-    shippingAddress.city &&
-    shippingAddress.province &&
-    shippingAddress.zip)
-
-  // Helper to get what's missing for better UX messaging
-  const getMissingFields = () => {
-    const missing: string[] = []
-    if (!email) missing.push('email')
-    if (!shippingAddress.lastName) missing.push('last name')
-    if (!shippingAddress.address1) missing.push('address')
-    if (!shippingAddress.city) missing.push('city')
-    if (!shippingAddress.province) missing.push('state')
-    if (!shippingAddress.zip) missing.push('ZIP code')
-    return missing
-  }
-
-  // Update field helper
   const updateField = (field: keyof ShippingAddress, value: string) => {
     setShippingAddress({ ...shippingAddress, [field]: value })
   }
 
-  // Return success page
   if (isSuccessFromUrl || orderComplete) {
     const displayOrderName = orderName || searchParams.get('payment_intent')?.slice(-8).toUpperCase() || 'Processing...'
     return <SuccessMessage orderName={displayOrderName} />
@@ -467,24 +398,12 @@ export default function Checkout() {
       <main className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
         <div className="text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gray-100">
-            <svg
-              className="w-8 h-8 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-display mb-4 text-gray-800">
-            Your cart is empty
-          </h1>
-          <Link
-            to="/"
-            className="underline transition-colors text-primary hover:text-primary-dark"
-          >
-            Continue shopping
-          </Link>
+          <h1 className="text-2xl font-display mb-4 text-gray-800">Your cart is empty</h1>
+          <Link to="/" className="underline text-primary hover:text-primary-dark">Continue shopping</Link>
         </div>
       </main>
     )
@@ -503,146 +422,150 @@ export default function Checkout() {
   }
 
   return (
-    <main className="min-h-screen bg-white lg:bg-gray-50">
-      <div className="max-w-6xl mx-auto">
-        <div className="lg:grid lg:grid-cols-2">
-          {/* Left Column - Form */}
-          <div className="bg-white px-4 py-8 lg:px-12 lg:py-10 lg:border-r lg:border-gray-200">
-            {/* Contact Section */}
+    <main className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="border-b border-gray-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <Link to="/" className="flex items-center gap-2 text-ink-600 hover:text-ink-900 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="text-sm font-medium">Back to Gallery Store</span>
+          </Link>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-12">
+          {/* Left: Form */}
+          <div>
+            {/* Contact */}
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-ink-900 mb-4">Contact</h2>
-              <input
+              <h2 className="text-xl font-semibold text-ink-900 mb-4">Contact</h2>
+              <FormField
+                label="Email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email or mobile phone number"
+                onChange={setEmail}
+                onBlur={() => markTouched('email')}
+                placeholder="your@email.com"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                error={getError('email', email)}
+                autoComplete="email"
               />
-              <label className="flex items-center gap-2 mt-3 text-sm text-ink-600">
-                <input type="checkbox" className="rounded border-gray-300" defaultChecked />
-                Email me with news and offers
-              </label>
             </section>
 
-            {/* Delivery Section */}
+            {/* Shipping */}
             <section className="mb-8">
-              <h2 className="text-lg font-semibold text-ink-900 mb-4">Delivery</h2>
-              <div className="space-y-3">
-                <select
-                  value={shippingAddress.country}
-                  onChange={(e) => updateField('country', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900 bg-white"
-                >
-                  <option value="US">United States</option>
-                  <option value="CA">Canada</option>
-                  <option value="GB">United Kingdom</option>
-                  <option value="AU">Australia</option>
-                </select>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="text"
+              <h2 className="text-xl font-semibold text-ink-900 mb-4">Shipping Address</h2>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    label="First name"
                     value={shippingAddress.firstName}
-                    onChange={(e) => updateField('firstName', e.target.value)}
-                    placeholder="First name (optional)"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                    onChange={(v) => updateField('firstName', v)}
+                    placeholder="John"
+                    autoComplete="given-name"
                   />
-                  <input
-                    type="text"
+                  <FormField
+                    label="Last name"
                     value={shippingAddress.lastName}
-                    onChange={(e) => updateField('lastName', e.target.value)}
-                    placeholder="Last name"
+                    onChange={(v) => updateField('lastName', v)}
+                    onBlur={() => markTouched('lastName')}
+                    placeholder="Doe"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                    error={getError('lastName', shippingAddress.lastName)}
+                    autoComplete="family-name"
                   />
                 </div>
 
-                <input
-                  type="text"
+                <FormField
+                  label="Address"
                   value={shippingAddress.address1}
-                  onChange={(e) => updateField('address1', e.target.value)}
-                  placeholder="Address"
+                  onChange={(v) => updateField('address1', v)}
+                  onBlur={() => markTouched('address1')}
+                  placeholder="123 Main St"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                  error={getError('address1', shippingAddress.address1)}
+                  autoComplete="address-line1"
                 />
 
-                <input
-                  type="text"
+                <FormField
+                  label="Apartment, suite, etc."
                   value={shippingAddress.address2}
-                  onChange={(e) => updateField('address2', e.target.value)}
-                  placeholder="Apartment, suite, etc. (optional)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                  onChange={(v) => updateField('address2', v)}
+                  placeholder="Apt 4B"
+                  autoComplete="address-line2"
                 />
 
-                <div className="grid grid-cols-3 gap-3">
-                  <input
-                    type="text"
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    label="City"
                     value={shippingAddress.city}
-                    onChange={(e) => updateField('city', e.target.value)}
-                    placeholder="City"
+                    onChange={(v) => updateField('city', v)}
+                    onBlur={() => markTouched('city')}
+                    placeholder="New York"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                    error={getError('city', shippingAddress.city)}
+                    autoComplete="address-level2"
                   />
-                  <input
-                    type="text"
+                  <FormField
+                    label="State"
                     value={shippingAddress.province}
-                    onChange={(e) => updateField('province', e.target.value)}
-                    placeholder="State"
+                    onChange={(v) => updateField('province', v)}
+                    onBlur={() => markTouched('province')}
+                    placeholder="NY"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                    error={getError('province', shippingAddress.province)}
+                    autoComplete="address-level1"
                   />
-                  <input
-                    type="text"
+                  <FormField
+                    label="ZIP"
                     value={shippingAddress.zip}
-                    onChange={(e) => updateField('zip', e.target.value)}
-                    placeholder="ZIP code"
+                    onChange={(v) => updateField('zip', v)}
+                    onBlur={() => markTouched('zip')}
+                    placeholder="10001"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                    error={getError('zip', shippingAddress.zip)}
+                    autoComplete="postal-code"
                   />
                 </div>
 
-                <input
+                <div>
+                  <label className="block text-sm font-medium text-ink-700 mb-1">Country</label>
+                  <select
+                    value={shippingAddress.country}
+                    onChange={(e) => updateField('country', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 bg-white"
+                    autoComplete="country"
+                  >
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                  </select>
+                </div>
+
+                <FormField
+                  label="Phone"
                   type="tel"
                   value={shippingAddress.phone}
-                  onChange={(e) => updateField('phone', e.target.value)}
-                  placeholder="Phone (optional)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition-all focus:border-ink-900 focus:ring-1 focus:ring-ink-900"
+                  onChange={(v) => updateField('phone', v)}
+                  placeholder="(555) 123-4567"
+                  autoComplete="tel"
                 />
               </div>
             </section>
 
-            {/* Shipping Method */}
-            <section className="mb-8">
-              <h2 className="text-lg font-semibold text-ink-900 mb-4">Shipping method</h2>
-              <div className="bg-paper-100 rounded-lg px-4 py-3 text-sm text-ink-500">
-                {isShippingComplete ? (
-                  <div className="flex justify-between items-center">
-                    <span>Free worldwide shipping</span>
-                    <span className="font-medium text-ink-900">Free</span>
-                  </div>
-                ) : (
-                  (() => {
-                    const missing = getMissingFields()
-                    if (missing.length === 0) return 'Loading shipping methods...'
-                    if (missing.length === 1) return `Enter your ${missing[0]} to view shipping methods.`
-                    return `Enter your ${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]} to continue.`
-                  })()
-                )}
-              </div>
-            </section>
-
-            {/* Payment Section */}
+            {/* Payment */}
             <section>
-              <h2 className="text-lg font-semibold text-ink-900 mb-2">Payment</h2>
-              <p className="text-sm text-ink-500 mb-4">All transactions are secure and encrypted.</p>
+              <h2 className="text-xl font-semibold text-ink-900 mb-4">Payment</h2>
 
               {loading || !stripeReady ? (
                 <div className="flex items-center justify-center py-12 border border-gray-200 rounded-xl bg-white">
-                  <svg
-                    className="animate-spin h-8 w-8 text-gray-400"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="animate-spin h-8 w-8 text-gray-400" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
@@ -650,10 +573,7 @@ export default function Checkout() {
               ) : error ? (
                 <div className="text-center py-8 border border-gray-200 rounded-xl bg-white">
                   <p className="text-red-600 mb-4">{error}</p>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="px-6 py-2 text-white rounded-lg bg-ink-900 hover:bg-ink-800"
-                  >
+                  <button onClick={() => window.location.reload()} className="px-6 py-2 text-white rounded-lg bg-ink-900 hover:bg-ink-800">
                     Try Again
                   </button>
                 </div>
@@ -665,23 +585,29 @@ export default function Checkout() {
                     shippingAddress={shippingAddress}
                     email={email}
                     onSuccess={handleOrderSuccess}
-                    isShippingComplete={isShippingComplete}
+                    isFormValid={isFormValid}
+                    onValidate={handleValidate}
                   />
                 </Elements>
               ) : null}
             </section>
           </div>
 
-          {/* Right Column - Order Summary */}
-          <div className="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto order-first lg:order-last">
-            <OrderSummary
-              items={items}
-              total={total}
-              isOpen={orderSummaryOpen}
-              onToggle={() => setOrderSummaryOpen(!orderSummaryOpen)}
-              isShippingComplete={isShippingComplete}
-              missingFieldsCount={getMissingFields().length}
-            />
+          {/* Right: Order Summary */}
+          <div className="mt-8 lg:mt-0">
+            <div className="lg:sticky lg:top-8">
+              <OrderSummary items={items} total={total} />
+
+              <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-100">
+                <div className="flex items-center gap-2 text-green-800">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="font-medium">Free worldwide shipping</span>
+                </div>
+                <p className="text-sm text-green-700 mt-1">Estimated delivery: 5-10 business days</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

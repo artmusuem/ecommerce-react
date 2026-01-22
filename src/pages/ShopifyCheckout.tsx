@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 
 const SHOPIFY_STORE = import.meta.env.VITE_SHOPIFY_STORE
 const SHOPIFY_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN
+const CUSTOM_CHECKOUT_DOMAIN = import.meta.env.VITE_SHOPIFY_CHECKOUT_DOMAIN
 
 // GraphQL mutation to create a cart
 const CREATE_CART_MUTATION = `
@@ -16,19 +17,6 @@ const CREATE_CART_MUTATION = `
       userErrors {
         field
         message
-      }
-    }
-  }
-`
-
-// Fetch product variant ID by handle
-const GET_PRODUCT_QUERY = `
-  query getProduct($handle: String!) {
-    product(handle: $handle) {
-      variants(first: 1) {
-        nodes {
-          id
-        }
       }
     }
   }
@@ -49,55 +37,74 @@ async function shopifyFetch(query: string, variables: Record<string, unknown>) {
   return res.json()
 }
 
+// Check if a variant ID is a valid Shopify GID
+function isValidShopifyGid(variantId: string): boolean {
+  return variantId.startsWith('gid://shopify/ProductVariant/')
+}
+
 export default function ShopifyCheckout() {
   const { items, total } = useCart()
-  const [status, setStatus] = useState<'loading' | 'error' | 'redirecting'>('loading')
+  const [status, setStatus] = useState<'waiting' | 'loading' | 'error' | 'redirecting'>('waiting')
   const [errorMsg, setErrorMsg] = useState('')
-  const hasStarted = useRef(false)
+  const checkoutStarted = useRef(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
+  // Wait for client-side hydration to complete before checking cart
   useEffect(() => {
-    // Prevent double execution in StrictMode
-    if (hasStarted.current) return
-    hasStarted.current = true
+    setIsHydrated(true)
+  }, [])
+
+  // Start checkout when we have items (after hydration)
+  useEffect(() => {
+    // Don't run until hydrated
+    if (!isHydrated) return
+
+    // Don't start checkout if already started or if no items
+    if (checkoutStarted.current || items.length === 0) return
+
+    // Mark as started to prevent double execution
+    checkoutStarted.current = true
 
     async function createShopifyCartAndRedirect() {
-      if (items.length === 0) {
+      // Validate Shopify configuration
+      if (!SHOPIFY_STORE || !SHOPIFY_TOKEN) {
         setStatus('error')
-        setErrorMsg('Your cart is empty')
+        setErrorMsg('Shopify is not configured. Please set VITE_SHOPIFY_STORE and VITE_SHOPIFY_STOREFRONT_TOKEN.')
         return
       }
 
       try {
         setStatus('loading')
 
-        // Get variant IDs for each product
+        // Build line items using variant IDs already in cart
         const lines = []
-        const notFound = []
+        const invalidItems = []
 
         for (const item of items) {
-          // Fetch the product to get variant ID
-          const productRes = await shopifyFetch(GET_PRODUCT_QUERY, {
-            handle: item.productId,
-          })
-
-          const variantId = productRes.data?.product?.variants?.nodes?.[0]?.id
-          if (variantId) {
+          // Check if variantId is a valid Shopify GID
+          if (isValidShopifyGid(item.variantId)) {
             lines.push({
-              merchandiseId: variantId,
+              merchandiseId: item.variantId,
               quantity: item.quantity,
-              attributes: [
-                { key: 'Size', value: item.sizeId },
-                { key: 'Frame', value: item.frameId },
-              ],
             })
           } else {
-            console.warn(`Product not found in Shopify: ${item.productId}`)
-            notFound.push(item.title || item.productId)
+            console.warn(`Invalid variant ID for ${item.title}: ${item.variantId}`)
+            invalidItems.push(item.title)
           }
         }
 
         if (lines.length === 0) {
-          throw new Error(`Products not found in Shopify: ${notFound.join(', ')}. Try clearing your cart and adding items again.`)
+          throw new Error(
+            `Unable to checkout. ${invalidItems.length > 0
+              ? `Items need valid Shopify variant IDs: ${invalidItems.join(', ')}.`
+              : 'No valid items in cart.'
+            } Please clear your cart and add items again.`
+          )
+        }
+
+        // Warn about skipped items
+        if (invalidItems.length > 0) {
+          console.warn(`Skipping items without valid Shopify variant IDs: ${invalidItems.join(', ')}`)
         }
 
         // Create cart with items
@@ -116,9 +123,25 @@ export default function ShopifyCheckout() {
           throw new Error('Failed to create checkout')
         }
 
+        // Apply custom checkout domain if configured (for headless stores)
+        let finalCheckoutUrl = checkoutUrl
+        if (CUSTOM_CHECKOUT_DOMAIN) {
+          try {
+            const url = new URL(checkoutUrl)
+            const customUrl = new URL(CUSTOM_CHECKOUT_DOMAIN)
+            url.hostname = customUrl.hostname
+            finalCheckoutUrl = url.toString()
+          } catch {
+            // Keep original URL if custom domain is invalid
+          }
+        }
+
         // Redirect to Shopify checkout
+        // Note: Don't clear the cart here - the page will unload on redirect.
+        // If the user cancels checkout and returns, their cart should still have items.
+        // The cart should only be cleared on successful order completion (via webhook or return URL).
         setStatus('redirecting')
-        window.location.href = checkoutUrl
+        window.location.href = finalCheckoutUrl
       } catch (err) {
         console.error('Checkout error:', err)
         setStatus('error')
@@ -127,9 +150,27 @@ export default function ShopifyCheckout() {
     }
 
     createShopifyCartAndRedirect()
-  }, [items])
+  }, [isHydrated, items, total])
 
-  if (items.length === 0) {
+  // Show loading while waiting for hydration
+  if (!isHydrated) {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-primary/10">
+            <svg className="animate-spin h-8 w-8 text-primary" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-display mb-2 text-gray-800">Loading...</h1>
+        </div>
+      </main>
+    )
+  }
+
+  // Show empty cart after hydration if no items
+  if (items.length === 0 && status !== 'loading' && status !== 'redirecting') {
     return (
       <main className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
         <div className="text-center">
@@ -150,7 +191,7 @@ export default function ShopifyCheckout() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
       <div className="text-center">
-        {status === 'loading' && (
+        {(status === 'waiting' || status === 'loading') && (
           <>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-primary/10">
               <svg className="animate-spin h-8 w-8 text-primary" viewBox="0 0 24 24">
