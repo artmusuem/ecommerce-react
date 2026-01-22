@@ -1,5 +1,7 @@
 # Gallery Store - Headless Shopify Starter Kit
 
+[![Stars](https://img.shields.io/github/stars/nathanmcmullendev/ecommerce-react-shopify?style=social)](https://github.com/nathanmcmullendev/ecommerce-react-shopify/stargazers)
+[![Forks](https://img.shields.io/github/forks/nathanmcmullendev/ecommerce-react-shopify?style=social)](https://github.com/nathanmcmullendev/ecommerce-react-shopify/fork)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.2-61dafb)](https://react.dev/)
 [![React Router](https://img.shields.io/badge/React_Router-7.1-ca4245)](https://reactrouter.com/)
@@ -8,6 +10,10 @@
 
 > **Headless Shopify starter with working checkout - even on free dev stores.**
 > Full UI control with Stripe, or use native Shopify checkout. Switch with one environment variable.
+
+**If this saves you setup time, consider giving it a star — it helps others find it!**
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnathanmcmullendev%2Fecommerce-react-shopify&env=VITE_SHOPIFY_STORE,VITE_SHOPIFY_STOREFRONT_TOKEN,VITE_CLOUDINARY_CLOUD,VITE_CHECKOUT_MODE,VITE_STRIPE_PUBLIC_KEY&envDescription=Shopify%20and%20Stripe%20credentials%20required&envLink=https%3A%2F%2Fgithub.com%2Fnathanmcmullendev%2Fecommerce-react-shopify%2Fblob%2Fmain%2Fdocs%2Fguides%2FSETUP-CHECKLIST.md)
 
 **[Live Demo](https://ecommerce-react-shopify.vercel.app)** | **[Setup Guide](docs/guides/SETUP-CHECKLIST.md)** | **[Checkout Modes](docs/guides/CHECKOUT-MODES.md)**
 
@@ -76,7 +82,7 @@
 
 ```bash
 # Clone and install
-git clone https://github.com/YOUR_USERNAME/ecommerce-react-shopify.git
+git clone https://github.com/nathanmcmullendev/ecommerce-react-shopify.git
 cd ecommerce-react-shopify && npm install
 
 # Run setup wizard (configures Shopify + Stripe)
@@ -288,6 +294,18 @@ Add environment variables in Vercel Dashboard → Settings → Environment Varia
 | [Checkout Modes](docs/guides/CHECKOUT-MODES.md) | Stripe vs Shopify checkout |
 | [Architecture](docs/architecture/ARCHITECTURE.md) | System design decisions |
 | [SSR Persistence](docs/guides/SSR-PERSISTENCE-GUIDE.md) | Solving hydration errors |
+
+---
+
+## Show Your Support
+
+If this project helped you:
+
+- **Star** this repository
+- **Fork** it for your own projects
+- **Share** it with other developers
+
+Your support helps others discover this starter kit!
 
 ---
 
