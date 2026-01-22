@@ -231,11 +231,12 @@ function SuccessMessage({ orderName }: { orderName: string }) {
 }
 
 // Order Summary Component (collapsible on mobile)
-function OrderSummary({ items, total, isOpen, onToggle }: {
+function OrderSummary({ items, total, isOpen, onToggle, isShippingComplete }: {
   items: CartItem[]
   total: number
   isOpen: boolean
   onToggle: () => void
+  isShippingComplete: boolean
 }) {
   return (
     <div className="bg-paper-100 lg:bg-white">
@@ -321,7 +322,9 @@ function OrderSummary({ items, total, isOpen, onToggle }: {
           </div>
           <div className="flex justify-between text-sm text-ink-600">
             <span>Shipping</span>
-            <span className="text-ink-500">Enter shipping address</span>
+            <span className={isShippingComplete ? "font-medium text-ink-900" : "text-ink-500"}>
+              {isShippingComplete ? "Free" : "Enter shipping address"}
+            </span>
           </div>
           <div className="flex justify-between items-center pt-2 border-t border-gray-100">
             <span className="font-semibold text-ink-900">Total</span>
@@ -427,9 +430,8 @@ export default function Checkout() {
     setOrderComplete(true)
   }
 
-  // Check if shipping form is complete
+  // Check if shipping form is complete (firstName is optional per UI)
   const isShippingComplete = !!(email &&
-    shippingAddress.firstName &&
     shippingAddress.lastName &&
     shippingAddress.address1 &&
     shippingAddress.city &&
@@ -659,6 +661,7 @@ export default function Checkout() {
               total={total}
               isOpen={orderSummaryOpen}
               onToggle={() => setOrderSummaryOpen(!orderSummaryOpen)}
+              isShippingComplete={isShippingComplete}
             />
           </div>
         </div>
