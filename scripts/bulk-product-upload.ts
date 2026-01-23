@@ -185,9 +185,9 @@ async function createProductSequential(
   if (product.images && product.images.length > 0) {
     const mediaIds = await uploadProductImages(config, productId, product.images);
 
-    // Step 3: Assign first image to all variants
+    // Step 3: Assign images to variants (1:1 mapping by index)
     if (mediaIds.length > 0 && variantIds.length > 0) {
-      await assignImageToVariants(config, productId, variantIds, mediaIds[0]);
+      await assignImagesToVariants(config, productId, variantIds, mediaIds);
     }
   }
 
@@ -249,14 +249,15 @@ async function uploadProductImages(
 }
 
 /**
- * Assign an image to all variants of a product
+ * Assign images to variants - maps by index (image[0] -> variant[0], etc.)
+ * If fewer images than variants, last image is reused for remaining variants
  * Uses productVariantsBulkUpdate mutation
  */
-async function assignImageToVariants(
+async function assignImagesToVariants(
   config: ShopifyConfig,
   productId: string,
   variantIds: string[],
-  mediaId: string
+  mediaIds: string[]
 ): Promise<void> {
 
   const bulkUpdateMutation = `
@@ -277,13 +278,14 @@ async function assignImageToVariants(
     }
   `;
 
-  // Build variants array with mediaId for each variant
-  const variantsInput = variantIds.map(id => ({
+  // Map each variant to its corresponding image by index
+  // If fewer images than variants, reuse the last image
+  const variantsInput = variantIds.map((id, index) => ({
     id,
-    mediaId,
+    mediaId: mediaIds[Math.min(index, mediaIds.length - 1)],
   }));
 
-  console.log(`  Assigning image to ${variantIds.length} variants...`);
+  console.log(`  Assigning ${mediaIds.length} images to ${variantIds.length} variants...`);
 
   const result = await shopifyGraphQL(config, bulkUpdateMutation, {
     productId,
@@ -295,7 +297,7 @@ async function assignImageToVariants(
   if (productVariantsBulkUpdate.userErrors.length > 0) {
     console.warn(`  Variant image assignment errors: ${JSON.stringify(productVariantsBulkUpdate.userErrors)}`);
   } else {
-    console.log(`  Assigned image to ${productVariantsBulkUpdate.productVariants.length} variants`);
+    console.log(`  Assigned images to ${productVariantsBulkUpdate.productVariants.length} variants`);
   }
 }
 
@@ -537,7 +539,7 @@ async function processBatch(
   return results;
 }
 
-// Sample products for testing
+// Sample products for testing - each variant gets its own image
 const sampleProducts: ProductInput[] = [
   {
     title: 'Test Artwork - Sunset Valley',
@@ -552,7 +554,9 @@ const sampleProducts: ProductInput[] = [
       { price: '129.99', sku: 'SV-LARGE', options: ['Large'] },
     ],
     images: [
-      { src: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', altText: 'Sunset Valley print' },
+      { src: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', altText: 'Sunset Valley - Small' },
+      { src: 'https://res.cloudinary.com/demo/image/upload/cld-sample.jpg', altText: 'Sunset Valley - Medium' },
+      { src: 'https://res.cloudinary.com/demo/image/upload/cld-sample-2.jpg', altText: 'Sunset Valley - Large' },
     ],
   },
   {
@@ -568,7 +572,9 @@ const sampleProducts: ProductInput[] = [
       { price: '129.99', sku: 'OW-LARGE', options: ['Large'] },
     ],
     images: [
-      { src: 'https://res.cloudinary.com/demo/image/upload/cld-sample-5.jpg', altText: 'Ocean Waves print' },
+      { src: 'https://res.cloudinary.com/demo/image/upload/cld-sample-3.jpg', altText: 'Ocean Waves - Small' },
+      { src: 'https://res.cloudinary.com/demo/image/upload/cld-sample-4.jpg', altText: 'Ocean Waves - Medium' },
+      { src: 'https://res.cloudinary.com/demo/image/upload/cld-sample-5.jpg', altText: 'Ocean Waves - Large' },
     ],
   },
 ];
