@@ -1,5 +1,5 @@
 # Gallery Store - Headless Shopify Starter Kit
-> ⭐ If this saves you from mocking checkout, consider starring — it helps others find it!
+⭐ If this saves you from mocking checkout, consider starring — it helps others find it!
 [![Stars](https://img.shields.io/github/stars/nathanmcmullendev/ecommerce-react?style=social)](https://github.com/nathanmcmullendev/ecommerce-react/stargazers)
 [![Forks](https://img.shields.io/github/forks/nathanmcmullendev/ecommerce-react?style=social)](https://github.com/nathanmcmullendev/ecommerce-react/fork)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
