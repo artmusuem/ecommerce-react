@@ -183,7 +183,12 @@ async function createProductSequential(
 
   // Step 2: Upload images if provided
   if (product.images && product.images.length > 0) {
-    await uploadProductImages(config, productId, product.images);
+    const mediaIds = await uploadProductImages(config, productId, product.images);
+
+    // Step 3: Assign first image to all variants
+    if (mediaIds.length > 0 && variantIds.length > 0) {
+      await assignImageToVariants(config, productId, variantIds, mediaIds[0]);
+    }
   }
 
   return { productId, variantIds };
@@ -241,6 +246,57 @@ async function uploadProductImages(
   console.log(`  Uploaded ${mediaIds.length} images`);
 
   return mediaIds;
+}
+
+/**
+ * Assign an image to all variants of a product
+ * Uses productVariantsBulkUpdate mutation
+ */
+async function assignImageToVariants(
+  config: ShopifyConfig,
+  productId: string,
+  variantIds: string[],
+  mediaId: string
+): Promise<void> {
+
+  const bulkUpdateMutation = `
+    mutation productVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+      productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+        productVariants {
+          id
+          title
+          image {
+            url
+          }
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  // Build variants array with mediaId for each variant
+  const variantsInput = variantIds.map(id => ({
+    id,
+    mediaId,
+  }));
+
+  console.log(`  Assigning image to ${variantIds.length} variants...`);
+
+  const result = await shopifyGraphQL(config, bulkUpdateMutation, {
+    productId,
+    variants: variantsInput,
+  }) as { data: { productVariantsBulkUpdate: { productVariants: { id: string; title: string }[]; userErrors: { field: string; message: string }[] } } };
+
+  const { productVariantsBulkUpdate } = result.data;
+
+  if (productVariantsBulkUpdate.userErrors.length > 0) {
+    console.warn(`  Variant image assignment errors: ${JSON.stringify(productVariantsBulkUpdate.userErrors)}`);
+  } else {
+    console.log(`  Assigned image to ${productVariantsBulkUpdate.productVariants.length} variants`);
+  }
 }
 
 /**
@@ -510,6 +566,9 @@ const sampleProducts: ProductInput[] = [
       { price: '49.99', sku: 'OW-SMALL', options: ['Small'] },
       { price: '79.99', sku: 'OW-MEDIUM', options: ['Medium'] },
       { price: '129.99', sku: 'OW-LARGE', options: ['Large'] },
+    ],
+    images: [
+      { src: 'https://res.cloudinary.com/demo/image/upload/cld-sample-5.jpg', altText: 'Ocean Waves print' },
     ],
   },
 ];
