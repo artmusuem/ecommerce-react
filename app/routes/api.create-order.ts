@@ -76,11 +76,12 @@ const DRAFT_ORDER_COMPLETE = `
 // GraphQL query to find existing order by payment intent (idempotency)
 const FIND_ORDER_BY_NOTE = `
   query findOrderByNote($query: String!) {
-    orders(first: 1, query: $query) {
+    orders(first: 5, query: $query) {
       edges {
         node {
           id
           name
+          note
           totalPriceSet {
             shopMoney {
               amount
@@ -189,24 +190,31 @@ async function verifyStripePayment(paymentIntentId: string): Promise<{ verified:
 // Check if order already exists for this payment intent (idempotency)
 async function findExistingOrder(paymentIntentId: string): Promise<{ exists: boolean; order?: { id: string; name: string; total: string } }> {
   try {
-    // Use exact match in note field to prevent false positives
+    const expectedNote = `Stripe Payment Intent: ${paymentIntentId}`
+
+    // Search for orders with similar notes
     const result = await shopifyAdminRequest(FIND_ORDER_BY_NOTE, {
-      query: `note:"Stripe Payment Intent: ${paymentIntentId}"`
+      query: `note:"Stripe Payment Intent:"`
     })
 
-    const existingOrder = result.data?.orders?.edges?.[0]?.node
-    if (existingOrder) {
-      console.info(`Found existing order ${existingOrder.name} for payment intent ${paymentIntentId}`)
-      return {
-        exists: true,
-        order: {
-          id: existingOrder.id,
-          name: existingOrder.name,
-          total: existingOrder.totalPriceSet?.shopMoney?.amount
+    // Check each order for an EXACT note match (Shopify search does fuzzy matching)
+    const orders = result.data?.orders?.edges || []
+    for (const edge of orders) {
+      const order = edge.node
+      if (order.note === expectedNote) {
+        console.info(`Found existing order ${order.name} with exact payment intent match: ${paymentIntentId}`)
+        return {
+          exists: true,
+          order: {
+            id: order.id,
+            name: order.name,
+            total: order.totalPriceSet?.shopMoney?.amount
+          }
         }
       }
     }
 
+    console.info(`No existing order found for payment intent: ${paymentIntentId}`)
     return { exists: false }
   } catch (error) {
     console.error('Error checking for existing order:', error)
