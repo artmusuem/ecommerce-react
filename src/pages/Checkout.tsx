@@ -358,15 +358,20 @@ export default function Checkout() {
       return
     }
 
+    // Reset clientSecret to ensure fresh payment intent
+    setClientSecret('')
+    setLoading(true)
+
     async function createPaymentIntent() {
       try {
         const response = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items, total })
+          body: JSON.stringify({ items, total, timestamp: Date.now() })
         })
         if (!response.ok) throw new Error('Failed to create payment intent')
         const data = await response.json()
+        console.info('New payment intent created:', data.clientSecret?.slice(0, 20) + '...')
         setClientSecret(data.clientSecret)
       } catch (err) {
         console.error('Payment intent error:', err)

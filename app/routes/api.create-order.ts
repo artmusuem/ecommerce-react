@@ -189,12 +189,14 @@ async function verifyStripePayment(paymentIntentId: string): Promise<{ verified:
 // Check if order already exists for this payment intent (idempotency)
 async function findExistingOrder(paymentIntentId: string): Promise<{ exists: boolean; order?: { id: string; name: string; total: string } }> {
   try {
+    // Use exact match in note field to prevent false positives
     const result = await shopifyAdminRequest(FIND_ORDER_BY_NOTE, {
-      query: `note:*${paymentIntentId}*`
+      query: `note:"Stripe Payment Intent: ${paymentIntentId}"`
     })
 
     const existingOrder = result.data?.orders?.edges?.[0]?.node
     if (existingOrder) {
+      console.info(`Found existing order ${existingOrder.name} for payment intent ${paymentIntentId}`)
       return {
         exists: true,
         order: {
