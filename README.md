@@ -15,7 +15,7 @@
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnathanmcmullendev%2Fecommerce-react&env=VITE_SHOPIFY_STORE,VITE_SHOPIFY_STOREFRONT_TOKEN,VITE_CLOUDINARY_CLOUD,VITE_CHECKOUT_MODE,VITE_STRIPE_PUBLIC_KEY&envDescription=Shopify%20and%20Stripe%20credentials%20required&envLink=https%3A%2F%2Fgithub.com%2Fnathanmcmullendev%2Fecommerce-react%2Fblob%2Fmain%2Fdocs%2Fguides%2FSETUP-CHECKLIST.md)
 
-**[Live Demo](https://ecommerce-react.vercel.app)** | **[Setup Guide](docs/guides/SETUP-CHECKLIST.md)** | **[Checkout Modes](docs/guides/CHECKOUT-MODES.md)**
+**[Live Demo](https://ecommerce-react-shopify.vercel.app)** | **[Setup Guide](docs/guides/SETUP-CHECKLIST.md)** | **[Checkout Modes](docs/guides/CHECKOUT-MODES.md)**
 
 ---
 
