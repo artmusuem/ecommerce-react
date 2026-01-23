@@ -2,9 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router'
 import { useCart } from '../context/CartContext'
 
-const SHOPIFY_STORE = import.meta.env.VITE_SHOPIFY_STORE
-const SHOPIFY_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN
-const CUSTOM_CHECKOUT_DOMAIN = import.meta.env.VITE_SHOPIFY_CHECKOUT_DOMAIN
+// Read environment variables at runtime (not module load) for testability
+function getShopifyConfig() {
+  return {
+    store: import.meta.env.VITE_SHOPIFY_STORE as string | undefined,
+    token: import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN as string | undefined,
+    customCheckoutDomain: import.meta.env.VITE_SHOPIFY_CHECKOUT_DOMAIN as string | undefined,
+  }
+}
 
 // GraphQL mutation to create a cart
 const CREATE_CART_MUTATION = `
@@ -22,16 +27,18 @@ const CREATE_CART_MUTATION = `
   }
 `
 
-async function shopifyFetch(query: string, variables: Record<string, unknown>) {
-  // Type assertions are safe here - the caller (createShopifyCartAndRedirect)
-  // validates that these env vars exist before calling this function
+async function shopifyFetch(
+  query: string,
+  variables: Record<string, unknown>,
+  config: { store: string; token: string }
+) {
   const res = await fetch(
-    `https://${SHOPIFY_STORE}/api/2024-01/graphql.json`,
+    `https://${config.store}/api/2024-01/graphql.json`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_TOKEN as string,
+        'X-Shopify-Storefront-Access-Token': config.token,
       },
       body: JSON.stringify({ query, variables }),
     }
@@ -68,8 +75,11 @@ export default function ShopifyCheckout() {
     checkoutStarted.current = true
 
     async function createShopifyCartAndRedirect() {
+      // Get config at runtime for testability
+      const config = getShopifyConfig()
+
       // Validate Shopify configuration
-      if (!SHOPIFY_STORE || !SHOPIFY_TOKEN) {
+      if (!config.store || !config.token) {
         setStatus('error')
         setErrorMsg('Shopify is not configured. Please set VITE_SHOPIFY_STORE and VITE_SHOPIFY_STOREFRONT_TOKEN.')
         return
@@ -112,7 +122,7 @@ export default function ShopifyCheckout() {
         // Create cart with items
         const cartRes = await shopifyFetch(CREATE_CART_MUTATION, {
           input: { lines },
-        })
+        }, { store: config.store, token: config.token })
 
         const checkoutUrl = cartRes.data?.cartCreate?.cart?.checkoutUrl
         const errors = cartRes.data?.cartCreate?.userErrors
@@ -127,10 +137,10 @@ export default function ShopifyCheckout() {
 
         // Apply custom checkout domain if configured (for headless stores)
         let finalCheckoutUrl = checkoutUrl
-        if (CUSTOM_CHECKOUT_DOMAIN) {
+        if (config.customCheckoutDomain) {
           try {
             const url = new URL(checkoutUrl)
-            const customUrl = new URL(CUSTOM_CHECKOUT_DOMAIN)
+            const customUrl = new URL(config.customCheckoutDomain)
             url.hostname = customUrl.hostname
             finalCheckoutUrl = url.toString()
           } catch {
