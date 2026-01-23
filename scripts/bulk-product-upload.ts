@@ -97,34 +97,30 @@ async function sleep(ms: number): Promise<void> {
 }
 
 /**
- * APPROACH 1: Sequential GraphQL Mutations
+ * APPROACH 1: Sequential GraphQL Mutations using productSet
  * Best for: < 100 products, immediate feedback needed
  *
- * Steps:
- * 1. productCreate - creates product with basic info
- * 2. productVariantsBulkCreate - adds variants to product
- * 3. productCreateMedia - uploads images
+ * productSet creates product + options + variants in ONE call
+ * Then: productCreateMedia for images
  */
 async function createProductSequential(
   config: ShopifyConfig,
   product: ProductInput
 ): Promise<{ productId: string; variantIds: string[] }> {
 
-  // Step 1: Create the product (without variants initially for complex cases)
-  const createProductMutation = `
-    mutation productCreate($input: ProductInput!) {
-      productCreate(input: $input) {
+  // Use productSet mutation - creates product, options, and variants in one call
+  const productSetMutation = `
+    mutation productSet($input: ProductSetInput!) {
+      productSet(input: $input) {
         product {
           id
           title
           handle
-          variants(first: 10) {
-            edges {
-              node {
-                id
-                title
-                price
-              }
+          variants(first: 20) {
+            nodes {
+              id
+              title
+              price
             }
           }
         }
@@ -136,7 +132,19 @@ async function createProductSequential(
     }
   `;
 
-  // For simple products, we can include variants in the initial create
+  // Build variants array for productSet
+  const variants = product.variants?.map(v => ({
+    optionValues: v.options?.map(opt => ({
+      optionName: 'Size',
+      name: opt,
+    })) || [],
+    price: v.price,
+    sku: v.sku,
+  })) || [];
+
+  // Extract unique option values for productOptions
+  const optionValues = [...new Set(product.variants?.flatMap(v => v.options || []) || [])];
+
   const productInput: Record<string, unknown> = {
     title: product.title,
     descriptionHtml: product.descriptionHtml || '',
@@ -146,32 +154,29 @@ async function createProductSequential(
     status: product.status || 'DRAFT',
   };
 
-  // Include variants if provided (simple case)
-  if (product.variants && product.variants.length > 0) {
-    productInput.variants = product.variants.map(v => ({
-      price: v.price,
-      compareAtPrice: v.compareAtPrice,
-      sku: v.sku,
-      barcode: v.barcode,
-      options: v.options,
-      inventoryManagement: 'SHOPIFY',
-    }));
+  // Add options and variants if provided
+  if (optionValues.length > 0) {
+    productInput.productOptions = [{
+      name: 'Size',
+      values: optionValues.map(v => ({ name: v })),
+    }];
+    productInput.variants = variants;
   }
 
   console.log(`Creating product: ${product.title}`);
 
-  const createResult = await shopifyGraphQL(config, createProductMutation, {
+  const createResult = await shopifyGraphQL(config, productSetMutation, {
     input: productInput,
-  }) as { data: { productCreate: { product: { id: string; variants: { edges: { node: { id: string } }[] } }; userErrors: { field: string; message: string }[] } } };
+  }) as { data: { productSet: { product: { id: string; variants: { nodes: { id: string }[] } }; userErrors: { field: string; message: string }[] } } };
 
-  const { productCreate } = createResult.data;
+  const { productSet } = createResult.data;
 
-  if (productCreate.userErrors.length > 0) {
-    throw new Error(`Product create errors: ${JSON.stringify(productCreate.userErrors)}`);
+  if (productSet.userErrors.length > 0) {
+    throw new Error(`Product create errors: ${JSON.stringify(productSet.userErrors)}`);
   }
 
-  const productId = productCreate.product.id;
-  const variantIds = productCreate.product.variants.edges.map(e => e.node.id);
+  const productId = productSet.product.id;
+  const variantIds = productSet.product.variants.nodes.map(n => n.id);
 
   console.log(`  Created product: ${productId}`);
   console.log(`  Variants created: ${variantIds.length}`);
