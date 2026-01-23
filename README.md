@@ -8,8 +8,9 @@
 [![Lighthouse](https://img.shields.io/badge/Lighthouse-98%2F95%2F96%2F100-brightgreen)](https://pagespeed.web.dev/)
 [![Tests](https://img.shields.io/badge/Tests-347%20passing-success)](/)
 
-> **Headless Shopify starter with working checkout - even on free dev stores.**
-> Full UI control with Stripe, or use native Shopify checkout. Switch with one environment variable.
+> **The Problem:** Shopify dev stores block checkout behind a password wall. You can't test real purchase flows without a paid store.
+>
+> **This starter fixes it** with a Stripe fallback that works on free dev stores. Full UI control, or use native Shopify checkout. Switch with one environment variable.
 
 **If this saves you setup time, consider giving it a star — it helps others find it!**
 
