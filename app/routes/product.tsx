@@ -172,9 +172,15 @@ export default function Product() {
     );
   }, [product?.variants, product?.options, selectedOptions]);
 
-  // Extract specific options for backward compatibility with cart/FramePreview
-  const selectedSize = selectedOptions['Size'] || selectedOptions['Dimensions'] || 'Default';
-  const selectedFrame = selectedOptions['Frame'] || 'Unframed';
+  // Extract options for cart payload - use first two options dynamically
+  // sizeId = first option (Size, Dimensions, etc.)
+  // frameId = second option (Frame, Color, Material, etc.) or 'Unframed' if none
+  const optionNames = product?.options?.map(o => o.name) || [];
+  const firstOptionName = optionNames[0];
+  const secondOptionName = optionNames[1];
+
+  const selectedSize = firstOptionName ? selectedOptions[firstOptionName] : 'Default';
+  const selectedFrame = secondOptionName ? selectedOptions[secondOptionName] : 'Unframed';
 
   const price = selectedVariant ? parseFloat(selectedVariant.price) : 0;
 
