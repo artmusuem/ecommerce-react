@@ -123,15 +123,21 @@ export default function Product() {
   const { product } = useLoaderData<typeof loader>();
   const dispatch = useCartDispatch();
 
-  // Get options
-  const sizeOption = product?.options?.find(o => o.name === 'Size');
-  const frameOption = product?.options?.find(o => o.name === 'Frame');
-  const sizes = sizeOption?.values || ['8×10'];
-  const frames = frameOption?.values || ['Unframed'];
+  // Dynamic options state - initialize with first value of each option
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
+    const defaults: Record<string, string> = {};
+    product?.options?.forEach(opt => {
+      defaults[opt.name] = opt.values[0];
+    });
+    return defaults;
+  });
 
-  const [selectedSize, setSelectedSize] = useState(sizes[0]);
-  const [selectedFrame, setSelectedFrame] = useState(frames[0]);
   const [added, setAdded] = useState(false);
+
+  // Update selected option handler
+  const updateOption = (optionName: string, value: string) => {
+    setSelectedOptions(prev => ({ ...prev, [optionName]: value }));
+  };
 
   // Track view_item analytics event on page load
   const hasTrackedView = useRef(false);
@@ -151,14 +157,24 @@ export default function Product() {
     });
   }, [product]);
 
-  // Find selected variant
+  // Find selected variant - matches ALL selected options dynamically
   const selectedVariant = useMemo((): ProductVariant | undefined => {
     if (!product?.variants) return undefined;
+
+    // If product has no options, return first variant
+    if (!product.options || product.options.length === 0) {
+      return product.variants[0];
+    }
+
+    // Find variant where ALL selectedOptions match
     return product.variants.find(v =>
-      v.selectedOptions.some(o => o.name === 'Size' && o.value === selectedSize) &&
-      v.selectedOptions.some(o => o.name === 'Frame' && o.value === selectedFrame)
+      v.selectedOptions.every(opt => selectedOptions[opt.name] === opt.value)
     );
-  }, [product?.variants, selectedSize, selectedFrame]);
+  }, [product?.variants, product?.options, selectedOptions]);
+
+  // Extract specific options for backward compatibility with cart/FramePreview
+  const selectedSize = selectedOptions['Size'] || selectedOptions['Dimensions'] || 'Default';
+  const selectedFrame = selectedOptions['Frame'] || 'Unframed';
 
   const price = selectedVariant ? parseFloat(selectedVariant.price) : 0;
   const previewSrc = getResizedImage(product.image, IMAGE_SIZES.preview);
@@ -240,44 +256,46 @@ export default function Product() {
               )}
             </div>
 
-            {/* Frame selector */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Frame
-              </label>
-              <div className="flex flex-wrap gap-1">
-                {frames.map(frame => (
-                  <FrameIcon
-                    key={frame}
-                    frameType={frame}
-                    selected={selectedFrame === frame}
-                    onClick={() => setSelectedFrame(frame)}
-                  />
-                ))}
+            {/* Dynamic option selectors */}
+            {product?.options?.map(option => (
+              <div key={option.name}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {option.name}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {/* Use FrameIcon for Frame option, buttons for others */}
+                  {option.name === 'Frame' ? (
+                    option.values.map(value => (
+                      <FrameIcon
+                        key={value}
+                        frameType={value}
+                        selected={selectedOptions[option.name] === value}
+                        onClick={() => updateOption(option.name, value)}
+                      />
+                    ))
+                  ) : (
+                    option.values.map(value => (
+                      <button
+                        key={value}
+                        onClick={() => updateOption(option.name, value)}
+                        className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                          selectedOptions[option.name] === value
+                            ? 'border-primary bg-primary text-white'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {value}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
+            ))}
 
-            {/* Size/Dimensions selector */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Dimensions
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {sizes.map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                      selectedSize === size
-                        ? 'border-primary bg-primary text-white'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Show default message if no options */}
+            {(!product?.options || product.options.length === 0) && (
+              <p className="text-sm text-gray-500">Single variant product</p>
+            )}
 
             {/* Add to Cart */}
             <div className="pt-4">

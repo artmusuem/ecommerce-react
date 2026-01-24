@@ -18,7 +18,15 @@
  * 1. Create product → returns product ID
  * 2. Create variants → requires product ID (or use productSet for all-in-one)
  * 3. Upload images → requires product ID
- * 4. Publish → requires product ID
+ * 4. Publish to Online Store → requires product ID AND write_publications scope
+ *
+ * REQUIRED API SCOPES:
+ * - write_products (create/update products)
+ * - read_publications, write_publications (publish to Online Store for Storefront API visibility)
+ *
+ * NOTE: Products must be published to the "Online Store" sales channel to be visible
+ * via the Storefront API. Without write_publications scope, you must manually publish
+ * products from Shopify Admin → Products → Select → More actions → Make available.
  *
  * Usage:
  *   SHOPIFY_STORE_DOMAIN=your-store.myshopify.com \
@@ -191,6 +199,10 @@ async function createProductSequential(
     }
   }
 
+  // Step 4: Publish to Online Store (for Storefront API visibility)
+  // This requires read_publications and write_publications scopes
+  await publishToOnlineStore(config, productId);
+
   return { productId, variantIds };
 }
 
@@ -298,6 +310,103 @@ async function assignImagesToVariants(
     console.warn(`  Variant image assignment errors: ${JSON.stringify(productVariantsBulkUpdate.userErrors)}`);
   } else {
     console.log(`  Assigned images to ${productVariantsBulkUpdate.productVariants.length} variants`);
+  }
+}
+
+/**
+ * Publish product to Online Store sales channel
+ * Required for Storefront API visibility
+ *
+ * REQUIRES: read_publications, write_publications scopes
+ * If scope is missing, this will fail gracefully with a warning
+ */
+async function publishToOnlineStore(
+  config: ShopifyConfig,
+  productId: string
+): Promise<boolean> {
+  // First, get the Online Store publication ID
+  const publicationsQuery = `
+    query {
+      publications(first: 10) {
+        nodes {
+          id
+          name
+        }
+      }
+    }
+  `;
+
+  try {
+    const pubResult = await shopifyGraphQL(config, publicationsQuery) as {
+      data?: { publications?: { nodes: { id: string; name: string }[] } };
+      errors?: { message: string }[];
+    };
+
+    // Check for access denied error
+    if (pubResult.errors?.some(e => e.message.includes('Access denied'))) {
+      console.warn(`  ⚠ Cannot publish: missing read_publications scope`);
+      console.warn(`    → Manually publish from Shopify Admin or add scope to your app`);
+      return false;
+    }
+
+    const publications = pubResult.data?.publications?.nodes || [];
+    // For headless storefronts, look for Headless channel first, then Online Store
+    const targetChannel = publications.find(p =>
+      p.name.toLowerCase().includes('headless')
+    ) || publications.find(p =>
+      p.name.toLowerCase().includes('online store') ||
+      p.name.toLowerCase().includes('web')
+    );
+
+    if (!targetChannel) {
+      console.warn(`  ⚠ No Headless or Online Store channel found`);
+      return false;
+    }
+
+    console.log(`  Publishing to: ${targetChannel.name}`);
+
+    // Publish the product
+    const publishMutation = `
+      mutation publishablePublish($id: ID!, $input: [PublicationInput!]!) {
+        publishablePublish(id: $id, input: $input) {
+          publishable {
+            ... on Product {
+              id
+              onlineStoreUrl
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const publishResult = await shopifyGraphQL(config, publishMutation, {
+      id: productId,
+      input: [{ publicationId: targetChannel.id }],
+    }) as {
+      data?: { publishablePublish?: { userErrors: { message: string }[] } };
+      errors?: { message: string }[];
+    };
+
+    if (publishResult.errors?.some(e => e.message.includes('Access denied'))) {
+      console.warn(`  ⚠ Cannot publish: missing write_publications scope`);
+      return false;
+    }
+
+    const userErrors = publishResult.data?.publishablePublish?.userErrors || [];
+    if (userErrors.length > 0) {
+      console.warn(`  ⚠ Publish errors: ${JSON.stringify(userErrors)}`);
+      return false;
+    }
+
+    console.log(`  ✓ Published to Online Store`);
+    return true;
+  } catch (error) {
+    console.warn(`  ⚠ Publish failed:`, error);
+    return false;
   }
 }
 
@@ -547,7 +656,7 @@ const sampleProducts: ProductInput[] = [
     vendor: 'Gallery Store',
     productType: 'Art Print',
     tags: ['landscape', 'sunset', 'nature'],
-    status: 'DRAFT',
+    status: 'ACTIVE',
     variants: [
       { price: '49.99', sku: 'SV-SMALL', options: ['Small'] },
       { price: '79.99', sku: 'SV-MEDIUM', options: ['Medium'] },
@@ -565,7 +674,7 @@ const sampleProducts: ProductInput[] = [
     vendor: 'Gallery Store',
     productType: 'Art Print',
     tags: ['seascape', 'ocean', 'nature'],
-    status: 'DRAFT',
+    status: 'ACTIVE',
     variants: [
       { price: '49.99', sku: 'OW-SMALL', options: ['Small'] },
       { price: '79.99', sku: 'OW-MEDIUM', options: ['Medium'] },
