@@ -162,7 +162,7 @@ function CheckoutForm({ total, items, shippingAddress, email, onSuccess, isFormV
             Processing...
           </span>
         ) : (
-          `Pay $${total}`
+          `Pay $${total.toFixed(2)}`
         )}
       </button>
 
@@ -252,19 +252,23 @@ function OrderSummary({ items, total }: { items: CartItem[]; total: number }) {
 
       <div className="space-y-4 mb-6">
         {items.map((item) => {
+          // Use stored values directly, fallback to hardcoded data for legacy items
           const size = sizes.find(s => s.id === item.sizeId)
           const frame = frames.find(f => f.id === item.frameId)
+          const sizeName = size?.name || item.sizeId
+          const frameName = frame?.name || item.frameId
+          const itemTotal = (item.price * item.quantity).toFixed(2)
           return (
             <div key={item.key} className="flex gap-3">
-              <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border-2" style={{ borderColor: frame?.color || '#333' }}>
+              <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border-2" style={{ borderColor: frame?.color || '#e5e7eb' }}>
                 <img src={getResizedImage(item.image, 80)} alt={item.title} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-sm line-clamp-1 text-ink-900">{item.title}</h3>
-                <p className="text-xs text-ink-500">{size?.name} / {frame?.name}</p>
+                <p className="text-xs text-ink-500">{sizeName}{frameName && frameName !== 'Unframed' ? ` / ${frameName}` : ''}</p>
                 <p className="text-xs text-ink-500">Qty: {item.quantity}</p>
               </div>
-              <span className="font-medium text-sm text-ink-900">${item.price * item.quantity}</span>
+              <span className="font-medium text-sm text-ink-900">${itemTotal}</span>
             </div>
           )
         })}
@@ -273,7 +277,7 @@ function OrderSummary({ items, total }: { items: CartItem[]; total: number }) {
       <div className="border-t pt-4 space-y-2 border-gray-200">
         <div className="flex justify-between text-sm text-ink-600">
           <span>Subtotal</span>
-          <span>${total}</span>
+          <span>${total.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm text-ink-600">
           <span>Shipping</span>
@@ -281,7 +285,7 @@ function OrderSummary({ items, total }: { items: CartItem[]; total: number }) {
         </div>
         <div className="flex justify-between items-center pt-2 border-t border-gray-200">
           <span className="font-semibold text-ink-900">Total</span>
-          <span className="text-xl font-semibold text-ink-900">${total}</span>
+          <span className="text-xl font-semibold text-ink-900">${total.toFixed(2)}</span>
         </div>
       </div>
     </div>
