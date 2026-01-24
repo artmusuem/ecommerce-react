@@ -8,7 +8,7 @@
 [![Lighthouse](https://img.shields.io/badge/Lighthouse-98%2F95%2F96%2F100-brightgreen)](https://pagespeed.web.dev/)
 [![Tests](https://img.shields.io/badge/Tests-347%20passing-success)](/)
 
-> **The Problem:** Shopify dev stores block checkout behind a password wall. There's no way to demo a complete purchase flow.
+> **The Problem:** Shopify dev stores block checkout behind a password wall, making it impossible to demo or test the complete purchase flow during development.
 >
 > **This starter fixes it** with a Stripe fallback that works on free dev stores. Full UI control, or use native Shopify checkout. Switch with one environment variable.
 
