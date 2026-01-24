@@ -152,9 +152,9 @@ export default function Cart() {
                         <p className="text-xs mt-0.5 text-gray-500">
                           {item.artist}
                         </p>
-                        {/* Display selected size and frame */}
+                        {/* Display selected options */}
                         <p className="text-xs mt-1 text-ink-500">
-                          {item.sizeId} / {item.frameId}
+                          {item.sizeId}{item.frameId ? ` / ${item.frameId}` : ''}
                         </p>
                       </div>
 

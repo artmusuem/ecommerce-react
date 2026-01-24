@@ -265,7 +265,7 @@ function OrderSummary({ items, total }: { items: CartItem[]; total: number }) {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-sm line-clamp-1 text-ink-900">{item.title}</h3>
-                <p className="text-xs text-ink-500">{sizeName}{frameName && frameName !== 'Unframed' ? ` / ${frameName}` : ''}</p>
+                <p className="text-xs text-ink-500">{sizeName}{frameName ? ` / ${frameName}` : ''}</p>
                 <p className="text-xs text-ink-500">Qty: {item.quantity}</p>
               </div>
               <span className="font-medium text-sm text-ink-900">${itemTotal}</span>

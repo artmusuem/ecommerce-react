@@ -174,13 +174,13 @@ export default function Product() {
 
   // Extract options for cart payload - use first two options dynamically
   // sizeId = first option (Size, Dimensions, etc.)
-  // frameId = second option (Frame, Color, Material, etc.) or 'Unframed' if none
+  // frameId = second option (Frame, Color, Material, etc.) or empty if none
   const optionNames = product?.options?.map(o => o.name) || [];
   const firstOptionName = optionNames[0];
   const secondOptionName = optionNames[1];
 
   const selectedSize = firstOptionName ? selectedOptions[firstOptionName] : 'Default';
-  const selectedFrame = secondOptionName ? selectedOptions[secondOptionName] : 'Unframed';
+  const selectedFrame = secondOptionName ? selectedOptions[secondOptionName] : '';
 
   const price = selectedVariant ? parseFloat(selectedVariant.price) : 0;
 
