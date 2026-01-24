@@ -25,6 +25,7 @@ export interface ProductVariant {
   price: string
   availableForSale: boolean
   selectedOptions: SelectedOption[]
+  image?: string  // Variant-specific image URL
 }
 
 // Product Types

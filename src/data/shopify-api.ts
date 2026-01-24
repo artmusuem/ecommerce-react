@@ -187,6 +187,10 @@ const PRODUCTS_QUERY = `
                   name
                   value
                 }
+                image {
+                  url
+                  altText
+                }
               }
             }
           }
@@ -228,7 +232,8 @@ function transformShopifyProduct(shopifyProduct: ShopifyProduct): Product {
     selectedOptions: node.selectedOptions.map(opt => ({
       name: opt.name,
       value: opt.value
-    }))
+    })),
+    image: node.image?.url
   })) || []
 
   // Transform options
@@ -327,6 +332,10 @@ export async function fetchShopifyProduct(handle: string): Promise<Product | nul
               selectedOptions {
                 name
                 value
+              }
+              image {
+                url
+                altText
               }
             }
           }

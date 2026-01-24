@@ -177,7 +177,10 @@ export default function Product() {
   const selectedFrame = selectedOptions['Frame'] || 'Unframed';
 
   const price = selectedVariant ? parseFloat(selectedVariant.price) : 0;
-  const previewSrc = getResizedImage(product.image, IMAGE_SIZES.preview);
+
+  // Use variant image if available, fallback to product image
+  const displayImage = selectedVariant?.image || product.image;
+  const previewSrc = getResizedImage(displayImage, IMAGE_SIZES.preview);
 
   // Construct Smithsonian URL: https://www.si.edu/object/{title-slug}:{accession_number}
   const getSmithsonianSlug = (title: string): string => {

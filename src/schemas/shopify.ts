@@ -18,13 +18,20 @@ const SelectedOptionSchema = z.object({
   value: z.string()
 })
 
+// Variant image schema (optional)
+const VariantImageSchema = z.object({
+  url: z.string(),
+  altText: z.string().nullable()
+}).nullable()
+
 // Variant schema
 export const ShopifyVariantSchema = z.object({
   id: z.string(),
   title: z.string(),
   price: MoneySchema,
   availableForSale: z.boolean(),
-  selectedOptions: z.array(SelectedOptionSchema)
+  selectedOptions: z.array(SelectedOptionSchema),
+  image: VariantImageSchema.optional()
 })
 
 // Option schema
