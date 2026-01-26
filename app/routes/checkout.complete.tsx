@@ -7,6 +7,7 @@ interface SessionData {
   status: string
   customer_email: string
   amount_total: number
+  payment_intent: string
   shipping_details?: {
     name: string
     address: {
@@ -84,7 +85,7 @@ export default function CheckoutComplete() {
                 country: data.shipping_details.address.country,
                 phone: '',
               } : null,
-              checkoutSessionId: sessionId,
+              paymentIntentId: data.payment_intent,
               total: (data.amount_total || 0) / 100,
             }),
           })

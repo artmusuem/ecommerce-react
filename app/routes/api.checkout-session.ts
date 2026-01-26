@@ -38,6 +38,7 @@ export async function loader({ request }: { request: Request }) {
       amount_total: session.amount_total,
       shipping_details: session.shipping_details,
       metadata: session.metadata,
+      payment_intent: session.payment_intent,
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
